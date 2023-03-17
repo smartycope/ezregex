@@ -3,7 +3,7 @@ from random import randint, choice, choices
 import re
 from .EasyRegexMember import escapeChars
 
-from Cope import debug, todo, percent; todo('remove this')
+# from Cope import debug, todo, percent; todo('remove this')
 
 def unsanitize(string):
     for part in escapeChars:
@@ -80,7 +80,7 @@ class _invertRegexes:
     # anyOf = re.compile(r'\((((.+)\|){1,}(.+))+\)') # (stuff|things)
     #! NOTE: This matches passive groups: (?:sequence) but I don't think its a problem, so long as the sequence doesn't contain a |
     #  TODO: this probably needs to be fixed at some point
-    todo('debugging this regex is where I left off. it needs to require at least 1 | in order to work properly -- fixing the problem in the above line')
+    # todo('debugging this regex is where I left off. it needs to require at least 1 | in order to work properly -- fixing the problem in the above line')
     # group(either(ifPrecededBy('(?:'), ifPrecededBy('(')) + matchMax(anyCharExcept(r'|\)')) + '|' + matchMax(anyCharExcept(r'|\)')) + optional('|') + ifFollowedBy(')'))
     anyOf = re.compile(r'((?:(?<=\(\?\:)|(?<=\())(?:[^\|\)])+\|(?:[^\|\)])+(?:\|)?(?=\)))') # (stuff|things|otherThings)
     # hex     = re.compile(r'\\(\d+)') # \\67
@@ -167,7 +167,7 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
 
     # Optionals
     regex = _invertRegexes.max.sub('\g<prev>' * randint(0, _alot), regex)
-    regex = _invertRegexes.either.sub('\g<1>' if percent(50) else '\g<2>', regex)
+    regex = _invertRegexes.either.sub('\g<1>' if randint(0,1) else '\g<2>', regex)
     # anyBetween    = EasyRegexSingleton(lambda cur, input, and_input: cur + r'[' + input + r'-' + and_input + r']') # TODO
     # Alright, so the regex matches basically anything in square brackets that's not a ^, including the square brackets. This gets that,
     #   drops the square brackets (with [1:-1]), and splits them along commas and chooses a random one
@@ -175,13 +175,14 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     regex = _invertRegexes.anyChars.sub(lambda m: choice(m.groups()[0][1:-1].split(',')), regex)
     # regex = _invertRegexes.anyOf.sub(lambda m: choice(m.groups()[0].split('|')), regex)
     def tmp(m):
-        debug(m.groups())
-        debug(m.groups()[0])
-        debug(m.group())
+        # debug(m.groups())
+        # debug(m.groups()[0])
+        # debug(m.group())
         options = m.groups()[0].split('|')
-        debug(options)
+        # debug(options)
         # return debug(choice(m.groups()[0].split('|')), clr=2)
-        return debug(choice(options), clr=2)
+        # return debug(choice(options), clr=2)
+        return choice(options)
     regex = _invertRegexes.anyOf.sub(tmp, regex)
 
     # Sets
@@ -204,7 +205,7 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     # regex = _invertRegexes.oct.sub(r'0o\1',regex)
 
     # Groups
-    regex = _invertRegexes.optional.sub(r'\g<prev>' if percent(50) else '', regex)
+    regex = _invertRegexes.optional.sub(r'\g<prev>' if randint(0,1) else '', regex)
     regex = _invertRegexes.notGroup.sub(color(r'\1', notGroupColor), regex) # TODO
     regex = _invertRegexes.namedGroup.sub((color(r'\g<name>: ', groupNameColor) if groupNames else '') + color(r'\g<stuff>', groupNameColor, True), regex)
     regex = _invertRegexes.passiveGroup.sub(r'\1', regex)

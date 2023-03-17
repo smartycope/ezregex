@@ -3,13 +3,13 @@ from EasyRegex.invert import *
 # from .invert import *
 # from .__init__ import *
 import re
-from Cope import *
+# from Cope import *
 
-todo('test invert of (stuff)? some more (it might be always removing it)')
-todo('invert notAnyCha/rs ([^s,t]) failed, it selected a char specified')
-todo('invert [:punct:]')
-todo('invert colors dont work')
-todo('add a letter singleton')
+# todo('test invert of (stuff)? some more (it might be always removing it)')
+# todo('invert notAnyCha/rs ([^s,t]) failed, it selected a char specified')
+# todo('invert [:punct:]')
+# todo('invert colors dont work')
+# todo('add a letter singleton')
 
 
 def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, strictness=20):
@@ -79,11 +79,13 @@ def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, s
     ]
 
     if singletons:
-        debug("Testing EasyRegex Singletons:", color=2)
+        # debug("Testing EasyRegex Singletons:", color=2)
+        print("Testing EasyRegex Singletons:")
 
         test = word() + whiteChunk()
         assert str(test) == '\w+\s+'
-        debug(test)
+        # debug(test)
+        print(test)
         # str(test)
         # debug()
         # return
@@ -95,28 +97,32 @@ def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, s
                     assert r.test(should)
 
     if unsanitize_:
-        debug("Testing unsantize:", color=2)
+        print("Testing unsantize:")
+        # debug("Testing unsantize:", color=2)
         for i in (
             ', ? : ( ) a d %      ',
             ', ? : \( \) a g %    ',
             '\, \? \: \( \) 2 4 %,',
             '\, \? \: \( \) d %   ',
         ):
-            debug(unsanitize(i), name=f'Unsanitized <{i}>')
+            # debug(unsanitize(i), name=f'Unsanitized <{i}>')
+            print(f'Unsanitized <{i}>:', unsanitize(i))
 
     if unitTests:
-        debug("Running EasyRegex Singleton Unit Tests:", color=2)
+        print("Running EasyRegex Singleton Unit Tests:")
+        # debug("Running EasyRegex Singleton Unit Tests:", color=2)
         # Tests __radd__()
         assert either('(' + word() + ')', '.') == either(match('(') + word() + match(')'), '.')
 
     if invert:
-        debug("Testing EasyRegex Invert:", color=2)
+        print("Testing EasyRegex Invert:")
+        # debug("Testing EasyRegex Invert:", color=2)
         # for r in regexs:
         #     print(f'{r} should match:')
         #     invertTest(r, colors=False, groupNames=False)
 
         for r in regexs:
-            debug()
+            # debug()
             for _ in range(strictness):
                 assert r.test(invertRegex(r, colors=False, groupNames=False, explicitConditionals=False))
 
