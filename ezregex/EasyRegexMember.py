@@ -4,7 +4,7 @@ import re
 from copy import deepcopy
 from typing import List
 
-escapeChars = (r'\)', r'\(', r'\[', r'\]', r'\{', r'\}', r'\+', r'\*', r'\$', r'\@', r'\^', r'\:', r'\=', r'\-', r'\/', r'\?', r'\|', r'\,')#, r'\\')
+escapeChars = (r'\)', r'\(', r'\[', r'\]', r'\{', r'\}', r'\+', r'\*', r'\$', r'\@', r'\^', r'\:', r'\=', r'\-', r'\/', r'\?', r'\|', r'\,')  #, r'\\')
 
 # For tests
 def printColor(s, color=(0, 0, 0), curColor=(204, 204, 204), **kwargs):
@@ -133,7 +133,7 @@ class EasyRegexMember:
         if _cope:
             printContext(calls=2, color=subtle)
             print()
-        print(f"Testing regex expression:")
+        print("Testing regex expression:")
         printColor(self._compile(), green)
         print("for matches in:")
         printColor(str(testString), green)

@@ -16,10 +16,10 @@ class EasyRegexSingleton:
             else:
                 raise TypeError(f"Invalid type {type(p)} passed to EasyRegexSingleton constructor")
 
-        self.func         = parseFuncParam(func)
-        self.pythonFunc   = parseFuncParam(pythonFunc)
-        self.perlFunc     = parseFuncParam(perlFunc)
-        self.sanatize     = sanatize
+        self.func       = parseFuncParam(func)
+        self.pythonFunc = parseFuncParam(pythonFunc)
+        self.perlFunc   = parseFuncParam(perlFunc)
+        self.sanatize   = sanatize
 
     def __call__(self, *args):
         args = list(args)

@@ -1,17 +1,8 @@
 #!/usr/bin/env python3
-""" EasyRegex
-An readable and intuitive way to generate Regular Expressions
-"""
 __version__ = '1.0.0'
-__author__ = 'Copeland Carter'
-__email__ = 'smartycope@gmail.com'
-__license__ = 'MIT'
-__copyright__ = '(c) 2021, Copeland Carter'
-
-# TODO: Add the "in" operator to easyRegexMember and connect it to... test, probably? have it auto re.match, maybe?
 
 from .EasyRegexSingleton import EasyRegexSingleton
-from .invert import invertRegex, testInvertRegex
+# from .invert import invertRegex, testInvertRegex
 # from .tests import *
 
 # print('EasyRegex Loaded')

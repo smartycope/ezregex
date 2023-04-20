@@ -41,7 +41,7 @@ notEscaped = r'(?<!\\)'
 # namedGroup('prev', either('(' + word() + ')', '.'))
 # prevThing = fr'(?P<prev>(\(\w+\)|{notEscaped}.))'
 # namedGroup('prev', anyof('(?:' + chunk() + ')', '(' + word() + ')', raw(r'(?<!\\)') + anything()))
-prevThing = fr'(?P<prev>(?:\(\?\:.+\)|\(\w+\)|(?<!\\).))'
+prevThing = r'(?P<prev>(?:\(\?\:.+\)|\(\w+\)|(?<!\\).))'
 
 tillCloseParen = r'(?P<stuff>.+)\)'
 
@@ -59,41 +59,41 @@ class _invertRegexes:
     tab          = re.compile(r'\\t')
     vert         = re.compile(r'\\v')
     f            = re.compile(r'\\f')
-    matchExactly = re.compile(r'\^(.+)\$') # \^stuff\$
-    matchMax     = re.compile(fr'{prevThing}\+') # (stuff)+
+    matchExactly = re.compile(r'\^(.+)\$')  # \^stuff\$
+    matchMax     = re.compile(fr'{prevThing}\+')  # (stuff)+
     # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('amt', number()) + '}'
-    matchExactAmt = re.compile(prevThing + r'\{(?P<amt>\d+)\}') # (stuff){3}
+    matchExactAmt = re.compile(prevThing + r'\{(?P<amt>\d+)\}')  # (stuff){3}
     # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('min', number()) + ',' + optional(space()) + namedGroup('max', number()) + '}'
-    matchRange = re.compile(prevThing + r'\{(?P<min>\d+),( )?(?P<max>\d+)\}') # (stuff){3,4}
+    matchRange = re.compile(prevThing + r'\{(?P<min>\d+),( )?(?P<max>\d+)\}')  # (stuff){3,4}
     # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('min', number()) + ',' + optional(space()) + '}'
-    matchMore = re.compile(prevThing + r'\{(?P<min>\d+),( )?\}') # (stuff){3,}
-    optional  = re.compile(prevThing + r'\?(?![\:P\<\!])') # (stuff)?
-    max       = re.compile(prevThing + r'\*') # (stuff)*
-    either    = re.compile(r'\((\w+)\|(\w+)\)') # (stuff|things)
+    matchMore = re.compile(prevThing + r'\{(?P<min>\d+),( )?\}')  # (stuff){3,}
+    optional  = re.compile(prevThing + r'\?(?![\:P\<\!])')  # (stuff)?
+    max       = re.compile(prevThing + r'\*')  # (stuff)*
+    either    = re.compile(r'\((\w+)\|(\w+)\)')  # (stuff|things)
     notWhitespace = re.compile(r'\\S')
     notDigit      = re.compile(r'\\D')
     notWord       = re.compile(r'\\W')
     # This matches basically anything in square brackets that's not ^
-    anyChars    = re.compile(r'(\[([^\^]\,?)+\])') # [s,t]
-    notAnyChars = re.compile(r'\[\^(.\,?)+\]') # [^s,t]
+    anyChars    = re.compile(r'(\[([^\^]\,?)+\])')  # [s,t]
+    notAnyChars = re.compile(r'\[\^(.\,?)+\]')  # [^s,t]
     #
     # anyOf = re.compile(r'\((((.+)\|){1,}(.+))+\)') # (stuff|things)
     #! NOTE: This matches passive groups: (?:sequence) but I don't think its a problem, so long as the sequence doesn't contain a |
     #  TODO: this probably needs to be fixed at some point
     # todo('debugging this regex is where I left off. it needs to require at least 1 | in order to work properly -- fixing the problem in the above line')
     # group(either(ifPrecededBy('(?:'), ifPrecededBy('(')) + matchMax(anyCharExcept(r'|\)')) + '|' + matchMax(anyCharExcept(r'|\)')) + optional('|') + ifFollowedBy(')'))
-    anyOf = re.compile(r'((?:(?<=\(\?\:)|(?<=\())(?:[^\|\)])+\|(?:[^\|\)])+(?:\|)?(?=\)))') # (stuff|things|otherThings)
+    anyOf = re.compile(r'((?:(?<=\(\?\:)|(?<=\())(?:[^\|\)])+\|(?:[^\|\)])+(?:\|)?(?=\)))')  # (stuff|things|otherThings)
     # hex     = re.compile(r'\\(\d+)') # \\67
     # oct     = re.compile(r'\\x(\d+)') # \x67
-    ifThing = re.compile(r'\(\?\=' + tillCloseParen) # (?=stuff)
-    ifNotThing       = re.compile(r'\(\?!' + tillCloseParen) # (?!stuff)
+    ifThing = re.compile(r'\(\?\=' + tillCloseParen)  # (?=stuff)
+    ifNotThing       = re.compile(r'\(\?!' + tillCloseParen)  # (?!stuff)
     ifPrecededBy     = re.compile(r'\(\?\<\=' + tillCloseParen)
     ifNotPrecededBy  = re.compile(r'\(\?\<\!' + tillCloseParen)
     ifNotPrecededBy2 = re.compile(r'\(\?\!\=' + tillCloseParen)
-    passiveGroup     = re.compile(r'\(\?\:([^\)\(\?]+)\)') # (?:stuff)
-    group = re.compile(r'\((?!\?)([^\)\(\?]+)\)') # (stuff)
-    notGroup = re.compile(r'\(\?:(.+)\)') # (?:stuff)
-    namedGroup = re.compile(r'\(\?P\<(?P<name>\w+)\>(?P<stuff>.+)\)') # (P?<name>stuff)
+    passiveGroup     = re.compile(r'\(\?\:([^\)\(\?]+)\)')  # (?:stuff)
+    group = re.compile(r'\((?!\?)([^\)\(\?]+)\)')  # (stuff)
+    notGroup = re.compile(r'\(\?:(.+)\)')  # (?:stuff)
+    namedGroup = re.compile(r'\(\?P\<(?P<name>\w+)\>(?P<stuff>.+)\)')  # (P?<name>stuff)
 
 def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=False) -> str:
     """ 'Inverts' a regex expression. Gives an example of something that would match the given regex """
@@ -125,8 +125,8 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
             return s
 
     #* The order of these matter
-    regex = _invertRegexes.start.sub('', regex) # TODO
-    regex = _invertRegexes.end.sub('', regex) # TODO
+    regex = _invertRegexes.start.sub('', regex)  # TODO
+    regex = _invertRegexes.end.sub('', regex)  # TODO
 
     # Single Characters
     regex = _invertRegexes.word.sub(_randWord(), regex)
@@ -148,7 +148,7 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     regex = _invertRegexes.matchExactly.sub(r'\1', regex)
 
     # Amounts
-    regex = _invertRegexes.matchMax.sub( r"\g<prev>" * randint(1, _alot), regex)
+    regex = _invertRegexes.matchMax.sub(r"\g<prev>" * randint(1, _alot), regex)
     regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * int(m.group('amt')), regex)
     regex = _invertRegexes.matchRange.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('max'))), regex)
     regex = _invertRegexes.matchMore.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('min')) + _alot), regex)
@@ -156,7 +156,7 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     # Not Chuncks
     regex = _invertRegexes.notWhitespace.sub(choice(_digits  + _letters + _punctuation + '_'), regex)
     regex = _invertRegexes.notDigit.sub(choice(_letters + _whitespace  + _punctuation + '_'), regex)
-    regex = _invertRegexes.notWord.sub(choice(_punctuation + _whitespace), regex) # I guess digits are counted as word chars?
+    regex = _invertRegexes.notWord.sub(choice(_punctuation + _whitespace), regex)  # I guess digits are counted as word chars?
 
     # Conditionals
     regex = _invertRegexes.ifThing.sub(_proceedOpen + r'\g<stuff>' + _optionalClose, regex)
@@ -166,14 +166,15 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     regex = _invertRegexes.ifNotPrecededBy2.sub(_notPreceedOpen + r'\g<stuff>' + _optionalClose, regex)
 
     # Optionals
-    regex = _invertRegexes.max.sub('\g<prev>' * randint(0, _alot), regex)
-    regex = _invertRegexes.either.sub('\g<1>' if randint(0,1) else '\g<2>', regex)
+    regex = _invertRegexes.max.sub(r'\g<prev>' * randint(0, _alot), regex)
+    regex = _invertRegexes.either.sub(r'\g<1>' if randint(0,1) else r'\g<2>', regex)
     # anyBetween    = EasyRegexSingleton(lambda cur, input, and_input: cur + r'[' + input + r'-' + and_input + r']') # TODO
     # Alright, so the regex matches basically anything in square brackets that's not a ^, including the square brackets. This gets that,
     #   drops the square brackets (with [1:-1]), and splits them along commas and chooses a random one
     regex = _invertRegexes.notAnyChars.sub(lambda m: choice(list(set(_everything).difference(m.groups()[0][1:-1].split(',')))), regex)
     regex = _invertRegexes.anyChars.sub(lambda m: choice(m.groups()[0][1:-1].split(',')), regex)
     # regex = _invertRegexes.anyOf.sub(lambda m: choice(m.groups()[0].split('|')), regex)
+
     def tmp(m):
         # debug(m.groups())
         # debug(m.groups()[0])
@@ -206,7 +207,7 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
 
     # Groups
     regex = _invertRegexes.optional.sub(r'\g<prev>' if randint(0,1) else '', regex)
-    regex = _invertRegexes.notGroup.sub(color(r'\1', notGroupColor), regex) # TODO
+    regex = _invertRegexes.notGroup.sub(color(r'\1', notGroupColor), regex)  # TODO
     regex = _invertRegexes.namedGroup.sub((color(r'\g<name>: ', groupNameColor) if groupNames else '') + color(r'\g<stuff>', groupNameColor, True), regex)
     regex = _invertRegexes.passiveGroup.sub(r'\1', regex)
     regex = _invertRegexes.group.sub(color(r'\1', randColor()), regex)
