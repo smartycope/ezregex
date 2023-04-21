@@ -1,7 +1,5 @@
-from EasyRegex import *
-from EasyRegex.invert import *
-# from .invert import *
-# from .__init__ import *
+from ezregex import *
+from ezregex.invert import *
 import re
 # from Cope import *
 
@@ -11,23 +9,14 @@ import re
 # todo('invert colors dont work')
 # todo('add a letter singleton')
 
-
 def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, strictness=20):
-    # test = word() + whitespace() # + whiteChunk()
-    # test = wordChar() + whitespace()
-    # test = wordChar()
-    # str(test)
-    # debug()
-    # return
-
-    ow = optional(whitechunk())
-    # debug()
-    w = whitechunk()
+    ow = optional(whitechunk)
+    w = whitechunk
     regexs = [
-        'stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma()) + space() + ifFollowedBy('*'),
-        optional(word() + ow + ':' + ow) + group(word()) + optional(',') + ow,
-        optional(w + 'as' + word()),
-        group(optional(matchMax(match('.') + word()))),
+        'stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*'),
+        optional(word + ow + ':' + ow) + group(word) + optional(',') + ow,
+        optional(w + 'as' + word),
+        group(optional(matchMax(match('.') + word))),
         matchNum(3, either("'", '"')),
         raw(r'\A'),
         raw(r'\Z'),
@@ -68,7 +57,7 @@ def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, s
         raw(r'(?<=stuff)'),
         raw(r'(?<!stuff)'),
         raw(r'(a|b|c|thing|st)uff'),
-        # ifEnclosedWith('(', namedGroup('stuff', word()), ')')
+        # ifEnclosedWith('(', namedGroup('stuff', word), ')')
     ]
 
     shouldMatch = [
@@ -79,10 +68,9 @@ def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, s
     ]
 
     if singletons:
-        # debug("Testing EasyRegex Singletons:", color=2)
         print("Testing EasyRegex Singletons:")
 
-        test = word() + whiteChunk()
+        test = word + whiteChunk
         assert str(test) == '\w+\s+'
         # debug(test)
         print(test)
@@ -91,7 +79,6 @@ def runTests(singletons=True, invert=True, unsanitize_=False, unitTests=False, s
         # return
 
         for cnt, r in enumerate(regexs):
-            # r.debug()
             if cnt < len(shouldMatch):
                 for should in shouldMatch[cnt]:
                     assert r.test(should)

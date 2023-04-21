@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from random import randint, choice, choices
 import re
-from .EasyRegexMember import escapeChars
+from .EZRegexMember import escapeChars
 
 # from Cope import debug, todo, percent; todo('remove this')
 

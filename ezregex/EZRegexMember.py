@@ -1,8 +1,8 @@
-from .EasyRegexFunctionCall import EasyRegexFunctionCall
-from .RegexDialect import RegexDialect
+from .EZRegexFunctionCall import EZRegexFunctionCall
 import re
 from copy import deepcopy
 from typing import List
+from warnings import warn
 
 escapeChars = (r'\)', r'\(', r'\[', r'\]', r'\{', r'\}', r'\+', r'\*', r'\$', r'\@', r'\^', r'\:', r'\=', r'\-', r'\/', r'\?', r'\|', r'\,')  #, r'\\')
 
@@ -17,66 +17,100 @@ def printColor(s, color=(0, 0, 0), curColor=(204, 204, 204), **kwargs):
 
 def _sanitizeInput(i):
     """ Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string """
-    # r'\<', r'\>', r'//'
     i = deepcopy(i)
 
     # If it's another chain, compile it
-    if type(i) is EasyRegexMember:
-        return str(i)
+    if isinstance(i, EZRegexMember):
+        return i._compile()
+    # It's a string (so we need to escape it)
     elif isinstance(i, str):
         for part in escapeChars:
-            i = re.sub(r'(?<!\\)' + part, part, deepcopy(i))
-        return deepcopy(i)
+            i = re.sub(r'(?<!\\)' + part, part, i)
+        return i
+    # It's something we don't know, but try to cast it to a string anyway
     else:
         try:
-            return str(i)
+            s = str(i)
+            msg = f"Type {type(i)} passed to EZRegexMember, auto-casting to a string. Special characters will will not be escaped."
+            try:
+                from Cope import debug
+                debug(msg, trace=True, color=ERROR)
+            except:
+                warn(msg)
+            return s
         except:
-            raise TypeError(f'Incorrect type {type(i)} given to EasyRegex parameter: Must be string or another EasyRegex chain.')
+            raise TypeError(f'Incorrect type {type(i)} given to EZRegexMember parameter: Must be string or another EZRegexMember chain.')
 
 # These are mutable parts of the Regex statement, produced by EasyRegexElements. Should not be used directly.
-class EasyRegexMember:
-    def __init__(self, funcs:List[EasyRegexFunctionCall]):
+class EZRegexMember:
+    def __init__(self, funcs:List[EZRegexFunctionCall], sanatize=True, init=True):
+        """ This should only be called internally """
+        # Parse params
+        if type(funcs) is not list:
+            funcs = [funcs]
+        self.sanatize = sanatize
         self.funcList = funcs
-        self.dialect = RegexDialect.GENERIC
+
+        # The init parameter is not actually required, but it will make it more efficient,
+        # so we don't have to check that the whole chain is callable
+        if init:
+            # Go through the chain (most likely of length 1) and parse any strings
+            # This is for simplicity when defining all the members
+            for i in range(len(self.funcList)):
+                if isinstance(self.funcList[i], str):
+                    # I *hate* how Python handles lambdas
+                    stringBecauseHatred = deepcopy(self.funcList[i])
+                    self.funcList[i] = lambda cur: cur + stringBecauseHatred
+                elif not callable(self.funcList[i]) and self.funcList[i] is not None:
+                    raise TypeError(f"Invalid type {type(self.funcList[i])} passed to EZRegexMember constructor")
+
+    def __call__(self, *args):
+        """ This should be called by the user to specify the specific parameters of this instance
+            i.e. anyof('a', 'b')
+        """
+        # If this is being called without parameters, just compile the chain.
+        # If it's being called *with* parameters, then it better be a fundemental member, otherwise
+        # that doesn't make any sense.
+        if len(self.funcList) > 1:
+            if not len(args):
+                return self._compile()
+            else:
+                raise TypeError("You're trying to pass parameters to a chain of expressions. That doesn't make any sense. Stop that.")
+
+        args = list(args)
+        for cnt, i in enumerate(args):
+            args[cnt] = _sanitizeInput(i) if self.sanatize else deepcopy(i)
+            # args[cnt] = _sanitizeInput(i) if self.sanatize else i
+        return EZRegexMember([EZRegexFunctionCall(self.funcList[0], args)], init=False)
 
     # Magic Functions
     def __str__(self):
         return self._compile()
 
     def __repr__(self):
-        return 'EasyRegex("' + self.__str__() + '")'
+        return 'ezregex("' + self._compile() + '")'
 
     def __eq__(self, thing):
         return _sanitizeInput(thing) == self._compile()
 
     def __add__(self, thing):
-        # new = deepcopy(self)
-        # new.funcList.append(EasyRegexFunctionCall(lambda cur: cur + _sanitizeInput(thing)))
-        # Because we don't want to edit the current instance, it might be a variable they use later.
-        # return new
-        # TODO This doesn't include dialects
-        return EasyRegexMember(self.funcList + [EasyRegexFunctionCall(lambda cur: cur + _sanitizeInput(thing))])
+        return EZRegexMember(self.funcList + [EZRegexFunctionCall(lambda cur: cur + _sanitizeInput(thing))], init=False)
 
     def __radd__(self, thing):
-        # new = deepcopy(self)
-        # TODO This doesn't include dialects
-        # EasyRegexMember([EasyRegexFunctionCall(lambda cur: _sanitizeInput(thing) + cur)] + self.funcList)
-        # new.funcList.insert(0, EasyRegexFunctionCall(lambda cur: _sanitizeInput(thing) + cur))
-        # Because we don't want to edit the current instance, it might be a variable they use later.
-        return EasyRegexMember([EasyRegexFunctionCall(lambda cur: _sanitizeInput(thing) + cur)] + self.funcList)
+        return EZRegexMember([EZRegexFunctionCall(lambda cur: _sanitizeInput(thing) + cur)] + self.funcList, init=False)
 
     def __iadd__(self, thing):
         return self + _sanitizeInput(thing)
 
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):
-        return __add__(thing)
+        return self.__add__(thing)
 
     def __rlshift__(self, thing):
-        return __radd__(thing)
+        return self.__radd__(thing)
 
     def __ilshift__(self, thing):
-        return __iadd__(thing)
+        return self.__iadd__(thing)
 
     def __not__(self):
         NotImplementedError('The not operator is not currently implemented')
@@ -85,7 +119,7 @@ class EasyRegexMember:
     def _compile(self):
         regex = r''
         for func in self.funcList:
-            regex = func(regex, self.dialect)
+            regex = func(regex)
         return regex
 
     def compile(self):
@@ -97,7 +131,7 @@ class EasyRegexMember:
     def debug(self):
         try:
             from Cope import debug
-        except ImportError:
+        except ModuleNotFoundError:
             print(f"Compiled EasyRegex String = {self}")
         else:
             debug(self, name='Compiled EasyRegex String', calls=2)
@@ -110,9 +144,9 @@ class EasyRegexMember:
         try:
             from clipboard import copy
         except ImportError:
-            print('please install the clipboard module in order to copy EasyRegex Expressions (i.e. pip install clipboard)')
+            print('Please install the clipboard module in order to auto copy ezregex expressions (i.e. pip install clipboard)')
         else:
-            copy(str(self))
+            copy(self._compile())
 
     def test(self, testString) -> (re.Match, None):
         """ Tests the current regex expression to see if it's in @param testString.
@@ -157,7 +191,7 @@ class EasyRegexMember:
         """ "Inverts" the current Regex expression to give an example of a string it would match.
             Useful for debugging purposes.
         """
-        return invert(self._compile(True))
+        return invert(self._compile())
 
     def invert(self):
         """ Alias of inverse
@@ -167,16 +201,3 @@ class EasyRegexMember:
     def invertTest(self, count=10, colors=True, groupNames=False, explicitConditionals=False):
         """ Invert the regex a number of times """
         prettyInvert(self._compile(True), count, colors, groupNames, explicitConditionals)
-
-    # Dialect Setters
-    def usePythonDialect(self):
-        self.dialect = RegexDialect.PYTHON
-
-    def useGenericDialect(self):
-        self.dialect = RegexDialect.GENERIC
-
-    def usePerlDialect(self):
-        self.dialect = RegexDialect.PERL
-
-    def setDialect(self, dialect:RegexDialect):
-        self.dialect = dialect
