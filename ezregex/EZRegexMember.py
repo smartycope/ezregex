@@ -1,10 +1,10 @@
 from .EZRegexFunctionCall import EZRegexFunctionCall
+from .invert import invertRegex
 import re
 from copy import deepcopy
 from typing import List
 from warnings import warn
-
-escapeChars = (r'\)', r'\(', r'\[', r'\]', r'\{', r'\}', r'\+', r'\*', r'\$', r'\@', r'\^', r'\:', r'\=', r'\-', r'\/', r'\?', r'\|', r'\,')  #, r'\\')
+from ._escapeChars import escapeChars
 
 # For tests
 def printColor(s, color=(0, 0, 0), curColor=(204, 204, 204), **kwargs):
@@ -50,6 +50,7 @@ class EZRegexMember:
             funcs = [funcs]
         self.sanatize = sanatize
         self.funcList = funcs
+        self.example = self.invert = self.inverse
 
         # The init parameter is not actually required, but it will make it more efficient,
         # so we don't have to check that the whole chain is callable
@@ -187,16 +188,11 @@ class EZRegexMember:
 
         return match
 
-    def inverse(self):
+    def inverse(self, **kwargs):
         """ "Inverts" the current Regex expression to give an example of a string it would match.
             Useful for debugging purposes.
         """
-        return invert(self._compile())
-
-    def invert(self):
-        """ Alias of inverse
-        """
-        return self.inverse()
+        return invertRegex(self._compile(), **kwargs)
 
     def invertTest(self, count=10, colors=True, groupNames=False, explicitConditionals=False):
         """ Invert the regex a number of times """

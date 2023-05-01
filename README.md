@@ -11,9 +11,11 @@ TL;DR: This is to regular expressions what CMake is to makefiles
 
 ## Usage:
 ```
-    optionalParams = multiOptional(match(',') + whitechunk() + chunk())
-    regex = stuff() + 'test(' + ifFollowedBy(match('ing') + optionalParams)
-    regex.test('Testing test(ing, ?) + test-ing!')
+    import ezregex as er
+    optW = er.optional(er.whitechunk)
+    optionalParams = er.multiOptional(optW + er.group(er.optional(er.chunk)) + optW + er.match(','))
+    function = er.stuff + 'func(' + er.ifFollowedBy(optionalParams) + ')'
+    function.test('this should match only the func(param1, param2 ) part of this string')
 ```
 
 ## Current limitations

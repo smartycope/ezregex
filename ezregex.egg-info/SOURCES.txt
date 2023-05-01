@@ -5,11 +5,10 @@ MANIFEST.in
 README.md
 pyproject.toml
 setup.py
-ezregex/EasyRegexFunctionCall.py
-ezregex/EasyRegexMember.py
-ezregex/EasyRegexSingleton.py
-ezregex/RegexDialect.py
+ezregex/EZRegexFunctionCall.py
+ezregex/EZRegexMember.py
 ezregex/__init__.py
+ezregex/_escapeChars.py
 ezregex/invert.py
 ezregex.egg-info/PKG-INFO
 ezregex.egg-info/SOURCES.txt
