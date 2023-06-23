@@ -13,5 +13,6 @@ ezregex/invert.py
 ezregex.egg-info/PKG-INFO
 ezregex.egg-info/SOURCES.txt
 ezregex.egg-info/dependency_links.txt
+ezregex.egg-info/requires.txt
 ezregex.egg-info/top_level.txt
 tests/tests.py

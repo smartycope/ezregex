@@ -1,17 +1,29 @@
 [metadata]
 name = 'ezregex'
-version = '1.0.0'
+version = '1.2.0'
 description = 'A readable and intuitive way to generate Regular Expressions'
 author = 'Copeland Carter'
 author_email = 'smartycope@gmail.com'
-license = 'MIT/Apache-2.0'
+license = 'MIT'
 url = 'https://github.com/smartycope/EasyRegex'
+
+[build-system]
+requires = ["hatchling", 'setuptools', 'wheel']
+build-backend = "hatchling.build"
 
 [requires]
 python_version = ['3.10', '3.11', '3.6', '3.7', '3.8', 'pypy', 'pypy3']
 
-[build-system]
-requires = ['setuptools', 'wheel']
-
 [tool.hatch.commands]
 prerelease = 'hatch build'
+
+[project.optional-dependencies]
+tests = [
+  'rich'
+]
+
+[project]
+name = 'ezregex'
+version = '1.2.1'
+description = 'A readable and intuitive way to generate Regular Expressions'
+dependencies = []

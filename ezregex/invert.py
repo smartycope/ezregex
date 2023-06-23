@@ -2,8 +2,11 @@ from dataclasses import dataclass
 from random import randint, choice, choices
 import re
 from ._escapeChars import escapeChars
+import Cope
+from Cope.debugging import debug
 
-# from Cope import debug, todo, percent; todo('remove this')
+
+# TODO is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
 
 def unsanitize(string):
     for part in escapeChars:
@@ -31,7 +34,7 @@ _alot         = 6
 _digits       = '0123456789'
 _letters      = 'abcdefghijklmnopqrstuvwxyz'
 _letters     += _letters.upper()
-_punctuation  = r''',./;'[] = -)(*&^%$#@!~`+{}|:"<>?'''
+_punctuation  = r''',./;'[]=-)(*&^%$#@!~`+{}|:"<>?'''
 _whitespace   = '\t'
 _everything   = _digits + _letters + _punctuation + _whitespace + '_'
 
@@ -67,6 +70,8 @@ class _invertRegexes:
     matchRange = re.compile(prevThing + r'\{(?P<min>\d+),( )?(?P<max>\d+)\}')  # (stuff){3,4}
     # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('min', number()) + ',' + optional(space()) + '}'
     matchMore = re.compile(prevThing + r'\{(?P<min>\d+),( )?\}')  # (stuff){3,}
+    #? prevThing + '?' + ifNotFollowedBy(anyof(':P<!'.split()))
+    # optional  = re.compile(prevThing + r'\?(?![\:P\<\!])')  # (stuff)?
     optional  = re.compile(prevThing + r'\?(?![\:P\<\!])')  # (stuff)?
     max       = re.compile(prevThing + r'\*')  # (stuff)*
     either    = re.compile(r'\((\w+)\|(\w+)\)')  # (stuff|things)
@@ -82,7 +87,8 @@ class _invertRegexes:
     #  TODO: this probably needs to be fixed at some point
     # todo('debugging this regex is where I left off. it needs to require at least 1 | in order to work properly -- fixing the problem in the above line')
     # group(either(ifPrecededBy('(?:'), ifPrecededBy('(')) + matchMax(anyCharExcept(r'|\)')) + '|' + matchMax(anyCharExcept(r'|\)')) + optional('|') + ifFollowedBy(')'))
-    anyOf = re.compile(r'((?:(?<=\(\?\:)|(?<=\())(?:[^\|\)])+\|(?:[^\|\)])+(?:\|)?(?=\)))')  # (stuff|things|otherThings)
+    #? group(either(ifPrecededBy('(?:'), ifPrecededBy('(')) + matchMax(anychar + '|') + anychar + ifFollowedBy(')'))
+    anyOf = re.compile(r'((?:(?<=\(\?\:)|(?<=\())(?:.\|)+.(?=\)))')  # (stuff|things|otherThings)
     # hex     = re.compile(r'\\(\d+)') # \\67
     # oct     = re.compile(r'\\x(\d+)') # \x67
     ifThing = re.compile(r'\(\?\=' + tillCloseParen)  # (?=stuff)
@@ -90,9 +96,11 @@ class _invertRegexes:
     ifPrecededBy     = re.compile(r'\(\?\<\=' + tillCloseParen)
     ifNotPrecededBy  = re.compile(r'\(\?\<\!' + tillCloseParen)
     ifNotPrecededBy2 = re.compile(r'\(\?\!\=' + tillCloseParen)
-    passiveGroup     = re.compile(r'\(\?\:([^\)\(\?]+)\)')  # (?:stuff)
+    # '(?:' + group(matchMax(notAnyChars(')', '(', '?'))) + ')'
+    # '(?:' + group(matchMax(er.anyCharExcept('(', '?'))) + ')'
+    passiveGroup     = re.compile(r'\(\?\:((?:[^\(\?])+)\)')  # (?:stuff)
     group = re.compile(r'\((?!\?)([^\)\(\?]+)\)')  # (stuff)
-    notGroup = re.compile(r'\(\?:(.+)\)')  # (?:stuff)
+    # notGroup = re.compile(r'\(\?:(.+)\)')  # (?:stuff)
     namedGroup = re.compile(r'\(\?P\<(?P<name>\w+)\>(?P<stuff>.+)\)')  # (P?<name>stuff)
 
 def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=False) -> str:
@@ -149,9 +157,15 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
 
     # Amounts
     regex = _invertRegexes.matchMax.sub(r"\g<prev>" * randint(1, _alot), regex)
-    regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * int(m.group('amt')), regex)
+    # regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * int(m.group('amt')), regex)
+    regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * randint(int(m.group('amt')), int(m.group('amt'))), regex)
     regex = _invertRegexes.matchRange.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('max'))), regex)
     regex = _invertRegexes.matchMore.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('min')) + _alot), regex)
+
+    # │  25  │                   (?:(?:'|")){3} │ ")")")
+    # │  25  │                   (?:(?:'|")){3} │ ")")'
+    # │  26  │                         (?:0){2} │ 0)(?:0
+    # │  26  │                         (?:0){2} │ 0)(?:0
 
     # Not Chuncks
     regex = _invertRegexes.notWhitespace.sub(choice(_digits  + _letters + _punctuation + '_'), regex)
@@ -176,13 +190,7 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     # regex = _invertRegexes.anyOf.sub(lambda m: choice(m.groups()[0].split('|')), regex)
 
     def tmp(m):
-        # debug(m.groups())
-        # debug(m.groups()[0])
-        # debug(m.group())
         options = m.groups()[0].split('|')
-        # debug(options)
-        # return debug(choice(m.groups()[0].split('|')), clr=2)
-        # return debug(choice(options), clr=2)
         return choice(options)
     regex = _invertRegexes.anyOf.sub(tmp, regex)
 
@@ -206,16 +214,26 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     # regex = _invertRegexes.oct.sub(r'0o\1',regex)
 
     # Groups
-    regex = _invertRegexes.optional.sub(r'\g<prev>' if randint(0,1) else '', regex)
-    regex = _invertRegexes.notGroup.sub(color(r'\1', notGroupColor), regex)  # TODO
-    regex = _invertRegexes.namedGroup.sub((color(r'\g<name>: ', groupNameColor) if groupNames else '') + color(r'\g<stuff>', groupNameColor, True), regex)
-    regex = _invertRegexes.passiveGroup.sub(r'\1', regex)
-    regex = _invertRegexes.group.sub(color(r'\1', randColor()), regex)
+    def denest(regex, replace, current):
+        new = regex.sub(replace, current)
+        if current != new:
+            new = denest(regex, replace, new)
+        return new
+    # '(?:(?:"))(?:(?:"))(?:(?:\'))'
+    # '(:(:"))(:(:"))(:(:\'))'
+    regex = denest(_invertRegexes.optional, r'\g<prev>' if randint(0,1) else '', regex)
+    # regex = _invertRegexes.notGroup.sub(color(r'\1', notGroupColor), regex)  # TODO
+    # regex = denest(_invertRegexes.namedGroup, regex, (color(r'\g<name>: ', groupNameColor) if groupNames else '') + color(r'\g<stuff>', groupNameColor, True))
+    # 'stuff(?:a) (?:\\\\,)? \\\\*'
+    regex = denest(_invertRegexes.namedGroup, (r'\g<name>: ' if groupNames else '') + r'\g<stuff>', regex)
+    regex = denest(_invertRegexes.passiveGroup, r'\1', regex)
+    regex = denest(_invertRegexes.group, r'\1', regex)
 
     # referenceGroup = EasyRegexSingleton(lambda cur, name:        f'{cur}(?P={name})') # TODO))
 
     # Undo what we did earlier
     regex = re.sub(r'\\\\', r'\\', regex)
+    # debug()
     return unsanitize(regex)
 
 def testInvertRegex(regex, count=10, colors=True, groupNames=True, explicitConditionals=False):
