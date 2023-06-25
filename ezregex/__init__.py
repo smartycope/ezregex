@@ -2,14 +2,17 @@
 __version__ = '1.2.0'
 from .EZRegexMember import EZRegexMember
 from sys import version_info
+from .invert import invertRegex as invert
+from re import RegexFlag
 
 # Positional
 # wordStartsWith = EZRegexMember(lambda cur, input: input + r'\<' + cur)
 # wordEndsWith   = EZRegexMember(lambda cur, input: cur   + r'\>' + input)
 stringStartsWith = EZRegexMember(lambda cur, input: r'\A' + input + cur)
 stringEndsWith   = EZRegexMember(lambda cur, input: input + r'\Z' + cur)
-lineStartsWith   = EZRegexMember(lambda cur, input: r'^' + input + cur)
-lineEndsWith     = EZRegexMember(lambda cur, input: cur + input + r'$')
+# Always use the multiline flag, so as to distinguish between start of a line vs start of the string
+lineStartsWith   = EZRegexMember(lambda cur, input: r'^' + input + cur, flags=RegexFlag.MULTILINE)
+lineEndsWith     = EZRegexMember(lambda cur, input: cur + input + r'$', flags=RegexFlag.MULTILINE)
 
 # ifAtBeginning  = EZRegexMember(lambda cur: r'^' + cur)
 # ifAtEnd        = EZRegexMember(r'$')
@@ -135,21 +138,40 @@ notWhitespace = EZRegexMember(r'\S')
 notDigit      = EZRegexMember(r'\D')
 notWord       = EZRegexMember(r'\W')
 
-def _anyCharsFunc(cur, *inputs):
-    cur += r'['
-    for i in inputs:
-        cur += i
-    cur += r']'
-    return cur
-anyChars = EZRegexMember(_anyCharsFunc)
+# def _anyCharsFunc(cur, *inputs, split=False):
+#     cur += r'['
+#     for i in inputs:
+#         cur += i
+#     cur += r']'
+#     return cur
+# anyChars = EZRegexMember(_anyCharsFunc)
 
-def _anyOfFunc(cur, *inputs):
-    cur += r'(?:'
-    for i in inputs:
-        cur += i
-        cur += '|'
-    cur = cur[:-1]
-    cur += r')'
+
+def _anyOfFunc(cur, *inputs, chars=None, split=None):
+    if split and len(inputs) != 1:
+        assert False, "Please don't specifiy split and pass multiple inputs to anyof"
+    elif split:
+        inputs = list(inputs[0])
+    elif len(inputs) == 1 and split is None and chars is not False:  # None means auto
+        chars = True
+        inputs = list(inputs[0])
+    elif len(inputs) == 1 and split is None:
+        inputs = list(inputs[0])
+    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(s) == 1, inputs)):
+        chars = True
+
+    if chars:
+        cur += r'['
+        for i in inputs:
+            cur += i
+        cur += r']'
+    else:
+        cur += r'(?:'
+        for i in inputs:
+            cur += i
+            cur += '|'
+        cur = cur[:-1]
+        cur += r')'
     return cur
 anyOf = EZRegexMember(_anyOfFunc)
 
@@ -202,18 +224,12 @@ passiveGroup   = EZRegexMember(lambda cur, chain: f'{cur}(?:{chain})')
 namedGroup     = EZRegexMember(lambda cur, name, chain: f'{cur}(?P<{name}>{chain})')
 
 # Flags
-# I've chosen not to use flags because they all become irrelevant:
-# a (ASCII-only matching) is pretty niche,
-# i (ignore case) just write better regexes
-# L (locale dependent) only applicable in byte strings?
-# m (multi-line) will always be set in my scheme, so as to differentiate between ^/$ and \A/\Z
-# s (dot matches all) irrelevent, because i have a seperate member for [.|\n]
-# u (Unicode matching) depricated
-# x (verbose) is unnecissary in my scheme
-#
-# Refactoring my structure just to add ASCII-only matching and locale dependence
-# seems like more work than I care to do. In addition, if you would like to add
-# them seperately, you can directly when using the re library.
+ASCII      = EZRegexMember(lambda cur: cur, flags=RegexFlag.ASCII)
+DOTALL     = EZRegexMember(lambda cur: cur, flags=RegexFlag.DOTALL)
+IGNORECASE = EZRegexMember(lambda cur: cur, flags=RegexFlag.IGNORECASE)
+LOCALE     = EZRegexMember(lambda cur: cur, flags=RegexFlag.LOCALE)
+MULTILINE  = EZRegexMember(lambda cur: cur, flags=RegexFlag.MULTILINE)
+UNICODE    = EZRegexMember(lambda cur: cur, flags=RegexFlag.UNICODE)
 
 # For adding raw regex statements without sanatizing them
 raw = EZRegexMember(lambda cur, regex: str(regex), sanatize=False)
@@ -260,7 +276,7 @@ intOrFloat = int_or_float
 not_whitespace = notWhitespace
 not_digit = notDigit
 not_word = notWord
-any_chars = anyChars
+# any_chars = anyChars
 anyof = any_of = anyOf
 any_except = anyExcept
 any_char_except = anyCharExcept
@@ -281,26 +297,22 @@ exactly = isExactly
 oneOrNone = one_or_none = optional
 oneOrMore = one_or_more = at_least_one = atLeast1 = at_least_1 = atLeastOne
 noneOrMore = none_or_more = at_least_none = at_least_0 = atLeast0 = atLeastNone
-
+ascii = a = ASCII
+dotall = s = DOTALL
+ignorecase = i = ignoreCase = ignore_case = IGNORECASE
+locale = L = LOCALE
+multiline = m = MULTILINE
+unicode = u = UNICODE
 
 
 # TODO:
 """
-
-^
-(Caret.) Matches the start of the string, and in MULTILINE mode also matches immediately after each newline.
-
-$
-Matches the end of the string or just before the newline at the end of the string, and in MULTILINE mode also matches before a newline. foo matches both ‘foo’ and ‘foobar’, while the regular expression foo$ matches only ‘foo’. More interestingly, searching for foo.$ in 'foo1\nfoo2\n' matches ‘foo2’ normally, but ‘foo1’ in MULTILINE mode; searching for a single $ in 'foo\n' will find two (empty) matches: one just before the newline, and one at the end of the string.
 
 (?>...)
 Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
 
 (?P=name)
 A backreference to a named group; it matches whatever text was matched by the earlier group named name.
-
-(?#...)
-A comment; the contents of the parentheses are simply ignored.
 
 \b
 Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, \b is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that r'\bfoo\b' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
@@ -313,8 +325,5 @@ Will try to match with yes-pattern if the group with given id or name exists, an
 
 \number
 Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
-
-
-
 
  """

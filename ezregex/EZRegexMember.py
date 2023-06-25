@@ -6,19 +6,25 @@ from typing import List
 from warnings import warn
 from ._escapeChars import escapeChars
 from rich import print as rprint
-from rich.markup import escape
-from rich.align import Align
 from rich.text import Text
 from rich.panel import Panel
-from rich.pretty import Pretty
+from re import RegexFlag
+
+from Cope import debug
 
 # These are mutable parts of the Regex statement, produced by EasyRegexElements. Should not be used directly.
 class EZRegexMember:
-    def __init__(self, funcs:List[EZRegexFunctionCall], sanatize=True, init=True, replacement=False):
+    def __init__(self, funcs:List[EZRegexFunctionCall], sanatize=True, init=True, replacement=False, flags=RegexFlag.NOFLAG):
         """ Ideally, this should only be called internally, but it should still
             work from the user's end
         """
+        self.flags = flags
+
         # Parse params
+        # Add flags if it's another EZRegexMember
+        if isinstance(funcs, EZRegexMember):
+            self.flags = funcs.flags
+
         if isinstance(funcs, (str, EZRegexMember)):
             funcs = [str(funcs)]
         elif not isinstance(funcs, (list, tuple)):
@@ -30,6 +36,7 @@ class EZRegexMember:
         #     self.sanatize = False
         self.funcList = list(funcs)
         self.example = self.invert = self.inverse
+
 
         # The init parameter is not actually required, but it will make it more efficient,
         # so we don't have to check that the whole chain is callable
@@ -54,11 +61,15 @@ class EZRegexMember:
 
         # If it's another chain, compile it
         if isinstance(i, EZRegexMember):
-            return i._compile()
+            self.flags |= i.flags
+            return i._compile(addFlags=False)
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
             for part in escapeChars:
                 i = re.sub(r'(?<!\\)' + part, part, i)
+            return i
+        # A couple of singletons use bools and None as kwargs, just ignore them and move on
+        elif i is None or isinstance(i, bool):
             return i
         # A couple singletons use ints as input, just cast it to a string and don't throw a warning
         elif isinstance(i, int):
@@ -73,7 +84,9 @@ class EZRegexMember:
                 except:
                     warn(msg)
                 else:
-                    debug(msg, trace=True, color=-1, calls=3)
+                    # debug(msg, trace=True, color=-1, calls=3)
+                    # debug(i)
+                    debug(msg, color=-1, calls=3)
                 return s
             except:
                 raise TypeError(f'Incorrect type {type(i)} given to EZRegexMember parameter: Must be string or another EZRegexMember chain.')
@@ -100,7 +113,7 @@ class EZRegexMember:
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitizeInput(val) if self.sanatize else deepcopy(val)
 
-        return EZRegexMember([EZRegexFunctionCall(self.funcList[0], args, _kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement)
+        return EZRegexMember([EZRegexFunctionCall(self.funcList[0], args, _kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
 
     # Magic Functions
     def __str__(self):
@@ -116,7 +129,10 @@ class EZRegexMember:
         rtn = self
         # This isn't optimal, but it's unlikely anyone will use this with large numbers
         for i in range(amt-1):
-            rtn += self
+            # This doesn't work
+            # rtn += self
+            # But this does??
+            rtn = rtn + self
         return rtn
 
     def __rmul__(self, amt):
@@ -126,13 +142,24 @@ class EZRegexMember:
         return self * amt
 
     def __add__(self, thing):
-        return EZRegexMember(self.funcList + [EZRegexFunctionCall(lambda cur: cur + self._sanitizeInput(thing))], init=False, sanatize=self.sanatize, replacement=self.replacement)
+        return EZRegexMember(self.funcList + [EZRegexFunctionCall(lambda cur: cur + self._sanitizeInput(thing))],
+            init=False,
+            sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
+            replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
+            flags=self.flags | thing.flags if isinstance(thing, EZRegexMember) else self.flags
+        )
 
     def __radd__(self, thing):
-        return EZRegexMember([EZRegexFunctionCall(lambda cur: self._sanitizeInput(thing) + cur)] + self.funcList, init=False, sanatize=self.sanatize, replacement=self.replacement)
+        return EZRegexMember([EZRegexFunctionCall(lambda cur: self._sanitizeInput(thing) + cur)] + self.funcList,
+            init=False,
+            sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
+            replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
+            flags=self.flags | thing.flags if isinstance(thing, EZRegexMember) else self.flags
+        )
 
     def __iadd__(self, thing):
-        return self + self._sanitizeInput(thing)
+        # return self + self._sanitizeInput(thing)
+        return self + thing
 
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):
@@ -169,13 +196,35 @@ class EZRegexMember:
         return self._compile()
 
     # Regular functions
-    def _compile(self):
-        regex = r''
+    def _compile(self, addFlags=True):
+        regex = ''
         for func in self.funcList:
             regex = func(regex)
-        # Always use the multiline flag, so as to distinguish between start of a
-        # line vs start of the string
-        return r'(?m)' + regex
+
+        # Add the flags
+        _flags = ''
+        if addFlags:
+            if self.flags & RegexFlag.ASCII:
+                _flags += 'a'
+            if self.flags & RegexFlag.DEBUG:
+                pass
+            if self.flags & RegexFlag.DOTALL:
+                _flags += 's'
+            if self.flags & RegexFlag.IGNORECASE:
+                _flags += 'i'
+            if self.flags & RegexFlag.LOCALE:
+                _flags += 'L'
+            if self.flags & RegexFlag.MULTILINE:
+                _flags += 'm'
+            if self.flags & RegexFlag.TEMPLATE:
+                pass
+            if self.flags & RegexFlag.UNICODE:
+                _flags += 'u'
+            if self.flags & RegexFlag.VERBOSE:
+                _flags += 'x'
+            if len(_flags):
+                regex = fr'(?{_flags})' + regex
+        return regex
 
     def compile(self):
         return re.compile(self._compile())
@@ -187,9 +236,9 @@ class EZRegexMember:
         try:
             from Cope import debug
         except ModuleNotFoundError:
-            print(f"Compiled EasyRegex String = {self}")
+            print(f"Compiled ezregex string = {self}")
         else:
-            debug(self, name='Compiled EasyRegex String', calls=2)
+            debug(self, name='Compiled ezregex string', calls=2)
         return self
 
     def debugStr(self):
@@ -203,10 +252,14 @@ class EZRegexMember:
         else:
             copy(self._compile())
 
-    def test(self, testString) -> (re.Match, None):
+    def test(self, testString, show=True) -> (re.Match, None):
         """ Tests the current regex expression to see if it's in @param testString.
             Returns the match objects (None if there was no match)
         """
+        match = re.search(self._compile(), testString)
+        if not show:
+            return match
+
         try:
             from Cope import get_context, get_metadata
         except ImportError:
@@ -229,7 +282,6 @@ class EZRegexMember:
         s.append(Text(str(testString), style='green'))
         s.append('\n')
 
-        match = re.search(self._compile(), testString)
         s.append('Result: ')
         if match:
             s.append('Found\n', style='blue')
@@ -245,17 +297,13 @@ class EZRegexMember:
             s.append('Not Found', style='red')
 
         t = Text.assemble(*s)
-        p = Panel(t, title='Testing Regex', subtitle=Text('Found\n', style='blue') if match else Text('Not Found\n', style='red'))#, border_style='dim green')
+        p = Panel(t, title='Testing Regex', subtitle=Text('Found\n', style='blue') if match else Text('Not Found\n', style='red'))  #, border_style='dim green')
         rprint(p)
 
         return match
 
-    def inverse(self, **kwargs):
+    def inverse(self, amt=1, **kwargs):
         """ "Inverts" the current Regex expression to give an example of a string it would match.
             Useful for debugging purposes.
         """
-        return invertRegex(self._compile(), **kwargs)
-
-    def invertTest(self, count=10, colors=True, groupNames=False, explicitConditionals=False):
-        """ Invert the regex a number of times """
-        prettyInvert(self._compile(True), count, colors, groupNames, explicitConditionals)
+        return '\n'.join([invertRegex(self._compile(), **kwargs) for _ in range(amt)])

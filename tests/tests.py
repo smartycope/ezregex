@@ -3,7 +3,6 @@ import re
 from rich import print as rprint
 from rich.table import Table
 from rich.text import Text
-from collections import OrderedDict
 
 import ezregex as er
 from ezregex import *
@@ -12,7 +11,8 @@ from inspect import currentframe, getframeinfo
 
 ow = optional(whitechunk)
 w = whitechunk
-_regexsLine = getframeinfo(currentframe()).lineno + 2
+_regexsLine = getframeinfo(currentframe()).lineno + 3
+# This goes (regex, ((things it should match), (things it shouldnt match)))
 regexs = (
     ('stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*'), (['stuffa , *'], None)),
     (anyof('a', 'b', 'c'), (['a', 'b', 'c'], None)),
@@ -117,6 +117,43 @@ regexs = (
 def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=False, replacement=False, strictness=20):
     if singletons:
         print("Testing EZRegex singletons...")
+        assert er.anyof('aiLmsux', split=True, chars=True)._compile(False) == "[aiLmsux]",                  f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=True, chars=True)._compile(False)}'"
+        # assert er.anyof('aiLmsux', split=False, chars=True)._compile(False) == Error,                     f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=True)._compile(False)}'"
+        assert er.anyof('aiLmsux', split=None, chars=True)._compile(False) == "[aiLmsux]",                  f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=None, chars=True)._compile(False)}'"
+        assert er.anyof('aiLmsux', split=True, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)',         f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof('aiLmsux', split=True, chars=False)._compile(False)}'"
+        # assert er.anyof('aiLmsux', split=False, chars=False)._compile(False) == Error,                    f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=False)._compile(False)}'"
+        assert er.anyof('aiLmsux', split=None, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)',         f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof('aiLmsux', split=None, chars=False)._compile(False)}'"
+        assert er.anyof('aiLmsux', split=True, chars=None)._compile(False) == '(?:a|i|L|m|s|u|x)',          f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof('aiLmsux', split=True, chars=None)._compile(False)}'"
+        # assert er.anyof('aiLmsux', split=False, chars=None)._compile(False) == Error,                     f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=None)._compile(False)}'"
+        assert er.anyof('aiLmsux', split=None, chars=None)._compile(False) == "[aiLmsux]",                  f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=None, chars=None)._compile(False)}'"
+
+        # assert er.anyof(*list('aiLmsux'), split=True, chars=True)._compile(False) == Error,               f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=True)._compile(False)}'"
+        assert er.anyof(*list('aiLmsux'), split=False, chars=True)._compile(False) == "[aiLmsux]",          f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=True)._compile(False)}'"
+        assert er.anyof(*list('aiLmsux'), split=None, chars=True)._compile(False) == "[aiLmsux]",           f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=True)._compile(False)}'"
+        # assert er.anyof(*list('aiLmsux'), split=True, chars=False)._compile(False) == Error,              f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=False)._compile(False)}'"
+        assert er.anyof(*list('aiLmsux'), split=False, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=False)._compile(False)}'"
+        assert er.anyof(*list('aiLmsux'), split=None, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)',  f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=False)._compile(False)}'"
+        # assert er.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False) == Error,               f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False)}'"
+        assert er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False) == "[aiLmsux]",          f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False)}'"
+        assert er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False) == "[aiLmsux]",           f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False)}'"
+
+
+        r = word + ASCII + stuff
+        r._compile(addFlags=False)
+        # (word + ASCII + stuff)._compile(addFlags=False)
+        # str(word + ASCII + stuff)
+
+        pass
+
+
+        assert str(word + ASCII + stuff)      == '(?a)\w+.+', f"{word + ASCII + stuff}      != (?a)\w+.+"
+        assert str(word) == '\w+', f'{word}'
+        assert str(word + DOTALL + stuff)     == '(?s)\w+.+', f"{word + DOTALL + stuff}     != (?s)\w+.+"
+        assert str(word + IGNORECASE + stuff) == '(?i)\w+.+', f"{word + IGNORECASE + stuff} != (?i)\w+.+"
+        assert str(word + LOCALE + stuff)     == '(?L)\w+.+', f"{word + LOCALE + stuff}     != (?L)\w+.+"
+        assert str(word + MULTILINE + stuff)  == '(?m)\w+.+', f"{word + MULTILINE + stuff}  != (?m)\w+.+"
+        assert str(word + UNICODE + stuff)    == '(?u)\w+.+', f"{word + UNICODE + stuff}    != (?u)\w+.+"
+
         for cnt, r in enumerate(regexs):
             regex, matches = r
             match, dontMatch = matches
@@ -146,11 +183,21 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=False, 
 
     if unitTests:
         print("Running EasyRegex Singleton Unit Tests...")
-        assert either('(' + word() + ')', '.') == either(er.match('(') + word() + er.match(')'), '.')
-        assert str(EZRegexMember('\s+')) == str(EZRegexMember(raw('\s+'))) == '\s+' == str(raw('\s+')) == str(whitespace + matchMax)
-        assert (word + ow + anything + ':').test('word    d:')
-        assert not (word + ow + anything + ':').test('word')
+        a = str(EZRegexMember('\s+'))
+        b = str(EZRegexMember(raw('\s+')))
+        c = '\s+'
+        d = str(raw('\s+'))
+        e = str(whitespace + matchMax)
+        assert a == b == c == d == e, f'\na: {a}\n b: {b}\n c: {c}\n d: {d}\n e: {e}'
+        assert (word + ow + anything + ':').test('word    d:', show=False)
+        assert not (word + ow + anything + ':').test('word', show=False)
         assert 'word    d:' in (word + ow + anything + ':')
+
+        test = word + chunk
+        test += word
+        assert str(test) == str(word + chunk + word), f"{str(test)} != {str(word + chunk + word)}"
+        assert test == word + chunk + word
+        assert either('(' + word + ')', '.') == either(er.match('(') + word() + er.match(')'), '.'), f"{either('(' + word + ')', '.')} != {either(er.match('(') + word() + er.match(')'), '.')}"
         # assert (word + ow + anything + ':') in 'word    d:'
         # assert (word + ow + anything + ':') not in 'word'
 
@@ -190,78 +237,7 @@ runTests(
     singletons=True,
     invert=False,
     unsanitize_=False,
-    unitTests=False,
+    unitTests=True,
     replacement=False,
     strictness=2
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{
-
-    # Not Chuncks
-    notWhitespace: (('sdfa', ''), (' ',)),
-    notDigit: (('ghj', '', '   '), ('9',)),
-    notWord: (('0', ''), ('word',)),
-    anyChars: (('',), ('',)),
-    anyOf: (('',), ('',)),
-    anyCharExcept: (('',), ('',)),
-    anyExcept: (('',), ('',)),
-    # Sets
-    anyUppercase: (('',), ('',)),
-    anyLowercase: (('',), ('',)),
-    anyLetter: (('',), ('',)),
-    anyAlphaNum: (('',), ('',)),
-    anyDigit: (('',), ('',)),
-    anyHexDigit: (('',), ('',)),
-    anyOctDigit: (('',), ('',)),
-    anyPunctuation: (('',), ('',)),
-    anyBlank: (('',), ('',)),
-    anyControllers: (('',), ('',)),
-    anyPrinted: (('',), ('',)),
-    anyPrintedAndSpace: (('',), ('',)),
-    anyAlphaNum_: (('',), ('',)),
-    # Numbers
-    oct: (('',), ('',)),
-    hex: (('',), ('',)),
-    # Conditionals
-    ifProceededBy: (('',), ('',)),
-    ifNotProceededBy: (('',), ('',)),
-    ifPrecededBy: (('',), ('',)),
-    ifNotPrecededBy: (('',), ('',)),
-    ifEnclosedWith: (('',), ('',)),
-    # Groups
-    group: (('',), ('',)),
-    passiveGroup: (('',), ('',)),
-    namedGroup: (('',), ('',)),
-    # Global Flags -- I don't think these work
-    matchGlobally: (('',), ('',)),
-    caseInsensitive: (('',), ('',)),
-    matchMultiLine: (('',), ('',)),
-    treatAsSingleLine: (('',), ('',)),
-    notGreedy: (('',), ('',)),
-    # For adding raw regex statements without sanatizing them
-    raw: (('',), ('',)),
-    # Replace syntax
-    replace_group: (('',), ('',)),
-    replace_entire: (('',), ('',)),
-    # Useful Combonations
-    # literallyAnything = either(anything, newline)
-    # signed = optional('-') + number
-    # unsigned = number
-    # float = signed + period + optional(number)
-    # int_or_float = optional('-') + number + optional(period + optional(number))
-}

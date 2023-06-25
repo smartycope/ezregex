@@ -35,7 +35,7 @@ _digits       = '0123456789'
 _letters      = 'abcdefghijklmnopqrstuvwxyz'
 _letters     += _letters.upper()
 _punctuation  = r''',./;'[]=-)(*&^%$#@!~`+{}|:"<>?'''
-_whitespace   = '\t'
+_whitespace   = ' '
 _everything   = _digits + _letters + _punctuation + _whitespace + '_'
 
 # notEscaped = r'[^\\]'
@@ -50,6 +50,7 @@ tillCloseParen = r'(?P<stuff>.+)\)'
 
 @dataclass
 class _invertRegexes:
+    flags        = re.compile(r"(?m)\A\(\?(?:aiLmsux)\)")
     start        = re.compile(r'\\A')
     end          = re.compile(r'\\Z')
     word         = re.compile(r'\\w\+')
@@ -105,10 +106,6 @@ class _invertRegexes:
 
 def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=False) -> str:
     """ 'Inverts' a regex expression. Gives an example of something that would match the given regex """
-    defaultColor   = (204, 204, 204)
-    notGroupColor  = (220, 0, 0)
-    groupNameColor = (34, 111, 157)
-
     if explicitConditionals:
         _proceedOpen = '   <if followed by> { '
         _notProceedOpen = '   <if not followed by> { '
@@ -123,16 +120,15 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     # Because I hate everyone and this is a stupid bug and it makes NO sense
     regex = re.sub(r'\\(?![AZbBcsSdDwWx0QEnrtvfox])', r'\\\\', regex)
 
-    def randColor():
-        return (randint(0, 255) % 20, randint(0, 255) % 20, randint(0, 255) % 20)
-
-    def color(s, c, fg=False):
-        if colors:
-            return f'\0{"3" if fg else "4"}3[48;2;{c[0]};{c[1]};{c[2]}m{s}\033[38;2;{defaultColor[0]};{defaultColor[1]};{defaultColor[2]}m'
-        else:
-            return s
+    # def randColor():
+        # return (randint(0, 255) % 20, randint(0, 255) % 20, randint(0, 255) % 20)
 
     #* The order of these matter
+
+    # Very first thing, remove any flags at the beginning
+    # TODO: keep track of what flags are asserted
+    regex = _invertRegexes.flags.sub('', regex)
+
     regex = _invertRegexes.start.sub('', regex)  # TODO
     regex = _invertRegexes.end.sub('', regex)  # TODO
 
@@ -161,11 +157,6 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * randint(int(m.group('amt')), int(m.group('amt'))), regex)
     regex = _invertRegexes.matchRange.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('max'))), regex)
     regex = _invertRegexes.matchMore.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('min')) + _alot), regex)
-
-    # │  25  │                   (?:(?:'|")){3} │ ")")")
-    # │  25  │                   (?:(?:'|")){3} │ ")")'
-    # │  26  │                         (?:0){2} │ 0)(?:0
-    # │  26  │                         (?:0){2} │ 0)(?:0
 
     # Not Chuncks
     regex = _invertRegexes.notWhitespace.sub(choice(_digits  + _letters + _punctuation + '_'), regex)
@@ -233,9 +224,4 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
 
     # Undo what we did earlier
     regex = re.sub(r'\\\\', r'\\', regex)
-    # debug()
     return unsanitize(regex)
-
-def testInvertRegex(regex, count=10, colors=True, groupNames=True, explicitConditionals=False):
-    for i in range(count):
-        print(invertRegex(regex, colors, groupNames, explicitConditionals))
