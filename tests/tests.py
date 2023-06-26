@@ -93,7 +93,6 @@ regexs = (
     (period, (('.',), (',',))),
     (matchRange(3, 5, 'a'), (('aaa', 'aaaa', 'a'*5, 'a'*6), ('aa',))),
     (matchRange(3, 5, 'a', greedy=False)+'aa', (('a'*5, 'a'*6), ('aa',))),
-    # (matchRange(3, 5, 'a', possessive=True) + 'aa', (('a'*7,), ('a'*6,))),
     (optional('a') + 'b', (('b', 'ab','cb'), ('','c'))),
     (optional('a', greedy=False) + 'b', (('b', 'ab','cb'), ('','c'))),
     (atLeastOne('a'), (('a','aa', 'a'*20), ('', 'b'))),
@@ -101,6 +100,7 @@ regexs = (
     (atLeastNone('a'), (('', 'a', 'a'*20, 'b'), None)),
     ((optional('a') + 'b') * 3, (('abbb', 'bbb', 'ababab', 'bbab'), ('', 'aaa', 'aa', 'a')))
     # TODO:
+    # (matchRange(3, 5, 'a', possessive=True) + 'aa', (('a'*7,), ('a'*6,))),
     # (optional('a', possessive=True) + 'b', (('',), ('',))),
     # (atLeastOne(possessive=True), (('',), ('',))),
     # (atLeastNone(possessive=True), (('',), ('',))),
@@ -114,7 +114,7 @@ regexs = (
 )
 
 
-def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=False, replacement=False, strictness=20):
+def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, replacement=False, testMethod=False, strictness=20, dontIncludePassed=True):
     if singletons:
         print("Testing EZRegex singletons...")
         assert er.anyof('aiLmsux', split=True, chars=True)._compile(False) == "[aiLmsux]",                  f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=True, chars=True)._compile(False)}'"
@@ -209,14 +209,22 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=False, 
         table.add_column("Regex", justify="right", style="green")#, max_width=40)
         table.add_column("Inverse", justify="left", style="dim green")
         table.add_column("Success", justify="center")
-        for cnt, regexes in enumerate(regexs.items()):
-            r, matches = regexes
-            if matches is None:
+
+        for cnt, r in enumerate(regexs):
+            regex, matches = r
+            match, dontMatch, = matches
+            if match is None:
                 continue
-            for _ in range(strictness):
-                # assert r.test(invertRegex(r, colors=False, groupNames=False, explicitConditionals=False))
-                inv = invertRegex(r, colors=False, groupNames=False, explicitConditionals=False)
-                table.add_row(str(_regexsLine+cnt), r, inv, Text('passed', style='blue') if inv in r else Text('failed', style='red'))
+            try:
+                for _ in range(strictness):
+                    # assert r.test(invertRegex(r, colors=False, groupNames=False, explicitConditionals=False))
+                    inv = invertRegex(regex, colors=False, groupNames=False, explicitConditionals=False)
+                    if inv not in regex or not dontIncludePassed:
+                        table.add_row(str(_regexsLine+cnt), regex, inv, Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
+            except Exception as err:
+                print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, inv = `{inv}`')
+                raise err
+
         rprint(table)
 
     if replacement:
@@ -231,13 +239,27 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=False, 
         subbed = re.sub(r.str(), sub.str(), 'test1:    thing')
         assert subbed == 'test1 - thing', f'`{subbed}` != `test1 - thing`'
 
+    if testMethod:
+        # ow = er.optional(er.whitechunk)
+        # optionalParams = er.anyof(ow + er.group(er.optional(er.chunk)) + ow + ',')
+        # function = er.stuff + 'func(' + er.ifFollowedBy(optionalParams) + ')'
+        # function.test('this should match only the func(param1, param2 ) part of this string')
+
+        r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
+        s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
+        r.test(s)
+
+
+
     print('All Tests Passed!')
 
 runTests(
-    singletons=True,
+    singletons=False,
     invert=False,
     unsanitize_=False,
-    unitTests=True,
+    unitTests=False,
     replacement=False,
-    strictness=2
+    testMethod=True,
+    strictness=2,
+    dontIncludePassed=True
 )

@@ -251,10 +251,10 @@ match_num = matchAmt = match_amt = matchNum
 match_range = matchRange
 match_more_than = match_greater_than = matchGreaterThan = matchMoreThan
 match_at_least = match_min = matchMin = matchAtLeast
-lineStarts_with = lineStartsWith
-stringStarts_with = stringStartsWith
-lineEnds_with = lineEndsWith
-stringEnds_with = stringEndsWith
+line_starts_with = lineStartsWith
+string_starts_with = stringStartsWith
+line_ends_with = lineEndsWith
+string_ends_with = stringEndsWith
 stuff      = chunk
 whiteChunk = whitechunk
 anychar    = anything

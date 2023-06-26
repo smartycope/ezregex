@@ -50,7 +50,8 @@ tillCloseParen = r'(?P<stuff>.+)\)'
 
 @dataclass
 class _invertRegexes:
-    flags        = re.compile(r"(?m)\A\(\?(?:aiLmsux)\)")
+    # er.string_starts_with('(?' + er.anyof('aiLmsux') + ')')
+    flags        = re.compile(r"\A\(\?[aiLmsux]\)")
     start        = re.compile(r'\\A')
     end          = re.compile(r'\\Z')
     word         = re.compile(r'\\w\+')

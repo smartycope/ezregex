@@ -11,6 +11,7 @@ from rich.panel import Panel
 from re import RegexFlag
 
 from Cope import debug
+from Cope.colors import distinctColor
 
 # These are mutable parts of the Regex statement, produced by EasyRegexElements. Should not be used directly.
 class EZRegexMember:
@@ -268,31 +269,59 @@ class EZRegexMember:
             _cope = True
 
         s = Text()
+        defaultColor = 'bold'
+        textColor = ''
 
+        s.append("Testing expression", style=defaultColor)
         if _cope:
-            s.append(get_context(get_metadata(2)))
-            # print_context(calls=2)
-            # print()
+            s.append(f' (from {get_context(get_metadata(2)).strip()})', style=defaultColor)
+        s.append(':\n', style=defaultColor)
+        s.append(f'\t{self._compile()}\n', style=textColor)
 
-        s.append("Testing expression:\n")
-        s.append(Text(self._compile(), style='green'))
-        s.append('\n')
-
-        s.append("for matches in:\n")
-        s.append(Text(str(testString), style='green'))
-        s.append('\n')
-
-        s.append('Result: ')
+        s.append("for matches in:\n\t", style=defaultColor)
         if match:
-            s.append('Found\n', style='blue')
-            s.append('\tMatch = ', style='italic grey37')
+            allGroups = {match.span(i+1) for i in range(len(match.groups()))}
+            namedGroups = dict({(i, match.span(i)) for i in match.groupdict().keys()})
+            unnamedGroups = allGroups - set(namedGroups.values())
+            # + 2, just so we can get different starting colors other than black and red
+            colors = dict(zip(allGroups, map(lambda a: a+2, range(len(allGroups)))))
+
+            cursor = 0
+            for g in sorted(allGroups, key=lambda x: x[0]):
+                s.append(testString[cursor:g[0]], style=textColor)
+                s.append(testString[g[0]:g[1]], style=f'white on color({colors[g]})')
+                cursor = g[1]
+            s.append(testString[cursor:], style=textColor)
+        else:
+            s.append(testString, style='green')
+        s.append('\n\n')
+
+        # s.append('Result: ', style=defaultColor)
+        if match:
+            toSlice = lambda t: f'({t[0]}:{t[1]})'
+            # s.append('Found\n', style='blue')
+            s.append('Match = ', style='italic grey37')
             s.append(f'"{match.group()}"', style='grey37')
-            s.append('\n\tUnnamed Groups = ', style='italic grey37')
-            s.append(str(match.groups()), style='grey37')
-            s.append('\n\tNamed Groups   = ', style='italic grey37')
-            s.append(str(match.groupdict()), style='grey37')
-            s.append('\n\tSpan = ', style='italic grey37')
-            s.append(str(match.span()), style='grey37')
+            s.append(f' {toSlice(match.span())}\n', style='italic grey37')
+
+            s.append('Unnamed Groups:\n', style='italic grey37')
+            for i in range(len(unnamedGroups)):
+                clr = f'color({colors[match.span(i+1)]})'
+                s.append(f'\t{i+1}: "{match.group(i+1)}"', style=clr)
+                s.append(f' {toSlice(match.span(i+1))}\n', style='italic ' + clr)
+
+            s.append('Named Groups:\n', style='italic grey37')
+            for name, span in namedGroups.items():
+                clr = f'color({colors[span]})'
+                s.append(f'\t{name}: "{match.group(name)}"', style=clr)
+                s.append(f' {toSlice(span)}\n', style='italic ' + clr)
+
+
+            # s.append(str(match.groups()), style='grey37')
+            # s.append('\n\tNamed Groups   = ', style='italic grey37')
+            # s.append(str(match.groupdict()), style='grey37')
+            # s.append('\n\tSpan = ', style='italic grey37')
+            # s.append(str(match.span()), style='grey37')
         else:
             s.append('Not Found', style='red')
 
