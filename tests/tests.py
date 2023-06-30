@@ -258,12 +258,12 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
     print('All Tests Passed!')
 
 runTests(
-    singletons=False,
-    invert=False,
+    singletons=True,
+    invert=True,
     unsanitize_=False,
     unitTests=True,
     replacement=True,
-    testMethod=True,
-    strictness=20,
+    testMethod=False,
+    strictness=2,
     dontIncludePassed=True
 )

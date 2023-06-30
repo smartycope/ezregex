@@ -4,3 +4,5 @@ venv
 dist
 *.egg-info
 *cpython*
+__pycache__
+__pycache__/*

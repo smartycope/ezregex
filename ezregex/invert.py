@@ -3,13 +3,8 @@ from copy import copy
 from dataclasses import dataclass
 from random import choice, choices, randint
 
-from ._escapeChars import escapeChars
-
-
 def unsanitize(string):
-    for part in escapeChars:
-        string = re.sub(r'\\' + part, part[1], string)
-    return string
+    return re.sub(r'\\([' + re.escape(')([]{}+*$^-\\?| ,') + r'])', '\g<1>', string)
 
 def randbool():
     return bool(randint(0, 1))

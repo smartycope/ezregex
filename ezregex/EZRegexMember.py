@@ -8,7 +8,6 @@ from rich import print as rprint
 from rich.panel import Panel
 from rich.text import Text
 
-from ._escapeChars import escapeChars
 from .EZRegexFunctionCall import EZRegexFunctionCall
 from .invert import invertRegex
 
@@ -71,8 +70,9 @@ class EZRegexMember:
             return i._compile(addFlags=addFlags)
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
-            for part in escapeChars:
-                i = re.sub(r'(?<!\\)' + part, part, i)
+            i = re.escape(i)
+            # for part in escapeChars:
+                # i = re.sub(r'(?<!\\)' + part, part, i)
             return i
         # A couple of singletons use bools and None as kwargs, just ignore them and move on
         elif i is None or isinstance(i, bool):
