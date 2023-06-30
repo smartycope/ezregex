@@ -15,12 +15,13 @@ TLDR: This is to regular expressions what CMake is to makefiles
 Importing as a named package is recommended, as many of the functions have common names
 ```python
 import ezregex as er
-ow = er.optional(er.whitechunk)
-optionalParams = er.anyof(ow + er.group(er.optional(er.chunk)) + ow + ',')
-function = er.stuff + 'func(' + er.ifFollowedBy(optionalParams) + ')'
-function.test('this should match only the func(param1, param2 ) part of this string')
+# ow is part of er already as optional whitespace
+params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
+function = er.word + er.ow + '(' + params + ')'
+# The test() method is super helpful (if I don't say so myself)
+function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 # or
-re.search('some string containing func( param1 , param2)', function.compile())
+re.search('some string containing func( param1 , param2)', str(function))
 ```
 
 ## Installation

@@ -1,12 +1,10 @@
-from dataclasses import dataclass
-from random import randint, choice, choices
 import re
+from copy import copy
+from dataclasses import dataclass
+from random import choice, choices, randint
+
 from ._escapeChars import escapeChars
-import Cope
-from Cope.debugging import debug
 
-
-# TODO is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
 
 def unsanitize(string):
     for part in escapeChars:
@@ -22,124 +20,109 @@ def _randWord(randomlyGenerate=False):
     else:
         return 'word'
 
-_prevThingRegex = r'(\\?\w+)\Z'
-def _prevThing(cur):
-    try:
-        return re.search(_prevThingRegex, cur).group()
-    except AttributeError:
-        return ''
-
 # Inverting helpers
 _alot         = 6
 _digits       = '0123456789'
 _letters      = 'abcdefghijklmnopqrstuvwxyz'
 _letters     += _letters.upper()
-_punctuation  = r''',./;'[]=-)(*&^%$#@!~`+{}|:"<>?'''
-_whitespace   = ' '
+_punctuation  = "./;=-&%$#@~"
+_whitespace   = '  '
 _everything   = _digits + _letters + _punctuation + _whitespace + '_'
 
-# notEscaped = r'[^\\]'
-notEscaped = r'(?<!\\)'
-
-# namedGroup('prev', either('(' + word() + ')', '.'))
-# prevThing = fr'(?P<prev>(\(\w+\)|{notEscaped}.))'
-# namedGroup('prev', anyof('(?:' + chunk() + ')', '(' + word() + ')', raw(r'(?<!\\)') + anything()))
-prevThing = r'(?P<prev>(?:\(\?\:.+\)|\(\w+\)|(?<!\\).))'
+# notParens = matchMax(anyCharExcept('(', ')'))  # + ifNotPreceededBy(r'\\'))
+# inner = atLeastNone(either('(' + optional('?:') + notParens + ')', notParens))
+# prevThing = namedGroup('prev', anyof('(?:' + inner + ')', '(' + inner + ')', ifNotPreceededBy(r'\\') + anything))
+prevThing = r'(?P<prev>(?:\(\?\:(?:(?:\((?:\?\:)?(?:[^\(\)])+\)|(?:[^\(\)])+))*\)|\((?:(?:\((?:\?\:)?(?:[^\(\)])+\)|(?:[^\(\)])+))*\)|(?<!\\).))'
 
 tillCloseParen = r'(?P<stuff>.+)\)'
 
 @dataclass
 class _invertRegexes:
-    # er.string_starts_with('(?' + er.anyof('aiLmsux') + ')')
     flags        = re.compile(r"\A\(\?[aiLmsux]\)")
-    start        = re.compile(r'\\A')
-    end          = re.compile(r'\\Z')
     word         = re.compile(r'\\w\+')
     s            = re.compile(r'\\s')
     digit        = re.compile(r'\\d')
     char         = re.compile(r'\\w')
-    any          = re.compile(notEscaped + r'\.')
+    any          = re.compile(r'(?<!\\)\.')
     newline      = re.compile(r'\\n')
     carriage     = re.compile(r'\\r')
     tab          = re.compile(r'\\t')
     vert         = re.compile(r'\\v')
     f            = re.compile(r'\\f')
+    stringStart  = re.compile(r'\\A')
+    lineStart    = re.compile(r'\^')
+    stringEnd    = re.compile(r'\\Z')
+    lineEnd      = re.compile(r'\$')
     matchExactly = re.compile(r'\^(.+)\$')  # \^stuff\$
-    matchMax     = re.compile(fr'{prevThing}\+')  # (stuff)+
+    # '[' + atLeastOne(namedGroup('start', char) + '-' + namedGroup('end', char)) + ']'
+    anyBetween   = re.compile(r'\[(?:(?P<start>.)\-(?P<end>.))+\]')
     # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('amt', number()) + '}'
     matchExactAmt = re.compile(prevThing + r'\{(?P<amt>\d+)\}')  # (stuff){3}
-    # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('min', number()) + ',' + optional(space()) + namedGroup('max', number()) + '}'
-    matchRange = re.compile(prevThing + r'\{(?P<min>\d+),( )?(?P<max>\d+)\}')  # (stuff){3,4}
     # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('min', number()) + ',' + optional(space()) + '}'
     matchMore = re.compile(prevThing + r'\{(?P<min>\d+),( )?\}')  # (stuff){3,}
-    #? prevThing + '?' + ifNotFollowedBy(anyof(':P<!'.split()))
     # optional  = re.compile(prevThing + r'\?(?![\:P\<\!])')  # (stuff)?
-    optional  = re.compile(prevThing + r'\?(?![\:P\<\!])')  # (stuff)?
-    max       = re.compile(prevThing + r'\*')  # (stuff)*
-    either    = re.compile(r'\((\w+)\|(\w+)\)')  # (stuff|things)
+    optionalGreedy  = re.compile(prevThing + r'\?(?![\:P\<\!])')  # (stuff)?
+    optionalNonGreedy  = re.compile(prevThing + r'\?\?(?![\:P\<\!])')  # (stuff)??
+    atLeastNoneGreedy       = re.compile(prevThing + r'\*')  # (stuff)*
+    atLeastNoneNonGreedy       = re.compile(prevThing + r'\*\?')  # (stuff)*?
+    atLeastOneGreedy     = re.compile(fr'{prevThing}\+')  # (stuff)+
+    atLeastOneNonGreedy     = re.compile(fr'{prevThing}\+\?')  # (stuff)+?
+    # '(' + namedGroup('stuff', chunk()) + '){' + namedGroup('min', number()) + ',' + optional(space()) + namedGroup('max', number()) + '}'
+    matchRangeGreedy = re.compile(prevThing + r'\{(?P<min>\d+),( )?(?P<max>\d+)\}')  # (stuff){3,4}
+    matchRangeNonGreedy = re.compile(prevThing + r'\{(?P<min>\d+),( )?(?P<max>\d+)\}\?')  # (stuff){3,4}?
+    # either('(?:', '(') + group(atLeast1(notParens, greedy=False)) + '|' + group(atLeast1(char, greedy=False)) + ')'
+    either    = re.compile(r'(?:\(\?\:|\()((?:(?:[^\(\)](?<!\\))+)+?)\|(.+?)\)')  # (stuff|things)
     notWhitespace = re.compile(r'\\S')
     notDigit      = re.compile(r'\\D')
     notWord       = re.compile(r'\\W')
-    # This matches basically anything in square brackets that's not ^
-    anyChars    = re.compile(r'(\[([^\^]\,?)+\])')  # [s,t]
-    notAnyChars = re.compile(r'\[\^(.\,?)+\]')  # [^s,t]
-    #
-    # anyOf = re.compile(r'\((((.+)\|){1,}(.+))+\)') # (stuff|things)
-    #! NOTE: This matches passive groups: (?:sequence) but I don't think its a problem, so long as the sequence doesn't contain a |
-    #  TODO: this probably needs to be fixed at some point
-    # todo('debugging this regex is where I left off. it needs to require at least 1 | in order to work properly -- fixing the problem in the above line')
+    # '[' + ifNotFollowedBy('^') + group(atLeastOne(anyCharExcept(','))) + ']'
+    anyChars    = re.compile(r'\[(?!\^)((?:[^\,])+)\]')  # [st]
+    anyChars2    = re.compile(r'\[(?!\^)((?:.(?:\,)?)+)\]')  # [s,t]
+    # '[' + ifFollowedBy('^') + group(atLeastOne(char)) + ']'
+    notAnyChars = re.compile(r'\[(?=\^)(.+)\]')  # [^s,t]
     # group(either(ifPrecededBy('(?:'), ifPrecededBy('(')) + matchMax(anyCharExcept(r'|\)')) + '|' + matchMax(anyCharExcept(r'|\)')) + optional('|') + ifFollowedBy(')'))
-    #? group(either(ifPrecededBy('(?:'), ifPrecededBy('(')) + matchMax(anychar + '|') + anychar + ifFollowedBy(')'))
     anyOf = re.compile(r'((?:(?<=\(\?\:)|(?<=\())(?:.\|)+.(?=\)))')  # (stuff|things|otherThings)
-    # hex     = re.compile(r'\\(\d+)') # \\67
-    # oct     = re.compile(r'\\x(\d+)') # \x67
     ifThing = re.compile(r'\(\?\=' + tillCloseParen)  # (?=stuff)
     ifNotThing       = re.compile(r'\(\?!' + tillCloseParen)  # (?!stuff)
     ifPrecededBy     = re.compile(r'\(\?\<\=' + tillCloseParen)
     ifNotPrecededBy  = re.compile(r'\(\?\<\!' + tillCloseParen)
     ifNotPrecededBy2 = re.compile(r'\(\?\!\=' + tillCloseParen)
     # '(?:' + group(matchMax(notAnyChars(')', '(', '?'))) + ')'
-    # '(?:' + group(matchMax(er.anyCharExcept('(', '?'))) + ')'
     passiveGroup     = re.compile(r'\(\?\:((?:[^\(\?])+)\)')  # (?:stuff)
     group = re.compile(r'\((?!\?)([^\)\(\?]+)\)')  # (stuff)
-    # notGroup = re.compile(r'\(\?:(.+)\)')  # (?:stuff)
     namedGroup = re.compile(r'\(\?P\<(?P<name>\w+)\>(?P<stuff>.+)\)')  # (P?<name>stuff)
 
-def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=False) -> str:
-    """ 'Inverts' a regex expression. Gives an example of something that would match the given regex """
-    if explicitConditionals:
-        _proceedOpen = '   <if followed by> { '
-        _notProceedOpen = '   <if not followed by> { '
-        _preceedOpen = '   <if preceeded by> { '
-        _notPreceedOpen = '    <if not preceeded by> { '
-        _optionalClose = ' }   '
-    else:
-        _proceedOpen = _notProceedOpen = _preceedOpen = _notPreceedOpen = _optionalClose = ''
+
+def invertRegex(regex:str, tries=10) -> str:
+    """ 'Inverts' a regex expression.
+        Gives an example of something that would match the given regex
+        If tries is positive, it's guarenteed to return an expression that
+        correctly matches the given expression, or raise an Error
+    """
+    # So we can compare later and make sure it works
+    original = copy(regex)
 
     # So you can pass in an EasyRegex chain
     regex = str(regex)
-    # Because I hate everyone and this is a stupid bug and it makes NO sense
-    regex = re.sub(r'\\(?![AZbBcsSdDwWx0QEnrtvfox])', r'\\\\', regex)
 
-    # def randColor():
-        # return (randint(0, 255) % 20, randint(0, 255) % 20, randint(0, 255) % 20)
+    # Because I hate everyone and this is a stupid bug and it makes NO sense
+    regex = re.sub(r'\\(?![AZbBcsSdDwWx0\|QEnrtvfox])', r'\\\\', regex)
 
     #* The order of these matter
 
     # Very first thing, remove any flags at the beginning
-    # TODO: keep track of what flags are asserted
+    # TODO: keep track of what flags are asserted. It's probably important?
     regex = _invertRegexes.flags.sub('', regex)
 
-    regex = _invertRegexes.start.sub('', regex)  # TODO
-    regex = _invertRegexes.end.sub('', regex)  # TODO
+    regex = _invertRegexes.stringStart.sub('', regex)  # TODO
+    regex = _invertRegexes.stringEnd.sub('', regex)  # TODO
+    regex = _invertRegexes.lineEnd.sub('', regex)  # TODO
 
     # Single Characters
     regex = _invertRegexes.word.sub(_randWord(), regex)
     regex = _invertRegexes.s.sub(_whitespace, regex)
     regex = _invertRegexes.digit.sub(choice(_digits), regex)
     regex = _invertRegexes.char.sub(choice(_letters + '_'), regex)
-    # regex = re.sub(r'\x',  choice(_digits + 'ABCDEF'), regex)
-    # regex = re.sub(r'\O',  choice(_digits[:8]), regex)
     regex = _invertRegexes.any.sub(choice(_everything), regex)
 
     # Explicit Characters
@@ -153,57 +136,42 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
     regex = _invertRegexes.matchExactly.sub(r'\1', regex)
 
     # Amounts
-    regex = _invertRegexes.matchMax.sub(r"\g<prev>" * randint(1, _alot), regex)
-    # regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * int(m.group('amt')), regex)
+    regex = _invertRegexes.matchRangeNonGreedy.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('max'))), regex)
+    regex = _invertRegexes.matchRangeGreedy.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('max'))), regex)
+
+    regex = _invertRegexes.atLeastOneNonGreedy.sub(r"\g<prev>" * randint(1, _alot), regex)
+    regex = _invertRegexes.atLeastOneGreedy.sub(r"\g<prev>" * randint(1, _alot), regex)
     regex = _invertRegexes.matchExactAmt.sub(lambda m: m.group('prev') * randint(int(m.group('amt')), int(m.group('amt'))), regex)
-    regex = _invertRegexes.matchRange.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('max'))), regex)
     regex = _invertRegexes.matchMore.sub(lambda m: m.group('prev') * randint(int(m.group('min')), int(m.group('min')) + _alot), regex)
 
     # Not Chuncks
     regex = _invertRegexes.notWhitespace.sub(choice(_digits  + _letters + _punctuation + '_'), regex)
     regex = _invertRegexes.notDigit.sub(choice(_letters + _whitespace  + _punctuation + '_'), regex)
-    regex = _invertRegexes.notWord.sub(choice(_punctuation + _whitespace), regex)  # I guess digits are counted as word chars?
+    regex = _invertRegexes.notWord.sub(choice(_punctuation + _whitespace), regex)
 
     # Conditionals
-    regex = _invertRegexes.ifThing.sub(_proceedOpen + r'\g<stuff>' + _optionalClose, regex)
-    regex = _invertRegexes.ifNotThing.sub(_notProceedOpen + r'\g<stuff>' + _optionalClose, regex)
-    regex = _invertRegexes.ifPrecededBy.sub(_preceedOpen + r'\g<stuff>' + _optionalClose, regex)
-    regex = _invertRegexes.ifNotPrecededBy.sub(_notPreceedOpen + r'\g<stuff>' + _optionalClose, regex)
-    regex = _invertRegexes.ifNotPrecededBy2.sub(_notPreceedOpen + r'\g<stuff>' + _optionalClose, regex)
+    regex = _invertRegexes.ifThing.sub(r'\g<stuff>', regex)
+    regex = _invertRegexes.ifNotThing.sub(r'\g<stuff>', regex)
+    regex = _invertRegexes.ifPrecededBy.sub(r'\g<stuff>', regex)
+    regex = _invertRegexes.ifNotPrecededBy.sub(r'\g<stuff>', regex)
+    regex = _invertRegexes.ifNotPrecededBy2.sub(r'\g<stuff>', regex)
 
     # Optionals
-    regex = _invertRegexes.max.sub(r'\g<prev>' * randint(0, _alot), regex)
+    regex = _invertRegexes.atLeastNoneNonGreedy.sub(r'\g<prev>' * randint(0, _alot), regex)
+    regex = _invertRegexes.atLeastNoneGreedy.sub(r'\g<prev>' * randint(0, _alot), regex)
     regex = _invertRegexes.either.sub(r'\g<1>' if randint(0,1) else r'\g<2>', regex)
-    # anyBetween    = EasyRegexSingleton(lambda cur, input, and_input: cur + r'[' + input + r'-' + and_input + r']') # TODO
-    # Alright, so the regex matches basically anything in square brackets that's not a ^, including the square brackets. This gets that,
-    #   drops the square brackets (with [1:-1]), and splits them along commas and chooses a random one
-    regex = _invertRegexes.notAnyChars.sub(lambda m: choice(list(set(_everything).difference(m.groups()[0][1:-1].split(',')))), regex)
-    regex = _invertRegexes.anyChars.sub(lambda m: choice(m.groups()[0][1:-1].split(',')), regex)
-    # regex = _invertRegexes.anyOf.sub(lambda m: choice(m.groups()[0].split('|')), regex)
+    # TODO: This isn't wrong, but it also isn't right. It only uses the start or the end, instead of the range
+    regex = _invertRegexes.anyBetween.sub(r'\g<start>' if randint(0,1) else r'\g<end>', regex)
+    regex = _invertRegexes.notAnyChars.sub(lambda m: choice(list(set(_everything).difference(list(m.group(1))))), regex)
+    regex = _invertRegexes.anyChars.sub(lambda m: choice(list(m.group(1))), regex)
+    regex = _invertRegexes.anyChars2.sub(lambda m: choice(m.groups()).replace(',', ''), regex)
+
+    regex = _invertRegexes.lineStart.sub('', regex)  # TODO
 
     def tmp(m):
         options = m.groups()[0].split('|')
         return choice(options)
     regex = _invertRegexes.anyOf.sub(tmp, regex)
-
-    # Sets
-    # regex = _invertRegexes.sub(r' \[A-Z\]',      choice(_letters.upper()), regex)
-    # regex = _invertRegexes.sub(r' \[a-z\]',      choice(_letters.lower()), regex)
-    # regex = _invertRegexes.sub(r'\[A-Za-z\]',    choice(_letters), regex)
-    # regex = _invertRegexes.sub(r'\[A-Za-z0-9\]', choice(_letters + _digits), regex)
-    # regex = _invertRegexes.sub(r'\[0-9\]',       choice(_digits), regex)
-    # regex = _invertRegexes.sub(r'\[0-9a-fA-F\]', choice(_digits + "ABCDEF"), regex)
-    # regex = _invertRegexes.sub(r'\[0-7\]',       choice(_digits[:8]), regex)
-    # regex = _invertRegexes.sub(r'\[:punct:\]',   choice(_punctuation), regex)
-    # regex = _invertRegexes.sub(r'\[ \t\r\n\v\f\]', choice(_whitespace), regex)
-    # # regex = _invertRegexes.sub(r'\[\x00-\x1F\x7F\]', regex)
-    # regex = _invertRegexes.sub(r'\[\\x21-\\x7E\]', choice(_everything.replace(' ', '')), regex)
-    # regex = _invertRegexes.sub(r'\[\x20-\x7E\]', choice(_everything), regex)
-    # regex = _invertRegexes.sub(r'\[A-Za-z0-9_\]', choice(_letters + _digits + '_'), regex)
-
-    # Numbers
-    # regex = _invertRegexes.hex.sub(r'0x\1',regex)
-    # regex = _invertRegexes.oct.sub(r'0o\1',regex)
 
     # Groups
     def denest(regex, replace, current):
@@ -211,13 +179,10 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
         if current != new:
             new = denest(regex, replace, new)
         return new
-    # '(?:(?:"))(?:(?:"))(?:(?:\'))'
-    # '(:(:"))(:(:"))(:(:\'))'
-    regex = denest(_invertRegexes.optional, r'\g<prev>' if randint(0,1) else '', regex)
-    # regex = _invertRegexes.notGroup.sub(color(r'\1', notGroupColor), regex)  # TODO
-    # regex = denest(_invertRegexes.namedGroup, regex, (color(r'\g<name>: ', groupNameColor) if groupNames else '') + color(r'\g<stuff>', groupNameColor, True))
-    # 'stuff(?:a) (?:\\\\,)? \\\\*'
-    regex = denest(_invertRegexes.namedGroup, (r'\g<name>: ' if groupNames else '') + r'\g<stuff>', regex)
+
+    regex = denest(_invertRegexes.optionalNonGreedy, r'\g<prev>' if randint(0,1) else '', regex)
+    regex = denest(_invertRegexes.optionalGreedy, r'\g<prev>' if randint(0,1) else '', regex)
+    regex = denest(_invertRegexes.namedGroup, r'\g<stuff>', regex)
     regex = denest(_invertRegexes.passiveGroup, r'\1', regex)
     regex = denest(_invertRegexes.group, r'\1', regex)
 
@@ -225,4 +190,13 @@ def invertRegex(regex:str, colors=True, groupNames=True, explicitConditionals=Fa
 
     # Undo what we did earlier
     regex = re.sub(r'\\\\', r'\\', regex)
-    return unsanitize(regex)
+    regex = unsanitize(regex)
+
+    # If the regex passed in isn't in what we generated, try again
+    if re.search(str(original), regex) is not None or tries < 0:
+        return regex
+    else:
+        if not tries:
+            raise NotImplementedError(f"Sorry, I can't invert the given regex. You can try again, or submit a bug report by emailing smartycope@gmail.com and including `{self}`")
+        else:
+            return invertRegex(original, tries=tries-1)

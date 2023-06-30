@@ -3,7 +3,7 @@ __version__ = '1.2.0'
 from .EZRegexMember import EZRegexMember
 from sys import version_info
 from .invert import invertRegex as invert
-from re import RegexFlag
+from re import RegexFlag, escape
 
 # Positional
 # wordStartsWith = EZRegexMember(lambda cur, input: input + r'\<' + cur)
@@ -25,10 +25,10 @@ isExactly = EZRegexMember(lambda cur, input: "^" + input + '$')
 # \B       Matches the empty string, but not at the start or end of a word.
 
 # Amounts
-matchMax      = EZRegexMember(lambda cur,      input='':      cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')
-matchNum      = EZRegexMember(lambda cur, num, input='':      cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')
-matchMoreThan = EZRegexMember(lambda cur, min, input='':      cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')
-matchAtLeast  = EZRegexMember(lambda cur, min, input='':      cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')
+matchMax      = EZRegexMember(lambda cur,      input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')
+matchNum      = EZRegexMember(lambda cur, num, input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')
+matchMoreThan = EZRegexMember(lambda cur, min, input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')
+matchAtLeast  = EZRegexMember(lambda cur, min, input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')
 
 def _matchRangeFunc(cur, min, max, input='', greedy=True, possessive=False):
     """ Max can be an empty string to indicate no maximum
@@ -202,7 +202,8 @@ letter          = EZRegexMember(r'[A-Za-z]')
 # anyDigit           = EZRegexMember(r'[0-9]')
 hexDigit        = EZRegexMember(r'[0-9a-fA-F]')
 octDigit        = EZRegexMember(r'[0-7]')
-punctuation     = EZRegexMember(r'[:punct:]')
+# punctuation     = EZRegexMember(r'[:punct:]')
+# punctuation     = EZRegexMember(escape('[`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]]'))
 # anyBlank           = EZRegexMember(r'[ \t\r\n\v\f]')
 controller     = EZRegexMember(r'[\x00-\x1F\x7F]')
 printable         = EZRegexMember(r'[\x21-\x7E]')
@@ -244,6 +245,7 @@ signed = optional('-') + number
 unsigned = number
 float = signed + period + optional(number)
 int_or_float = optional('-') + number + optional(period + optional(number))
+ow = optional(whitechunk)
 
 # Psuedonyms
 match_max = matchMax

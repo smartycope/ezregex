@@ -1,17 +1,17 @@
-from .EZRegexFunctionCall import EZRegexFunctionCall
-from .invert import invertRegex
 import re
 from copy import deepcopy
+from re import RegexFlag
 from typing import List
 from warnings import warn
-from ._escapeChars import escapeChars
-from rich import print as rprint
-from rich.text import Text
-from rich.panel import Panel
-from re import RegexFlag
 
-from Cope import debug
-from Cope.colors import distinctColor
+from rich import print as rprint
+from rich.panel import Panel
+from rich.text import Text
+
+from ._escapeChars import escapeChars
+from .EZRegexFunctionCall import EZRegexFunctionCall
+from .invert import invertRegex
+
 
 # These are mutable parts of the Regex statement, produced by EasyRegexElements. Should not be used directly.
 class EZRegexMember:
@@ -52,7 +52,7 @@ class EZRegexMember:
                 elif not callable(self.funcList[i]) and self.funcList[i] is not None:
                     raise TypeError(f"Invalid type {type(self.funcList[i])} passed to EZRegexMember constructor")
 
-    def _sanitizeInput(self, i):
+    def _sanitizeInput(self, i, addFlags=False):
         """ Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string """
         i = deepcopy(i)
 
@@ -62,8 +62,13 @@ class EZRegexMember:
 
         # If it's another chain, compile it
         if isinstance(i, EZRegexMember):
-            self.flags |= i.flags
-            return i._compile(addFlags=False)
+            # This causes *weird* errors... that make sense in hindsight
+            # self.flags |= i.flags
+            # This works
+            # i.flags |= self.flags
+            # ...but I don't think is necissary, cause we're compiling without flags anyway?
+            # return i._compile(addFlags=False)
+            return i._compile(addFlags=addFlags)
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
             for part in escapeChars:
@@ -124,7 +129,7 @@ class EZRegexMember:
         return 'ezregex("' + self._compile() + '")'
 
     def __eq__(self, thing):
-        return self._sanitizeInput(thing) == self._compile()
+        return self._sanitizeInput(thing, addFlags=True) == self._compile()
 
     def __mul__(self, amt):
         rtn = self
@@ -253,14 +258,20 @@ class EZRegexMember:
         else:
             copy(self._compile())
 
-    def test(self, testString, show=True) -> (re.Match, None):
+    def test(self, testString=None, show=True) -> bool:
         """ Tests the current regex expression to see if it's in @param testString.
             Returns the match objects (None if there was no match)
         """
-        match = re.search(self._compile(), testString)
-        if not show:
-            return match
+        _assert = testString is None
+        if testString is None:
+            testString = self.inverse()
+        matches = list(re.finditer(self._compile(), testString))
+        found = bool(len(matches))
 
+        if not show:
+            return found
+
+        # Use the nice context function in the Cope library
         try:
             from Cope import get_context, get_metadata
         except ImportError:
@@ -268,68 +279,76 @@ class EZRegexMember:
         else:
             _cope = True
 
-        s = Text()
+        st = Text()  # String
+        gt = Text()  # Groups (all the group-related text)
         defaultColor = 'bold'
         textColor = ''
 
-        s.append("Testing expression", style=defaultColor)
+        st.append("Testing expression", style=defaultColor)
+        # Add the context line
         if _cope:
-            s.append(f' (from {get_context(get_metadata(2)).strip()})', style=defaultColor)
-        s.append(':\n', style=defaultColor)
-        s.append(f'\t{self._compile()}\n', style=textColor)
+            st.append(f' (from {get_context(get_metadata(2)).strip()})', style=defaultColor)
+        st.append(':\n', style=defaultColor)
+        # The expression we're testing
+        st.append(f'\t{self._compile()}\n', style=textColor)
+        st.append("for matches in:\n\t", style=defaultColor)
 
-        s.append("for matches in:\n\t", style=defaultColor)
-        if match:
+        globalCursor = 0
+        allMatches = [m.span() for m in matches]
+        # 14-a, to differentiate from the group colors
+        # Map match spans to unique colors
+        # TODO: This will fail if testString has more than 14 matches (I think? Not sure how rich will handle negative colors)
+        matchColors = dict(zip(allMatches, map(lambda a: 14-a, range(len(allMatches)))))
+
+        for match in matches:
             allGroups = {match.span(i+1) for i in range(len(match.groups()))}
             namedGroups = dict({(i, match.span(i)) for i in match.groupdict().keys()})
             unnamedGroups = allGroups - set(namedGroups.values())
-            # + 2, just so we can get different starting colors other than black and red
-            colors = dict(zip(allGroups, map(lambda a: a+2, range(len(allGroups)))))
+            # +1, just so we can get different starting color other than black
+            # Map group spans to unique colors
+            colors = dict(zip(allGroups, map(lambda a: a+1, range(len(allGroups)))))
+            cursor = match.span()[0]
 
-            cursor = 0
+            # First, print up until the match
+            st.append(testString[globalCursor:cursor], style=textColor)
             for g in sorted(allGroups, key=lambda x: x[0]):
-                s.append(testString[cursor:g[0]], style=textColor)
-                s.append(testString[g[0]:g[1]], style=f'white on color({colors[g]})')
+                # Print the match up until the group
+                st.append(testString[cursor:g[0]], style=f'color({matchColors[match.span()]})')
+                # Print the group
+                st.append(testString[g[0]:g[1]], style=f'color({matchColors[match.span()]}) on color({colors[g]})')
                 cursor = g[1]
-            s.append(testString[cursor:], style=textColor)
-        else:
-            s.append(testString, style='green')
-        s.append('\n\n')
+            st.append(testString[cursor:match.span()[1]], style=f'color({matchColors[match.span()]})')
+            globalCursor = match.span()[1]
+            # Don't print after the group, cause there might be another match that covers it
 
-        # s.append('Result: ', style=defaultColor)
-        if match:
             toSlice = lambda t: f'({t[0]}:{t[1]})'
-            # s.append('Found\n', style='blue')
-            s.append('Match = ', style='italic grey37')
-            s.append(f'"{match.group()}"', style='grey37')
-            s.append(f' {toSlice(match.span())}\n', style='italic grey37')
+            gt.append('\nMatch = ', style=f'italic color({matchColors[match.span()]})')
+            gt.append(f'"{match.group()}"', style=f'color({matchColors[match.span()]})')
+            gt.append(f' {toSlice(match.span())}\n', style=f'italic color({matchColors[match.span()]})')
 
-            s.append('Unnamed Groups:\n', style='italic grey37')
+            if len(unnamedGroups):
+                gt.append('Unnamed Groups:\n', style=f'italic color({matchColors[match.span()]})')
             for i in range(len(unnamedGroups)):
                 clr = f'color({colors[match.span(i+1)]})'
-                s.append(f'\t{i+1}: "{match.group(i+1)}"', style=clr)
-                s.append(f' {toSlice(match.span(i+1))}\n', style='italic ' + clr)
+                gt.append(f'\t{i+1}: ', style=f'color({matchColors[match.span()]})')
+                gt.append(f'"{match.group(i+1)}"', style=f'color({matchColors[match.span()]}) on {clr}')
+                gt.append(f' {toSlice(match.span(i+1))}\n', style=f'italic color({matchColors[match.span()]})')
 
-            s.append('Named Groups:\n', style='italic grey37')
+            if len(namedGroups):
+                gt.append('Named Groups:\n', style=f'italic color({matchColors[match.span()]})')
             for name, span in namedGroups.items():
                 clr = f'color({colors[span]})'
-                s.append(f'\t{name}: "{match.group(name)}"', style=clr)
-                s.append(f' {toSlice(span)}\n', style='italic ' + clr)
+                gt.append(f'\t{name}: ', style=f'color({matchColors[match.span()]})')
+                gt.append(f'"{match.group(name)}"', style=f'color({matchColors[match.span()]}) on {clr}')
+                gt.append(f' {toSlice(span)}\n', style=f'italic color({matchColors[match.span()]})')
 
+        # Don't forget to add any bit at the end that's not part of a match
+        st.append(testString[globalCursor:], style=textColor)
 
-            # s.append(str(match.groups()), style='grey37')
-            # s.append('\n\tNamed Groups   = ', style='italic grey37')
-            # s.append(str(match.groupdict()), style='grey37')
-            # s.append('\n\tSpan = ', style='italic grey37')
-            # s.append(str(match.span()), style='grey37')
-        else:
-            s.append('Not Found', style='red')
+        rprint(Panel(Text.assemble(*st, '\n', *gt), title='Testing Regex', subtitle=Text('Found\n', style='blue') if found else Text('Not Found\n', style='red')))  #, border_style='dim green')
+        # rprint(p)
 
-        t = Text.assemble(*s)
-        p = Panel(t, title='Testing Regex', subtitle=Text('Found\n', style='blue') if match else Text('Not Found\n', style='red'))  #, border_style='dim green')
-        rprint(p)
-
-        return match
+        return found
 
     def inverse(self, amt=1, **kwargs):
         """ "Inverts" the current Regex expression to give an example of a string it would match.

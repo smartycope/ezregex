@@ -1,4 +1,5 @@
 import re
+from inspect import currentframe, getframeinfo
 
 from rich import print as rprint
 from rich.table import Table
@@ -7,18 +8,20 @@ from rich.text import Text
 import ezregex as er
 from ezregex import *
 from ezregex.invert import *
-from inspect import currentframe, getframeinfo
 
 ow = optional(whitechunk)
 w = whitechunk
 _regexsLine = getframeinfo(currentframe()).lineno + 3
 # This goes (regex, ((things it should match), (things it shouldnt match)))
 regexs = (
-    ('stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*'), (['stuffa , *'], None)),
+    ('stuff' + ' ' + optional(comma) + space + ifFollowedBy('*'), (['stuff , *', 'stuff  *'], None)),
+    ('stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*'), (['stuffa , *', 'stuffb  *'], None)),
+    (anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*'), (['a , *', 'b  *'], None)),
+    ('stuff' + anyof('a', 'b', 'c'), (['stuffa', 'stuffb'], None)),
     (anyof('a', 'b', 'c'), (['a', 'b', 'c'], None)),
     ('a' + ifFollowedBy('*'), (['a*'], None)),
     (optional(comma) + space, ([', ', ' '], None)),
-    (optional(word + ow + ',' + ow) + group(word) + optional(',') + ow, (['word\t ,word2, ', 'word', 'worddsfs    ', 'word,   '], None)),
+    (optional(word + ow + ',' + ow) + group(word) + optional(',') + ow, (['word\t ,word2, ', 'word', 'worddsfs    ', 'word,   '], ('', '  '))),
     (optional(w + 'as' + word), (['wasword'], None)),
     (group(optional(matchMax(er.match('.') + word))), (['..........word', ''], None)),
     (matchNum(3, either("'", '"')), (['"""'], None)),
@@ -98,7 +101,9 @@ regexs = (
     (atLeastOne('a'), (('a','aa', 'a'*20), ('', 'b'))),
     (atLeastOne('a', greedy=False), (('a','aa', 'a'*20), ('', 'b'))),
     (atLeastNone('a'), (('', 'a', 'a'*20, 'b'), None)),
-    ((optional('a') + 'b') * 3, (('abbb', 'bbb', 'ababab', 'bbab'), ('', 'aaa', 'aa', 'a')))
+    ((optional('a') + 'b') * 3, (('abbb', 'bbb', 'ababab', 'bbab'), ('', 'aaa', 'aa', 'a'))),
+    (word + whitechunk + group('func') + ':' + '()' + namedGroup('test', either('|', '7')), (('wo  func:()|', 'wo  func:()7'), None)),
+    (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')), (('wo  func:8', 'wo  func:7'), None)),
     # TODO:
     # (matchRange(3, 5, 'a', possessive=True) + 'aa', (('a'*7,), ('a'*6,))),
     # (optional('a', possessive=True) + 'b', (('',), ('',))),
@@ -115,8 +120,10 @@ regexs = (
 
 
 def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, replacement=False, testMethod=False, strictness=20, dontIncludePassed=True):
+    global ow
     if singletons:
         print("Testing EZRegex singletons...")
+        # Test the various parameters of anyof()
         assert er.anyof('aiLmsux', split=True, chars=True)._compile(False) == "[aiLmsux]",                  f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=True, chars=True)._compile(False)}'"
         # assert er.anyof('aiLmsux', split=False, chars=True)._compile(False) == Error,                     f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=True)._compile(False)}'"
         assert er.anyof('aiLmsux', split=None, chars=True)._compile(False) == "[aiLmsux]",                  f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=None, chars=True)._compile(False)}'"
@@ -137,15 +144,7 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
         assert er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False) == "[aiLmsux]",          f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False)}'"
         assert er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False) == "[aiLmsux]",           f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False)}'"
 
-
-        r = word + ASCII + stuff
-        r._compile(addFlags=False)
-        # (word + ASCII + stuff)._compile(addFlags=False)
-        # str(word + ASCII + stuff)
-
-        pass
-
-
+        # Test flags
         assert str(word + ASCII + stuff)      == '(?a)\w+.+', f"{word + ASCII + stuff}      != (?a)\w+.+"
         assert str(word) == '\w+', f'{word}'
         assert str(word + DOTALL + stuff)     == '(?s)\w+.+', f"{word + DOTALL + stuff}     != (?s)\w+.+"
@@ -153,6 +152,11 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
         assert str(word + LOCALE + stuff)     == '(?L)\w+.+', f"{word + LOCALE + stuff}     != (?L)\w+.+"
         assert str(word + MULTILINE + stuff)  == '(?m)\w+.+', f"{word + MULTILINE + stuff}  != (?m)\w+.+"
         assert str(word + UNICODE + stuff)    == '(?u)\w+.+', f"{word + UNICODE + stuff}    != (?u)\w+.+"
+
+        a = word + ow
+        b = stuff + UNICODE
+        c = IGNORECASE + '9'
+        assert a + b + c == word + ow + stuff + UNICODE + IGNORECASE + '9', f"{a + b + c} != {word + ow + stuff + UNICODE + IGNORECASE + '9'}"
 
         for cnt, r in enumerate(regexs):
             regex, matches = r
@@ -168,17 +172,14 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
                 raise err
 
-
     if unsanitize_:
         print("Testing unsantize:")
-        # debug("Testing unsantize:", color=2)
         for i in (
             ', ? : ( ) a d %      ',
             ', ? : \( \) a g %    ',
             '\, \? \: \( \) 2 4 %,',
             '\, \? \: \( \) d %   ',
         ):
-            # debug(unsanitize(i), name=f'Unsanitized <{i}>')
             print(f'Unsanitized <{i}>:', unsanitize(i))
 
     if unitTests:
@@ -217,12 +218,12 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
                 continue
             try:
                 for _ in range(strictness):
-                    # assert r.test(invertRegex(r, colors=False, groupNames=False, explicitConditionals=False))
-                    inv = invertRegex(regex, colors=False, groupNames=False, explicitConditionals=False)
+                    # -1 means return it even if it's bad
+                    inv = invertRegex(regex, tries=-1)
                     if inv not in regex or not dontIncludePassed:
-                        table.add_row(str(_regexsLine+cnt), regex, inv, Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
+                        table.add_row(str(_regexsLine+cnt), Text(regex.str()), '`' + inv + '`', Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
             except Exception as err:
-                print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, inv = `{inv}`')
+                print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`')#, inv = `{inv}`')
                 raise err
 
         rprint(table)
@@ -240,16 +241,19 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
         assert subbed == 'test1 - thing', f'`{subbed}` != `test1 - thing`'
 
     if testMethod:
-        # ow = er.optional(er.whitechunk)
-        # optionalParams = er.anyof(ow + er.group(er.optional(er.chunk)) + ow + ',')
-        # function = er.stuff + 'func(' + er.ifFollowedBy(optionalParams) + ')'
-        # function.test('this should match only the func(param1, param2 ) part of this string')
+        # ow = optional(whitechunk)
+        params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
+        function = er.word + er.ow + '(' + params + ')'
+        function.test('this should match func(param1, param2 ), foo(), and bar( foo,)')
 
         r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
         s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
-        r.test(s)
+        # r.test(s)
 
+        s = 'word1 word2 word3'
+        # word.test(s)
 
+        # (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test()
 
     print('All Tests Passed!')
 
@@ -257,9 +261,9 @@ runTests(
     singletons=False,
     invert=False,
     unsanitize_=False,
-    unitTests=False,
-    replacement=False,
+    unitTests=True,
+    replacement=True,
     testMethod=True,
-    strictness=2,
+    strictness=20,
     dontIncludePassed=True
 )
