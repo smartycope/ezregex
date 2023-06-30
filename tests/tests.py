@@ -9,8 +9,6 @@ import ezregex as er
 from ezregex import *
 from ezregex.invert import *
 
-ow = optional(whitechunk)
-w = whitechunk
 _regexsLine = getframeinfo(currentframe()).lineno + 3
 # This goes (regex, ((things it should match), (things it shouldnt match)))
 regexs = (
@@ -22,7 +20,7 @@ regexs = (
     ('a' + ifFollowedBy('*'), (['a*'], None)),
     (optional(comma) + space, ([', ', ' '], None)),
     (optional(word + ow + ',' + ow) + group(word) + optional(',') + ow, (['word\t ,word2, ', 'word', 'worddsfs    ', 'word,   '], ('', '  '))),
-    (optional(w + 'as' + word), (['wasword'], None)),
+    (optional(whitechunk + 'as' + word), ([' asword'], None)),
     (group(optional(matchMax(er.match('.') + word))), (['..........word', ''], None)),
     (matchNum(3, either("'", '"')), (['"""'], None)),
     (matchNum(2, '0'), (['00'], None)),

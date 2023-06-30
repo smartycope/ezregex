@@ -8,12 +8,22 @@ from rich import print as rprint
 from rich.panel import Panel
 from rich.text import Text
 
-from .EZRegexFunctionCall import EZRegexFunctionCall
+# from .EZRegexMember.EZRegexFunctionCall import EZRegexMember.EZRegexFunctionCall
 from .invert import invertRegex
 
 
 # These are mutable parts of the Regex statement, produced by EasyRegexElements. Should not be used directly.
 class EZRegexMember:
+    # This is a helper class that just holds the args and function so we can call them last
+    class EZRegexFunctionCall:
+        def __init__(self, func, args=(), kwargs={}):
+            self.func  = func
+            self.args = args
+            self.kwargs = kwargs
+
+        def __call__(self, cur):
+            return self.func(cur, *self.args, **self.kwargs)
+
     def __init__(self, funcs:List[EZRegexFunctionCall], sanatize=True, init=True, replacement=False, flags=RegexFlag.NOFLAG):
         """ Ideally, this should only be called internally, but it should still
             work from the user's end
@@ -119,7 +129,7 @@ class EZRegexMember:
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitizeInput(val) if self.sanatize else deepcopy(val)
 
-        return EZRegexMember([EZRegexFunctionCall(self.funcList[0], args, _kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
+        return EZRegexMember([EZRegexMember.EZRegexFunctionCall(self.funcList[0], args, _kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
 
     # Magic Functions
     def __str__(self):
@@ -148,7 +158,7 @@ class EZRegexMember:
         return self * amt
 
     def __add__(self, thing):
-        return EZRegexMember(self.funcList + [EZRegexFunctionCall(lambda cur: cur + self._sanitizeInput(thing))],
+        return EZRegexMember(self.funcList + [EZRegexMember.EZRegexFunctionCall(lambda cur: cur + self._sanitizeInput(thing))],
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
@@ -156,7 +166,7 @@ class EZRegexMember:
         )
 
     def __radd__(self, thing):
-        return EZRegexMember([EZRegexFunctionCall(lambda cur: self._sanitizeInput(thing) + cur)] + self.funcList,
+        return EZRegexMember([EZRegexMember.EZRegexFunctionCall(lambda cur: self._sanitizeInput(thing) + cur)] + self.funcList,
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
