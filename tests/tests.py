@@ -142,8 +142,8 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         assert er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False) == "[aiLmsux]",          f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False)}'"
         assert er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False) == "[aiLmsux]",           f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False)}'"
 
-        assert er.anyCharExcept('abcd')._compile(False) == '[!abcd]'
-        assert er.anyCharExcept(*list('abcd'))._compile(False) == '[!abcd]'
+        assert er.anyCharExcept('abcd')._compile(False) == '[^abcd]'
+        assert er.anyCharExcept(*list('abcd'))._compile(False) == '[^abcd]'
 
         # Test flags
         assert str(word + ASCII + stuff)      == '(?a)\w+.+', f"{word + ASCII + stuff}      != (?a)\w+.+"
@@ -249,7 +249,7 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
     print('All Tests Passed!')
 
 runTests(
-    singletons=False,
+    singletons=True,
     invert=True,
     unitTests=True,
     replacement=True,
