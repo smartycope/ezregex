@@ -56,4 +56,4 @@ kwargs = {
 # Add your customizations in this section.
 ###################### END USER OVERRIDES ####################
 
-setup(**kwargs, long_description_content_type='text/markdown')
+setup(**kwargs, long_description=readme, long_description_content_type='text/markdown')
