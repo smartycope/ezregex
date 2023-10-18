@@ -117,7 +117,7 @@ regexs = (
 )
 
 
-def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, replacement=False, testMethod=False, strictness=20, dontIncludePassed=True):
+def runTests(singletons=True, invert=False, unitTests=True, replacement=False, testMethod=False, strictness=20, dontIncludePassed=True):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -141,6 +141,9 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
         # assert er.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False) == Error,               f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False)}'"
         assert er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False) == "[aiLmsux]",          f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False)}'"
         assert er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False) == "[aiLmsux]",           f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False)}'"
+
+        assert er.anyCharExcept('abcd')._compile(False) == '[!abcd]'
+        assert er.anyCharExcept(*list('abcd'))._compile(False) == '[!abcd]'
 
         # Test flags
         assert str(word + ASCII + stuff)      == '(?a)\w+.+', f"{word + ASCII + stuff}      != (?a)\w+.+"
@@ -169,16 +172,6 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
             except Exception as err:
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
                 raise err
-
-    if unsanitize_:
-        print("Testing unsantize:")
-        for i in (
-            ', ? : ( ) a d %      ',
-            ', ? : \( \) a g %    ',
-            '\, \? \: \( \) 2 4 %,',
-            '\, \? \: \( \) d %   ',
-        ):
-            print(f'Unsanitized <{i}>:', unsanitize(i))
 
     if unitTests:
         print("Running EasyRegex Singleton Unit Tests...")
@@ -246,22 +239,21 @@ def runTests(singletons=True, invert=False, unsanitize_=False, unitTests=True, r
 
         r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
         s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
-        # r.test(s)
+        r.test(s)
 
         s = 'word1 word2 word3'
-        # word.test(s)
+        word.test(s)
 
-        # (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test()
+        (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test()
 
     print('All Tests Passed!')
 
 runTests(
-    singletons=True,
+    singletons=False,
     invert=True,
-    unsanitize_=False,
     unitTests=True,
     replacement=True,
-    testMethod=False,
+    testMethod=True,
     strictness=2,
     dontIncludePassed=True
 )

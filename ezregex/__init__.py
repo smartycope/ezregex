@@ -1,36 +1,36 @@
 #!/usr/bin/env python3
-__version__ = '1.2.0'
+__version__ = '1.4.0'
 from .EZRegexMember import EZRegexMember
 from sys import version_info
 from .invert import invertRegex as invert
 from re import RegexFlag, escape
 
 # Positional
-# wordStartsWith = EZRegexMember(lambda cur, input: input + r'\<' + cur)
-# wordEndsWith   = EZRegexMember(lambda cur, input: cur   + r'\>' + input)
-stringStartsWith = EZRegexMember(lambda cur, input: r'\A' + input + cur)
-stringEndsWith   = EZRegexMember(lambda cur, input: input + r'\Z' + cur)
+# wordStartsWith = EZRegexMember(lambda input, cur=...: input + r'\<' + cur)
+# wordEndsWith   = EZRegexMember(lambda input, cur=...: cur   + r'\>' + input)
+stringStartsWith = EZRegexMember(lambda input, cur=...: r'\A' + input + cur)
+stringEndsWith   = EZRegexMember(lambda input, cur=...: input + r'\Z' + cur)
 # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
-lineStartsWith   = EZRegexMember(lambda cur, input: r'^' + input + cur, flags=RegexFlag.MULTILINE)
-lineEndsWith     = EZRegexMember(lambda cur, input: cur + input + r'$', flags=RegexFlag.MULTILINE)
+lineStartsWith   = EZRegexMember(lambda input, cur=...: r'^' + input + cur, flags=RegexFlag.MULTILINE)
+lineEndsWith     = EZRegexMember(lambda input, cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
 
-# ifAtBeginning  = EZRegexMember(lambda cur: r'^' + cur)
+# ifAtBeginning  = EZRegexMember(lambda cur=...: r'^' + cur)
 # ifAtEnd        = EZRegexMember(r'$')
 
 # Matching
-match     = EZRegexMember(lambda cur, input: cur + input)
-isExactly = EZRegexMember(lambda cur, input: "^" + input + '$')
+match     = EZRegexMember(lambda input, cur=...: cur + input)
+isExactly = EZRegexMember(lambda input, cur=...: "^" + input + '$')
 # Not sure how to implement these, I don't have enough experience with Regex
 # \b       Matches the empty string, but only at the start or end of a word.
 # \B       Matches the empty string, but not at the start or end of a word.
 
 # Amounts
-matchMax      = EZRegexMember(lambda cur,      input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')
-matchNum      = EZRegexMember(lambda cur, num, input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')
-matchMoreThan = EZRegexMember(lambda cur, min, input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')
-matchAtLeast  = EZRegexMember(lambda cur, min, input='': cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')
+matchMax      = EZRegexMember(lambda      input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')
+matchNum      = EZRegexMember(lambda num, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')
+matchMoreThan = EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')
+matchAtLeast  = EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')
 
-def _matchRangeFunc(cur, min, max, input='', greedy=True, possessive=False):
+def _matchRangeFunc(min, max, input='', greedy=True, possessive=False, cur=..., ):
     """ Max can be an empty string to indicate no maximum
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
@@ -54,7 +54,7 @@ matchRange = EZRegexMember(_matchRangeFunc)
 
 # Optionals
 # multiOptional = EZRegexMember(lambda cur, input='': cur + (fr'(?:{input})*' if len(input) > 1 else (fr'{input}*' if len(input) == 1 else '')))
-def _optionalFunc(cur, input='', greedy=True, possessive=False):
+def _optionalFunc(input='', greedy=True, possessive=False, cur=...):
     assert not ((not greedy) and possessive), 'optional can\'t be non-greedy AND possessive at the same time'
     s = cur
     if len(input) > 1:
@@ -71,7 +71,7 @@ def _optionalFunc(cur, input='', greedy=True, possessive=False):
     return s
 optional = EZRegexMember(_optionalFunc)
 
-def _atLeastOneFunc(cur, input='', greedy=True, possessive=False):
+def _atLeastOneFunc(input='', greedy=True, possessive=False, cur=...):
     assert not ((not greedy) and possessive), 'At Least One can\'t be non-greedy AND possessive at the same time'
     s = cur
     if len(input) > 1:
@@ -88,7 +88,7 @@ def _atLeastOneFunc(cur, input='', greedy=True, possessive=False):
     return s
 atLeastOne = EZRegexMember(_atLeastOneFunc)
 
-def _atLeastNoneFunc(cur, input='', greedy=True, possessive=False):
+def _atLeastNoneFunc(input='', greedy=True, possessive=False, cur=...):
     assert not ((not greedy) and possessive), 'At Least None can\'t be non-greedy AND possessive at the same time'
     s = cur
     if len(input) > 1:
@@ -105,9 +105,67 @@ def _atLeastNoneFunc(cur, input='', greedy=True, possessive=False):
     return s
 atLeastNone = EZRegexMember(_atLeastNoneFunc)
 
-either     = EZRegexMember(lambda cur, input, or_input: cur + rf'(?:{input}|{or_input})')
-anyBetween = EZRegexMember(lambda cur, input, and_input: cur + r'[' + input + r'-' + and_input + r']')
+either     = EZRegexMember(lambda input, or_input, cur=...: cur + rf'(?:{input}|{or_input})')
+anyBetween = EZRegexMember(lambda char, and_char, cur=...: cur + r'[' + char + r'-' + and_char + r']')
 
+# def _anyCharsFunc(cur, *inputs, split=False):
+#     cur += r'['
+#     for i in inputs:
+#         cur += i
+#     cur += r']'
+#     return cur
+# anyChars = EZRegexMember(_anyCharsFunc)
+
+def _anyOfFunc(*inputs, chars=None, split=None, cur=...):
+    if split and len(inputs) != 1:
+        assert False, "Please don't specifiy split and pass multiple inputs to anyof"
+    elif split:
+        inputs = list(inputs[0])
+    elif len(inputs) == 1 and split is None and chars is not False:  # None means auto
+        chars = True
+        inputs = list(inputs[0])
+    elif len(inputs) == 1 and split is None:
+        inputs = list(inputs[0])
+    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(s) == 1, inputs)):
+        chars = True
+
+    if chars:
+        cur += r'['
+        for i in inputs:
+            cur += i
+        cur += r']'
+    else:
+        cur += r'(?:'
+        for i in inputs:
+            cur += i
+            cur += '|'
+        cur = cur[:-1]
+        cur += r')'
+    return cur
+anyOf = EZRegexMember(_anyOfFunc)
+
+def _anyCharExceptFunc(*inputs, cur=...):
+    # If it's just a string, split it up
+    if len(inputs) == 1 and len(inputs[0]) > 1:
+        inputs = list(inputs[0])
+
+    cur += r'[^'
+    for i in inputs:
+        cur += i
+    cur += r']'
+    return cur
+anyCharExcept  = EZRegexMember(_anyCharExceptFunc)
+
+def _anyExceptFunc(*inputs, cur=...):
+    raise NotImplementedError('I am as yet unsure how to implement anyExcept. Maybe try using either anyCharExcept, which does work, or something like this: (?:(?!sequence).)+')
+    # cur += r'(?:'
+    # for i in inputs:
+    #     cur += i
+    #     cur += '|'
+    # cur = cur[:-1]
+    # cur += r')'
+    return cur
+anyExcept = EZRegexMember(_anyExceptFunc)
 
 # Single Characters
 whitespace = EZRegexMember(r'\s')
@@ -138,62 +196,6 @@ notWhitespace = EZRegexMember(r'\S')
 notDigit      = EZRegexMember(r'\D')
 notWord       = EZRegexMember(r'\W')
 
-# def _anyCharsFunc(cur, *inputs, split=False):
-#     cur += r'['
-#     for i in inputs:
-#         cur += i
-#     cur += r']'
-#     return cur
-# anyChars = EZRegexMember(_anyCharsFunc)
-
-
-def _anyOfFunc(cur, *inputs, chars=None, split=None):
-    if split and len(inputs) != 1:
-        assert False, "Please don't specifiy split and pass multiple inputs to anyof"
-    elif split:
-        inputs = list(inputs[0])
-    elif len(inputs) == 1 and split is None and chars is not False:  # None means auto
-        chars = True
-        inputs = list(inputs[0])
-    elif len(inputs) == 1 and split is None:
-        inputs = list(inputs[0])
-    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(s) == 1, inputs)):
-        chars = True
-
-    if chars:
-        cur += r'['
-        for i in inputs:
-            cur += i
-        cur += r']'
-    else:
-        cur += r'(?:'
-        for i in inputs:
-            cur += i
-            cur += '|'
-        cur = cur[:-1]
-        cur += r')'
-    return cur
-anyOf = EZRegexMember(_anyOfFunc)
-
-def _anyCharExceptFunc(cur, *inputs):
-    cur += r'[^'
-    for i in inputs:
-        cur += i
-    cur += r']'
-    return cur
-anyCharExcept  = EZRegexMember(_anyCharExceptFunc)
-
-def _anyExceptFunc(cur, *inputs):
-    raise NotImplementedError('I am as yet unsure how to implement anyExcept. Maybe try using either anyCharExcept, which does work, or something like this: (?:(?!sequence).)+')
-    # cur += r'(?:'
-    # for i in inputs:
-    #     cur += i
-    #     cur += '|'
-    # cur = cur[:-1]
-    # cur += r')'
-    return cur
-anyExcept = EZRegexMember(_anyExceptFunc)
-
 # Sets
 uppercase       = EZRegexMember(r'[A-Z]')
 lowercase       = EZRegexMember(r'[a-z]')
@@ -209,35 +211,35 @@ controller     = EZRegexMember(r'[\x00-\x1F\x7F]')
 printable         = EZRegexMember(r'[\x21-\x7E]')
 printableAndSpace = EZRegexMember(r'[\x20-\x7E]')
 # anyAlphaNum_       = EZRegexMember(r'[A-Za-z0-9_]')
-unicode            = EZRegexMember(lambda cur, name: fr'\N{name}')
+unicode            = EZRegexMember(lambda name, cur=...: fr'\N{name}')
 
 # Conditionals
-ifProceededBy    = EZRegexMember(lambda cur, condition: fr'{cur}(?={condition})')
-ifNotProceededBy = EZRegexMember(lambda cur, condition: fr'{cur}(?!{condition})')
-ifPrecededBy     = EZRegexMember(lambda cur, condition: fr'(?<={condition}){cur}')
-ifNotPreceededBy  = EZRegexMember(lambda cur, condition: fr'(?<!{condition}){cur}')
-ifEnclosedWith   = EZRegexMember(lambda cur, open, stuff, close: fr'((?<={open}){stuff}(?={close}))')
+ifProceededBy    = EZRegexMember(lambda condition, cur=...: fr'{cur}(?={condition})')
+ifNotProceededBy = EZRegexMember(lambda condition, cur=...: fr'{cur}(?!{condition})')
+ifPrecededBy     = EZRegexMember(lambda condition, cur=...: fr'(?<={condition}){cur}')
+ifNotPreceededBy = EZRegexMember(lambda condition, cur=...: fr'(?<!{condition}){cur}')
+ifEnclosedWith   = EZRegexMember(lambda open, stuff, close, cur=...: fr'((?<={open}){stuff}(?={close}))')
 
 # Groups
 # referenceGroup = EZRegexMember(lambda cur, name:        f'{cur}(?P={name})')
-group          = EZRegexMember(lambda cur, chain: f'{cur}({chain})')
-passiveGroup   = EZRegexMember(lambda cur, chain: f'{cur}(?:{chain})')
-namedGroup     = EZRegexMember(lambda cur, name, chain: f'{cur}(?P<{name}>{chain})')
+group          = EZRegexMember(lambda chain, cur=...: f'{cur}({chain})')
+passiveGroup   = EZRegexMember(lambda chain, cur=...: f'{cur}(?:{chain})')
+namedGroup     = EZRegexMember(lambda name, chain, cur=...: f'{cur}(?P<{name}>{chain})')
 
 # Flags
-ASCII      = EZRegexMember(lambda cur: cur, flags=RegexFlag.ASCII)
-DOTALL     = EZRegexMember(lambda cur: cur, flags=RegexFlag.DOTALL)
-IGNORECASE = EZRegexMember(lambda cur: cur, flags=RegexFlag.IGNORECASE)
-LOCALE     = EZRegexMember(lambda cur: cur, flags=RegexFlag.LOCALE)
-MULTILINE  = EZRegexMember(lambda cur: cur, flags=RegexFlag.MULTILINE)
-UNICODE    = EZRegexMember(lambda cur: cur, flags=RegexFlag.UNICODE)
+ASCII      = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.ASCII)
+DOTALL     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.DOTALL)
+IGNORECASE = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.IGNORECASE)
+LOCALE     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.LOCALE)
+MULTILINE  = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
+UNICODE    = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.UNICODE)
 
 # For adding raw regex statements without sanatizing them
-raw = EZRegexMember(lambda cur, regex: str(regex), sanatize=False)
+raw = EZRegexMember(lambda regex, cur=...: str(regex), sanatize=False)
 
 # Replace syntax
-replace_group  = EZRegexMember(lambda cur, num_or_name: fr'\g<{num_or_name}>', replacement=True)
-replace_entire = EZRegexMember(lambda cur: r'\g<0>', replacement=True)
+replace_group  = EZRegexMember(lambda num_or_name, cur=...: fr'\g<{num_or_name}>', replacement=True)
+replace_entire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
 
 # Useful Combonations
 literallyAnything = either(anything, newLine)

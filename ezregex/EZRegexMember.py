@@ -8,23 +8,13 @@ from rich import print as rprint
 from rich.panel import Panel
 from rich.text import Text
 
-# from .EZRegexMember.EZRegexFunctionCall import EZRegexMember.EZRegexFunctionCall
 from .invert import invertRegex
+from functools import partial
 
-
-# These are mutable parts of the Regex statement, produced by EasyRegexElements. Should not be used directly.
+# These are mutable parts of the Regex statement, produced by EasyRegexElements.
+# Should not be instantiated by the user directly.
 class EZRegexMember:
-    # This is a helper class that just holds the args and function so we can call them last
-    class EZRegexFunctionCall:
-        def __init__(self, func, args=(), kwargs={}):
-            self.func  = func
-            self.args = args
-            self.kwargs = kwargs
-
-        def __call__(self, cur):
-            return self.func(cur, *self.args, **self.kwargs)
-
-    def __init__(self, funcs:List[EZRegexFunctionCall], sanatize=True, init=True, replacement=False, flags=RegexFlag.NOFLAG):
+    def __init__(self, funcs:List[partial], sanatize=True, init=True, replacement=False, flags=0):
         """ Ideally, this should only be called internally, but it should still
             work from the user's end
         """
@@ -42,14 +32,11 @@ class EZRegexMember:
 
         self.sanatize = sanatize
         self.replacement = replacement
-        # if replacement:
-        #     self.sanatize = False
         self.funcList = list(funcs)
         self.example = self.invert = self.inverse
 
-
-        # The init parameter is not actually required, but it will make it more efficient,
-        # so we don't have to check that the whole chain is callable
+        # The init parameter is not actually required, but it will make it more
+        # efficient, so we don't have to check that the whole chain is callable
         if init:
             # Go through the chain (most likely of length 1) and parse any strings
             # This is for simplicity when defining all the members
@@ -57,12 +44,13 @@ class EZRegexMember:
                 if isinstance(self.funcList[i], str):
                     # I *hate* how Python handles lambdas
                     stringBecauseHatred = deepcopy(self.funcList[i])
-                    self.funcList[i] = lambda cur: cur + stringBecauseHatred
+                    self.funcList[i] = lambda cur=...: cur + stringBecauseHatred
                 elif not callable(self.funcList[i]) and self.funcList[i] is not None:
                     raise TypeError(f"Invalid type {type(self.funcList[i])} passed to EZRegexMember constructor")
 
     def _sanitizeInput(self, i, addFlags=False):
-        """ Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string """
+        """ Instead of rasising an error if passed a strange datatype, it now
+            trys to cast it to a string """
         i = deepcopy(i)
 
         # Don't sanatize anything if this is a replacement string
@@ -81,8 +69,6 @@ class EZRegexMember:
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
             i = re.escape(i)
-            # for part in escapeChars:
-                # i = re.sub(r'(?<!\\)' + part, part, i)
             return i
         # A couple of singletons use bools and None as kwargs, just ignore them and move on
         elif i is None or isinstance(i, bool):
@@ -100,20 +86,19 @@ class EZRegexMember:
                 except:
                     warn(msg)
                 else:
-                    # debug(msg, trace=True, color=-1, calls=3)
-                    # debug(i)
                     debug(msg, color=-1, calls=3)
                 return s
             except:
                 raise TypeError(f'Incorrect type {type(i)} given to EZRegexMember parameter: Must be string or another EZRegexMember chain.')
 
     def __call__(self, *args, **kwargs):
-        """ This should be called by the user to specify the specific parameters of this instance
+        """ This should be called by the user to specify the specific parameters
+            of this instance
             i.e. anyof('a', 'b')
         """
         # If this is being called without parameters, just compile the chain.
-        # If it's being called *with* parameters, then it better be a fundemental member, otherwise
-        # that doesn't make any sense.
+        # If it's being called *with* parameters, then it better be a fundemental
+        # member, otherwise that doesn't make any sense.
         if len(self.funcList) > 1:
             if not len(args) and not len(kwargs):
                 return self._compile()
@@ -128,8 +113,10 @@ class EZRegexMember:
         _kwargs = {}
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitizeInput(val) if self.sanatize else deepcopy(val)
+        # _kwargs['cur'] = args[0]
+        # del args[0]
 
-        return EZRegexMember([EZRegexMember.EZRegexFunctionCall(self.funcList[0], args, _kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
+        return EZRegexMember([partial(self.funcList[0], *args, **_kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
 
     # Magic Functions
     def __str__(self):
@@ -158,7 +145,8 @@ class EZRegexMember:
         return self * amt
 
     def __add__(self, thing):
-        return EZRegexMember(self.funcList + [EZRegexMember.EZRegexFunctionCall(lambda cur: cur + self._sanitizeInput(thing))],
+        from Cope import debug
+        return EZRegexMember(self.funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
@@ -166,7 +154,7 @@ class EZRegexMember:
         )
 
     def __radd__(self, thing):
-        return EZRegexMember([EZRegexMember.EZRegexFunctionCall(lambda cur: self._sanitizeInput(thing) + cur)] + self.funcList,
+        return EZRegexMember([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self.funcList,
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
@@ -188,7 +176,6 @@ class EZRegexMember:
         return self.__iadd__(thing)
 
     def __not__(self):
-        # NotImplementedError('The not operator is not currently implemented')
         return self.invert(colors=False, groupNames=False)
 
     def __hash__(self):
@@ -196,13 +183,11 @@ class EZRegexMember:
 
     def __contains__(self, thing):
         assert isinstance(thing, str), "`in` statement can only be used with a string"
-        # print(self.compile())
         return re.search(self._compile(), thing) is not None
 
     # I guess this isn't a thing? But it really should be.
     def __rcontains__(self, thing):
         assert isinstance(thing, str), "`in` statement can only be used with a string"
-        # print(self.compile())
         return re.search(self._compile(), thing) is not None
 
     def __reversed__(self):
@@ -211,11 +196,15 @@ class EZRegexMember:
     def __rich__(self):
         return self._compile()
 
+    def __pretty__(self):
+        return self._compile()
+
     # Regular functions
     def _compile(self, addFlags=True):
         regex = ''
         for func in self.funcList:
-            regex = func(regex)
+            regex = func(cur=regex)
+            # regex = func(regex)
 
         # Add the flags
         _flags = ''
@@ -297,7 +286,7 @@ class EZRegexMember:
         st.append("Testing expression", style=defaultColor)
         # Add the context line
         if _cope:
-            st.append(f' (from {get_context(get_metadata(2)).strip()})', style=defaultColor)
+            st.append(f' (from {get_context(get_metadata(2), False, True, True).strip()})', style=defaultColor)
         st.append(':\n', style=defaultColor)
         # The expression we're testing
         st.append(f'\t{self._compile()}\n', style=textColor)
@@ -355,13 +344,16 @@ class EZRegexMember:
         # Don't forget to add any bit at the end that's not part of a match
         st.append(testString[globalCursor:], style=textColor)
 
-        rprint(Panel(Text.assemble(*st, '\n', *gt), title='Testing Regex', subtitle=Text('Found\n', style='blue') if found else Text('Not Found\n', style='red')))  #, border_style='dim green')
-        # rprint(p)
+        rprint(Panel(Text.assemble(*st, '\n', *gt),
+            title='Testing Regex',
+            subtitle=Text('Found\n', style='blue') if found
+                else Text('Not Found\n', style='red')))  #, border_style='dim green')
 
         return found
 
     def inverse(self, amt=1, **kwargs):
-        """ "Inverts" the current Regex expression to give an example of a string it would match.
+        """ "Inverts" the current Regex expression to give an example of a string
+            it would match.
             Useful for debugging purposes.
         """
         return '\n'.join([invertRegex(self._compile(), **kwargs) for _ in range(amt)])
