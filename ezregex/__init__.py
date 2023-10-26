@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-__version__ = '1.4.0'
+__version__ = '1.4.2'
 from .EZRegexMember import EZRegexMember
 from sys import version_info
 from .invert import invertRegex as invert
@@ -8,18 +8,19 @@ from re import RegexFlag, escape
 # Positional
 # wordStartsWith = EZRegexMember(lambda input, cur=...: input + r'\<' + cur)
 # wordEndsWith   = EZRegexMember(lambda input, cur=...: cur   + r'\>' + input)
-stringStartsWith = EZRegexMember(lambda input, cur=...: r'\A' + input + cur)
-stringEndsWith   = EZRegexMember(lambda input, cur=...: input + r'\Z' + cur)
+stringStartsWith = EZRegexMember(lambda input='', cur=...: r'\A' + input + cur)
+stringEndsWith   = EZRegexMember(lambda input='', cur=...: input + r'\Z' + cur)
 # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
-lineStartsWith   = EZRegexMember(lambda input, cur=...: r'^' + input + cur, flags=RegexFlag.MULTILINE)
-lineEndsWith     = EZRegexMember(lambda input, cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
+lineStartsWith   = EZRegexMember(lambda input='', cur=...: r'^' + input + cur, flags=RegexFlag.MULTILINE)
+lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
 
 # ifAtBeginning  = EZRegexMember(lambda cur=...: r'^' + cur)
 # ifAtEnd        = EZRegexMember(r'$')
 
 # Matching
 match     = EZRegexMember(lambda input, cur=...: cur + input)
-isExactly = EZRegexMember(lambda input, cur=...: "^" + input + '$')
+# isExactly = EZRegexMember(lambda input, cur=...: "^" + input + '$')
+isExactly = EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')
 # Not sure how to implement these, I don't have enough experience with Regex
 # \b       Matches the empty string, but only at the start or end of a word.
 # \B       Matches the empty string, but not at the start or end of a word.
@@ -156,16 +157,7 @@ def _anyCharExceptFunc(*inputs, cur=...):
     return cur
 anyCharExcept  = EZRegexMember(_anyCharExceptFunc)
 
-def _anyExceptFunc(*inputs, cur=...):
-    raise NotImplementedError('I am as yet unsure how to implement anyExcept. Maybe try using either anyCharExcept, which does work, or something like this: (?:(?!sequence).)+')
-    # cur += r'(?:'
-    # for i in inputs:
-    #     cur += i
-    #     cur += '|'
-    # cur = cur[:-1]
-    # cur += r')'
-    return cur
-anyExcept = EZRegexMember(_anyExceptFunc)
+anyExcept = EZRegexMember(lambda input, cur=...: cur + f'(?!.*{input}).*')
 
 # Single Characters
 whitespace = EZRegexMember(r'\s')
@@ -243,22 +235,25 @@ replace_entire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
 
 # Useful Combonations
 literallyAnything = either(anything, newLine)
-signed = optional('-') + number
+signed = optional(either('-', '+')) + number
 unsigned = number
-float = signed + period + optional(number)
+plain_float = signed + period + optional(number)
+full_float = plain_float + optional('e' + signed)
 int_or_float = optional('-') + number + optional(period + optional(number))
 ow = optional(whitechunk)
+# Source: http://stackoverflow.com/questions/201323/ddg#201378
+email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
 
 # Psuedonyms
-match_max = matchMax
+match_max = matchExactly = match_exactly = matchMax
 match_num = matchAmt = match_amt = matchNum
 match_range = matchRange
 match_more_than = match_greater_than = matchGreaterThan = matchMoreThan
 match_at_least = match_min = matchMin = matchAtLeast
-line_starts_with = lineStartsWith
-string_starts_with = stringStartsWith
-line_ends_with = lineEndsWith
-string_ends_with = stringEndsWith
+line_starts_with = line_start = lineStart = lineStartsWith
+string_starts_with = string_start = stringStart = stringStartsWith
+line_ends_with = line_end = lineEnd = lineEndsWith
+string_ends_with = string_end = stringEnd = stringEndsWith
 stuff      = chunk
 whiteChunk = whitechunk
 anychar    = anything
@@ -307,7 +302,8 @@ ignorecase = i = ignoreCase = ignore_case = IGNORECASE
 locale = L = LOCALE
 multiline = m = MULTILINE
 unicode = u = UNICODE
-
+# Useful Combinations
+integer = signed
 
 # TODO:
 """

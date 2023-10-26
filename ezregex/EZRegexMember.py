@@ -15,8 +15,10 @@ from functools import partial
 # Should not be instantiated by the user directly.
 class EZRegexMember:
     def __init__(self, funcs:List[partial], sanatize=True, init=True, replacement=False, flags=0):
-        """ Ideally, this should only be called internally, but it should still
-            work from the user's end
+        """ The workhorse of the EZRegex library. This represents a regex pattern
+        that can be combined with other EZRegexMembers and strings.
+        Ideally, this should only be called internally, but it should still
+        work from the user's end
         """
         self.flags = flags
 
@@ -119,8 +121,8 @@ class EZRegexMember:
         return EZRegexMember([partial(self.funcList[0], *args, **_kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
 
     # Magic Functions
-    def __str__(self):
-        return self._compile()
+    def __str__(self, addFlags=True):
+        return self._compile(addFlags)
 
     def __repr__(self):
         return 'ezregex("' + self._compile() + '")'
@@ -145,7 +147,6 @@ class EZRegexMember:
         return self * amt
 
     def __add__(self, thing):
-        from Cope import debug
         return EZRegexMember(self.funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
@@ -231,8 +232,8 @@ class EZRegexMember:
                 regex = fr'(?{_flags})' + regex
         return regex
 
-    def compile(self):
-        return re.compile(self._compile())
+    def compile(self, addFlags=True):
+        return re.compile(self._compile(addFlags))
 
     def str(self):
         return self.__str__()

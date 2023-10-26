@@ -68,17 +68,13 @@ I also have everything which could capture a group capture it passively, except 
 
 ## Documentation
 ### Notes and Gotchas
+- When using the re library, functions like search() and sub() don't accept EZRegexMembers as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk isEx+ whitespace).str().
 - The `input` parameter can accept strings, other EZRegexMembers, or entire sequences of EZRegex patterns.
 - A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to https://docs.python.org/3/library/re.html for details.
-- In future versions, conditionals may change to taking in 2 parameters (the current patter, and their associated condition) instead
+- In future versions, conditionals may change to taking in 2 parameters (the current pattern, and their associated condition) instead
 - In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group() or namedGroup().
 - All EZRegexMembers (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
-### Positional
-#### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line
-- stringStartsWith(input)
-- stringEndsWith(input)
-- lineStartsWith(input)
-- lineEndsWith(input)
+- Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
 ### Matching
 - match(input)
     - This is a redundant function. You should always be able to use "... + 'stuff'" just as easily as "... + match('stuff')"
@@ -109,8 +105,14 @@ I also have everything which could capture a group capture it passively, except 
     - Match any of the given `inputs`. Note that `inputs` can be multiple parameters, or a single string. If char is set to True, then `inputs` must only be a single string, and it interprets `inputs` as characters, and splits it up to find any of the chars in the string. If split is set to true, it forces the ?(...) regex syntax instead of the \[...\] syntax. It should act the same way, but your output regex will look different. None just means "optimize it for me"
 - anyCharExcept(*inputs)
     - This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- anyExcept(*inputs)
-    - This isn't implemented. To my knowledge, regex doesn't have a built-in way of doing this. There might be a weird way I haven't figured out yet, but if you think about it, this function doesn't make much sense. Instead use either anyCharExcept, or something like this: matchMax(passiveGroup(ifNotProceededBy('sequence') + anything))   or  "(?:(?!sequence).)+"
+- anyExcept(input)
+    - Matches anything other than `input`
+### Positional
+#### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.
+- stringStartsWith(input='') / stringStart
+- stringEndsWith(input='') / stringEnd
+- lineStartsWith(input='') / lineStart
+- lineEndsWith(input='') / lineEnd
 ### Single CharactersMatches
 - whitespace
 - whitechunk

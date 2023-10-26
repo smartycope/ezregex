@@ -69,7 +69,7 @@ regexs = (
     (stringEndsWith('a'), (('lklkjfda', 'sdf 8 a', 'a'), ('asdfds', 'sd fd'))),
     (lineEndsWith('a'), (('lklkjfda', 'sdf 8 a', 'a', 'sdf\na', 'sdfse\nsdafsda', 'sdfa\nsdf'), ('asdfds', 'sd fd'))),
     (er.match('test'), (('test', ' sdfstestsdfs',), ('te st',))),
-    (isExactly('test'), (('test',), ('a test', 'test '))),
+    (isExactly('test'), (('test',), ('a test', 'test ', '\ntest\n', '\ntest', 'test\n'))),
     (matchMax('a'), (('aaa', 'a'), ('b',))),
     (matchMoreThan(3, 'a'), (('aaaa', 'tesaaaaaat'), ('aaa',' aa'))),
     (matchAtLeast(3, 'a'), (('aaa', 'aaaa'), ('aa',))),
@@ -102,6 +102,8 @@ regexs = (
     ((optional('a') + 'b') * 3, (('abbb', 'bbb', 'ababab', 'bbab'), ('', 'aaa', 'aa', 'a'))),
     (word + whitechunk + group('func') + ':' + '()' + namedGroup('test', either('|', '7')), (('wo  func:()|', 'wo  func:()7'), None)),
     (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')), (('wo  func:8', 'wo  func:7'), None)),
+    ('foo ' + anyExcept('bar') + ' baz', (('foo thing baz', 'foo bax baz'), ('foo bar baz',))),
+
     # TODO:
     # (matchRange(3, 5, 'a', possessive=True) + 'aa', (('a'*7,), ('a'*6,))),
     # (optional('a', possessive=True) + 'b', (('',), ('',))),
