@@ -208,11 +208,19 @@ I also have everything which could capture a group capture it passively, except 
 - literallyAnything
     - *Any* character, include newline
 - signed
+    - a signed number, including 123, -123, and +123
 - unsigned
-- float
+    - Same as number. Will not match +123
+- plain_float
+    - Will match 123.45 and 123.
+- full_float
+    - Will match plain_float as well as things like 1.23e-10 and 1.23e+10
 - int_or_float
+    - Exactly what it sounds like
 - ow
     - "Optional Whitechunk"
+- email
+    - Matches an email
 
 ## ToDo
 See https://docs.python.org/3/library/re.html for details
