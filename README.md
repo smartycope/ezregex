@@ -14,6 +14,15 @@ TLDR: This is to regular expressions what CMake is to makefiles
 * [License](#license)
 
 ## Usage
+
+Quickstart
+```python
+from ezregex import *
+number + optional(whitespace) + word
+# Matches `123abc` and `123 abc`
+# but not `abc123` or  `foo bar`
+```
+
 Importing as a named package is recommended, as many of the functions have common names
 ```python
 import ezregex as er
@@ -57,7 +66,7 @@ $ pip install ezregex
 ```
 
 ## Explanation of How it Works
-Everything relies on the EZRegexMember class. In the __init__ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
+Everything relies on the EZRegexMember class. In the \__init\__ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
 
 I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStartsWith/lineEndsWith are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
 
