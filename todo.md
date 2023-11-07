@@ -8,7 +8,6 @@ emoji() member
 AnyExcept: ^(?!.*county).* (matches any line which doesn't have 'county' in it)
 figure out how to add proper linting to all of them -- manually override __doc__?
 maybe a function like line(stuff in a line), which automatically adds line start and line end to it
-same as above, but with string?
 README links are broken
 change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
 wordStart/wordEnd
@@ -68,9 +67,16 @@ Will try to match with yes-pattern if the group with given id or name exists, an
 
 \number
 Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
-
-('(' + +(anything + optional(group(comma))) + ')').test() -- empty groups print as None
 nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
+arith_op
+& and `and` operator -- Each
+^ and `or` operator -- anyof
+
+
+BUGS:
+('(' + +(anything + optional(group(comma))) + ')').test() -- empty groups print as None
+inverting anyExcept(punctuation) or anyExcept(anyof(punctuation)) causes invert to go into an infinite loop at 134
+ifFollowedBy(word) matching on `literal(hllow) + isExactly('thing')` fails in _matchJSON()
 
 ADD TESTS FOR:
 lineStart
@@ -83,6 +89,7 @@ one_of
 white
 literal -- replacing match
 unary + operator
+anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
 
 ADD DOCS FOR:
 alphas
@@ -90,6 +97,7 @@ alphanum
 one_of
 white
 unary + operator
+anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
 
 ADD INVERTS FOR:
 literallyAnything is broken, so I assume either is broken as well

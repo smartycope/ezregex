@@ -157,7 +157,7 @@ def _anyCharExceptFunc(*inputs, cur=...):
     return cur
 anyCharExcept  = EZRegexMember(_anyCharExceptFunc)
 
-anyExcept = EZRegexMember(lambda input, cur=...: cur + f'(?!.*{input}).*')
+anyExcept = EZRegexMember(lambda input, type='.*', cur=...: cur + f'(?!{type}{input}){type}')
 
 # Single Characters
 whitespace = EZRegexMember(r'\s')
@@ -198,7 +198,7 @@ letter          = EZRegexMember(r'[A-Za-z]')
 hexDigit        = EZRegexMember(r'[0-9a-fA-F]')
 octDigit        = EZRegexMember(r'[0-7]')
 # punctuation     = EZRegexMember(r'[:punct:]')
-# punctuation     = EZRegexMember(escape('[`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]]'))
+punctuation     = EZRegexMember(r'[' + escape('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]') + r']')
 # anyBlank           = EZRegexMember(r'[ \t\r\n\v\f]')
 controller        = EZRegexMember(r'[\x00-\x1F\x7F]')
 printable         = EZRegexMember(r'[\x21-\x7E]')

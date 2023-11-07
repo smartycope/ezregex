@@ -167,6 +167,9 @@ class EZRegexMember:
         # return self + self._sanitizeInput(thing)
         return self + thing
 
+    # def __and__(self, thing):
+    #     return self.__add__(self, thing)
+
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):
         return self.__add__(thing)
@@ -290,7 +293,7 @@ class EZRegexMember:
         matches = list(re.finditer(self._compile(), testString))
         found = bool(len(matches))
 
-        if not show and rtn is bool:
+        if not show:
             return found
 
         _cope = False
@@ -420,6 +423,8 @@ class EZRegexMember:
         # Map match spans to unique colors
         # TODO: This will fail if testString has more matches than colors
         # matchColors = dict(zip(allMatches, reversed(_matchColors)))
+        while len(allMatches) > len(_colors):
+            _colors += _colors
         matchColors = dict(zip(allMatches, reversed(_colors)))
 
         for match in matches:

@@ -194,6 +194,7 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         assert str(test) == str(word + chunk + word), f"{str(test)} != {str(word + chunk + word)}"
         assert test == word + chunk + word
         assert either('(' + word + ')', '.') == either(er.literal('(') + word() + er.literal(')'), '.'), f"{either('(' + word + ')', '.')} != {either(er.literal('(') + word() + er.literal(')'), '.')}"
+        assert str(ifFollowedBy(word)) == r'(?=\w+)'
         # assert (word + ow + anything + ':') in 'word    d:'
         # assert (word + ow + anything + ':') not in 'word'
 
@@ -258,7 +259,9 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
 
     if internal:
         # rprint((word + number)._matchJSON())
-        rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
+        # rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
+        rprint(ifFollowedBy(word)._matchJSON())
+
 
 
     if operators:
@@ -289,7 +292,7 @@ runTests(
     invert=False,
     unitTests=False,
     replacement=False,
-    testMethod=True,
+    testMethod=False,
     internal=True,
     operators=False,
     strictness=2,

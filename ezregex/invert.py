@@ -113,7 +113,7 @@ def invertRegex(regex:str, tries=10) -> str:
     regex = _invertRegexes.stringEnd.sub('', regex)  # TODO
     regex = _invertRegexes.lineEnd.sub('', regex)  # TODO
 
-    # Single Characterschoice
+    # Single Characters
     regex = _invertRegexes.word.sub(_randWord(), regex)
     regex = _invertRegexes.s.sub(_whitespace, regex)
     regex = _invertRegexes.digit.sub(choice(_digits), regex)
