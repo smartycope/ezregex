@@ -1,8 +1,9 @@
 # EZRegex
 An readable and intuitive way to generate Regular Expressions
 
-TLDR: This is to regular expressions what CMake is to makefiles
+Try my new frontend for this library at https://ezregex.streamlit.app/!
 
+TLDR: This is to regular expressions what CMake is to makefiles
 
 **Table of Contents**
 * [Usage](#usage)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-__version__ = '1.4.2'
+__version__ = '1.4.3'
 from .EZRegexMember import EZRegexMember
 from sys import version_info
 from .invert import invertRegex as invert
