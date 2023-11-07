@@ -113,7 +113,7 @@ def invertRegex(regex:str, tries=10) -> str:
     regex = _invertRegexes.stringEnd.sub('', regex)  # TODO
     regex = _invertRegexes.lineEnd.sub('', regex)  # TODO
 
-    # Single Characters
+    # Single Characterschoice
     regex = _invertRegexes.word.sub(_randWord(), regex)
     regex = _invertRegexes.s.sub(_whitespace, regex)
     regex = _invertRegexes.digit.sub(choice(_digits), regex)
@@ -192,6 +192,6 @@ def invertRegex(regex:str, tries=10) -> str:
         return regex
     else:
         if not tries:
-            raise NotImplementedError(f"Sorry, I can't invert the given regex. You can try again, or submit a bug report by emailing smartycope@gmail.com and including `{self}`")
+            raise NotImplementedError(f"Can't invert the given regex. You can try again, which may work, or submit a bug report by emailing smartycope@gmail.com and including your pattern")
         else:
             return invertRegex(original, tries=tries-1)

@@ -18,7 +18,7 @@ lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', f
 # ifAtEnd        = EZRegexMember(r'$')
 
 # Matching
-match     = EZRegexMember(lambda input, cur=...: cur + input)
+literal = EZRegexMember(lambda input, cur=...: cur + input)
 # isExactly = EZRegexMember(lambda input, cur=...: "^" + input + '$')
 isExactly = EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')
 # Not sure how to implement these, I don't have enough experience with Regex
@@ -182,6 +182,7 @@ verticalTab    = EZRegexMember(r'\v')
 formFeed       = EZRegexMember(r'\f')
 comma          = EZRegexMember(r'\,')
 period         = EZRegexMember(r'\.')
+# TODO: punctuation    = EZRegexMember(r'[\.\,]')
 
 # Not Chuncks
 notWhitespace = EZRegexMember(r'\S')
@@ -199,10 +200,10 @@ octDigit        = EZRegexMember(r'[0-7]')
 # punctuation     = EZRegexMember(r'[:punct:]')
 # punctuation     = EZRegexMember(escape('[`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]]'))
 # anyBlank           = EZRegexMember(r'[ \t\r\n\v\f]')
-controller     = EZRegexMember(r'[\x00-\x1F\x7F]')
+controller        = EZRegexMember(r'[\x00-\x1F\x7F]')
 printable         = EZRegexMember(r'[\x21-\x7E]')
 printableAndSpace = EZRegexMember(r'[\x20-\x7E]')
-# anyAlphaNum_       = EZRegexMember(r'[A-Za-z0-9_]')
+alphaNum          = EZRegexMember(r'[A-Za-z0-9_]')
 unicode            = EZRegexMember(lambda name, cur=...: fr'\N{name}')
 
 # Conditionals
@@ -226,12 +227,17 @@ LOCALE     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.LOCALE)
 MULTILINE  = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
 UNICODE    = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.UNICODE)
 
+# TODO
+# keyword = EZRegexMember(lambda input, cur=...: cur + input + fr'{cur}(?={condition})'+ input)
+# Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
+# keyword = lambda input: literal() + ifProceededBy(anyof(whitespace, pun))
+
 # For adding raw regex statements without sanatizing them
 raw = EZRegexMember(lambda regex, cur=...: str(regex), sanatize=False)
 
 # Replace syntax
-replace_group  = EZRegexMember(lambda num_or_name, cur=...: fr'\g<{num_or_name}>', replacement=True)
-replace_entire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
+replaceGroup  = EZRegexMember(lambda num_or_name, cur=...: fr'\g<{num_or_name}>', replacement=True)
+replaceEntire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
 
 # Useful Combonations
 literallyAnything = either(anything, newLine)
@@ -259,6 +265,10 @@ whiteChunk = whitechunk
 anychar    = anything
 anyChar    = anything
 char       = anything
+alpha      = letter
+alphanum   = alpha_num = alphaNum
+white      = whitechunk
+
 # anyAmt = any_amt = multi_optional = multiOpt = multi_opt = multiOptional
 anyAmt = any_amt = atLeastNone
 any_between = anyBetween
@@ -276,7 +286,7 @@ not_whitespace = notWhitespace
 not_digit = notDigit
 not_word = notWord
 # any_chars = anyChars
-anyof = any_of = anyOf
+anyof = any_of = oneOf = one_of = anyOf
 any_except = anyExcept
 any_char_except = anyCharExcept
 printable_and_space = printableAndSpace
@@ -291,9 +301,8 @@ if_proceeded_by = ifProceededBy
 if_notProceeded_by = ifNotProceededBy
 passive_group = passiveGroup
 named_group = namedGroup
-replace_all = replace_entire
 exactly = isExactly
-oneOrNone = one_or_none = optional
+oneOrNone = one_or_none = opt = optional
 oneOrMore = one_or_more = at_least_one = atLeast1 = at_least_1 = atLeastOne
 noneOrMore = none_or_more = at_least_none = at_least_0 = atLeast0 = atLeastNone
 ascii = a = ASCII
@@ -305,25 +314,5 @@ unicode = u = UNICODE
 # Useful Combinations
 integer = signed
 
-# TODO:
-"""
-
-(?>...)
-Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
-
-(?P=name)
-A backreference to a named group; it matches whatever text was matched by the earlier group named name.
-
-\b
-Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, \b is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that r'\bfoo\b' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
-
-\B
-Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of \b, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
-
-(?(id/name)yes-pattern|no-pattern)
-Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
-
-\number
-Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
-
- """
+rgroup = replace_group = replaceGroup
+replace_all = replaceAll = replace_entire = replaceEntire

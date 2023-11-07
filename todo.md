@@ -11,12 +11,89 @@ maybe a function like line(stuff in a line), which automatically adds line start
 same as above, but with string?
 README links are broken
 change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
+wordStart/wordEnd
+Everything on https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#basic-parserelement-subclasses for compatibility
+punctuation
+CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
+Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
+CaselessKeyword - similar to Keyword, but with caseless matching behavior as described in CaselessLiteral.
+empty -- matches an empty string in an expression. useful for something like empty + ifFollowedBy(...)
+DelimitedList - used for matching one or more occurrences of expr, separated by delim.
+NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
+Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#expression-operators
+caseless_literal
+a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
+operators: |, &, ^, ~
+add [] operators!
+    https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
+    expr[2, 3] is equivalent to expr + expr + Opt(expr)
+    expr[n, ...] or expr[n,] is equivalent to expr*n + ZeroOrMore(expr) (read as “at least n instances of expr”)
+    expr[... ,n] is equivalent to expr*(0, n) (read as “0 to n instances of expr”)
+    expr[...], expr[0, ...] and expr * ... are equivalent to ZeroOrMore(expr)
+    expr[1, ...] is equivalent to OneOrMore(expr)
+    expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
+QuotedString - supports the definition of custom quoted string formats, in addition to pyparsing’s built-in dbl_quoted_string and sgl_quoted_string. QuotedString allows you to specify the following parameters:
+
+    quote_char - string of one or more characters defining the quote delimiting string
+    esc_char - character to escape quotes, typically backslash (default=None)
+    esc_quote - special quote sequence to escape an embedded quote string (such as SQL’s “” to escape an embedded “) (default=None)
+    multiline - boolean indicating whether quotes can span multiple lines (default=False)
+    unquote_results - boolean indicating whether the matched text should be unquoted (default=True)
+    end_quote_char - string of one or more characters defining the end of the quote delimited string (default=None => same as quote_char)
+nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
+    opener - opening character for a nested list (default=”(“); can also be a pyparsing expression
+    closer - closing character for a nested list (default=”)”); can also be a pyparsing expression
+    content - expression for items within the nested lists (default=None)
+    ignore_expr - expression for ignoring opening and closing delimiters (default=``quoted_string``)
+    If an expression is not provided for the content argument, the nested expression will capture all whitespace-delimited content between delimiters as a list of separate values.
+    Use the ignore_expr argument to define expressions that may contain opening or closing characters that should not be treated as opening or closing characters for nesting, such as quoted_string or a comment expression. Specify multiple expressions using an Or or MatchFirst. The default is quoted_string, but if no expressions are to be ignored, then pass None for this argument.
+ungroup
+These https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#common-string-and-token-constants
+
+
+(?>...)
+Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
+
+(?P=name)
+A backreference to a named group; it matches whatever text was matched by the earlier group named name.
+
+\b
+Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, \b is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that r'\bfoo\b' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
+
+\B
+Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of \b, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
+
+(?(id/name)yes-pattern|no-pattern)
+Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
+
+\number
+Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
+
+('(' + +(anything + optional(group(comma))) + ')').test() -- empty groups print as None
+nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
 
 ADD TESTS FOR:
 lineStart
 stringStart
 lineEnd
 stringEnd
+alphas
+alphanum
+one_of
+white
+literal -- replacing match
+unary + operator
+
+ADD DOCS FOR:
+alphas
+alphanum
+one_of
+white
+unary + operator
+
+ADD INVERTS FOR:
+literallyAnything is broken, so I assume either is broken as well
+`word + letter + group(word + ow) + '()'`` doesn't invert
 
 FINISHED:
 start_of_string, and end, start_of_line, and end

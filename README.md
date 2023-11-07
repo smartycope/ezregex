@@ -1,4 +1,4 @@
-# ezregex
+# EZRegex
 An readable and intuitive way to generate Regular Expressions
 
 TLDR: This is to regular expressions what CMake is to makefiles
@@ -85,7 +85,7 @@ I also have everything which could capture a group capture it passively, except 
 - All EZRegexMembers (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
 - Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
 ### Matching
-- match(input)
+- literal(input)
     - This is a redundant function. You should always be able to use "... + 'stuff'" just as easily as "... + match('stuff')"
 - isExactly(input)
     - This matches the string if and only if the entire string is exactly equal to `input`
@@ -236,7 +236,6 @@ See https://docs.python.org/3/library/re.html for details
     - Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t.
 - \number
     - Matches the contents of the group of the same number.
- """
 
 ## License
 ezregex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)

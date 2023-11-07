@@ -10,6 +10,7 @@ from rich.text import Text
 
 from .invert import invertRegex
 from functools import partial
+from random import shuffle
 
 # These are mutable parts of the Regex statement, produced by EasyRegexElements.
 # Should not be instantiated by the user directly.
@@ -176,8 +177,28 @@ class EZRegexMember:
     def __ilshift__(self, thing):
         return self.__iadd__(thing)
 
+    # I don't think right and left shifts should be any different, right?
+    def __rshift__(self, thing):
+        return self.__add__(thing)
+
+    def __rrshift__(self, thing):
+        return self.__radd__(thing)
+
+    def __irshift__(self, thing):
+        return self.__iadd__(thing)
+
+    def __invert__(self):
+        return self.invert()
+
     def __not__(self):
-        return self.invert(colors=False, groupNames=False)
+        raise NotImplementedError('The not operator is not implemented. What you probably want is one of anyExcept(), anyCharExcept(), ifNotProceededBy(), or ifNotPreceededBy()')
+
+    def __pos__(self):
+        comp = self._compile()
+        return EZRegexMember(('' if not len(comp) else r'(?:' + comp + r')') + r'+', sanatize=False)
+
+    def __or__(self, other):
+        return
 
     def __hash__(self):
         return hash(self._compile())
@@ -258,26 +279,29 @@ class EZRegexMember:
         else:
             copy(self._compile())
 
-    def test(self, testString=None, show=True) -> bool:
+    def test(self, testString=None, show=True, context=True) -> bool:
         """ Tests the current regex expression to see if it's in @param testString.
             Returns the match objects (None if there was no match)
         """
+        # Get an inverse, if nessicary
         _assert = testString is None
         if testString is None:
             testString = self.inverse()
         matches = list(re.finditer(self._compile(), testString))
         found = bool(len(matches))
 
-        if not show:
+        if not show and rtn is bool:
             return found
 
-        # Use the nice context function in the Cope library
-        try:
-            from Cope import get_context, get_metadata
-        except ImportError:
-            _cope = False
-        else:
-            _cope = True
+        _cope = False
+        if context:
+            # Use the nice context function in the Cope library
+            try:
+                from Cope import get_context, get_metadata
+            except ImportError:
+                pass
+            else:
+                _cope = True
 
         st = Text()  # String
         gt = Text()  # Groups (all the group-related text)
@@ -299,6 +323,7 @@ class EZRegexMember:
         # Map match spans to unique colors
         # TODO: This will fail if testString has more than 14 matches (I think? Not sure how rich will handle negative colors)
         matchColors = dict(zip(allMatches, map(lambda a: 14-a, range(len(allMatches)))))
+        startColors = 1
 
         for match in matches:
             allGroups = {match.span(i+1) for i in range(len(match.groups()))}
@@ -306,7 +331,9 @@ class EZRegexMember:
             unnamedGroups = allGroups - set(namedGroups.values())
             # +1, just so we can get different starting color other than black
             # Map group spans to unique colors
-            colors = dict(zip(allGroups, map(lambda a: a+1, range(len(allGroups)))))
+            colors = dict(zip(allGroups, map(lambda a: a+startColors, range(len(allGroups)))))
+            # So different matches have different groups of colors
+            startColors += len(allGroups)
             cursor = match.span()[0]
 
             # First, print up until the match
@@ -345,12 +372,118 @@ class EZRegexMember:
         # Don't forget to add any bit at the end that's not part of a match
         st.append(testString[globalCursor:], style=textColor)
 
+        # if _internal:
+        #     print(st.markup + '\n' + gt.markup)
+        #     return found
+
+        # if rtn is str:
+            # return '\n'.join([t._text for t in st])
+            # return '\n'.join(st._text)
+            # return str(st) + '\n' + str(gt)
+
         rprint(Panel(Text.assemble(*st, '\n', *gt),
             title='Testing Regex',
             subtitle=Text('Found\n', style='blue') if found
                 else Text('Not Found\n', style='red')))  #, border_style='dim green')
 
+        # if rtn is bool:
         return found
+
+    def _matchJSON(self, testString=None):
+        #           red         green       yellow    blue       orange     purple      teal  greenish teal skin color dark green dark teal pale pink   brown    pale yellow  maroon
+        # _colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#d16d2a', '#651fb6', '#39c5c5', '#a8f678', '#fabebe', '#808000', '#008080', '#e6beff', '#9a6324', '#c5c19b', '#800000']
+        # _colors = ['#800000', '#9a6324', '#808000', '#d16d2a', '#e6194b', '#fabebe', '#ffe119', '#c5c19b', '#a8f678', '#3cb44b', '#39c5c5', '#008080', '#4363d8', '#e6beff', '#651fb6']
+        # Lighter ones, so they show up better on a dark background
+        _matchColors = ["#ffe119", "#a8f678", "#fabebe", "#39c5c5", "#c5c19b", '#44ff00', "#8da0cb", "#df5e3e", "#f08a5d", '#00ffe1', '#ff0000']
+        shuffle(_matchColors)
+        # darker ones, so they show up better on _matchColors
+        _groupColors = ["#800000", "#d1750b", "#005f00", "#3cb44b", '#6c6c6c', "#4363d8", "#651fb6", '#95624e', '#870000', '#086f95', '#829569']
+        shuffle(_groupColors)
+        _colors = _groupColors + _matchColors
+
+        # Get an inverse, if nessicary
+        if testString is None or not len(testString):
+            testString = self.inverse()
+        matches = list(re.finditer(self._compile(), testString))
+        found = bool(len(matches))
+
+        json = {
+            'regex': self._compile(),
+            'string': testString,
+            'stringHTML': ...,
+            'matches': []
+        }
+
+        st = '<p><span style="color: white;">'
+        globalCursor = 0
+        allMatches = [m.span() for m in matches]
+        # Map match spans to unique colors
+        # TODO: This will fail if testString has more matches than colors
+        # matchColors = dict(zip(allMatches, reversed(_matchColors)))
+        matchColors = dict(zip(allMatches, reversed(_colors)))
+
+        for match in matches:
+            allGroups = {match.span(i+1) for i in range(len(match.groups()))}
+            namedGroups = dict({(i, match.span(i)) for i in match.groupdict().keys()})
+            unnamedGroups = allGroups - set(namedGroups.values())
+            # Map group spans to unique colors
+            # colors = dict(zip(allGroups, _groupColors))
+            colors = dict(zip(allGroups, _colors))
+            # So different matches have different groups of colors
+            # _groupColors = _groupColors[len(allGroups):]
+            _colors = _colors[len(allGroups):]
+            cursor = match.span()[0]
+
+            # First, get up until the match
+            st += f'{testString[globalCursor:cursor]}</span>'
+            match_st = ''
+            for g in sorted(allGroups, key=lambda x: x[0]):
+                # Print the match up until the group
+                match_st += f'<span style="color: {matchColors[match.span()]};">{testString[cursor:g[0]]}</span>'
+
+                # Print the group
+                match_st += f'<span style="background-color: {colors[g]}; color: {matchColors[match.span()]};">{testString[g[0]:g[1]]}</span>'
+                cursor = g[1]
+            match_st += f'<span style="color: {matchColors[match.span()]};">{testString[cursor:match.span()[1]]}</span>'
+            globalCursor = match.span()[1]
+            # Don't print after the group, cause there might be another match that covers it
+            st += match_st
+            toSlice = lambda t: f'({t[0]}:{t[1]})'
+            match_json = {
+                'match': {
+                    'string': match.group(),
+                    'stringHTML': match_st,
+                    'end': match.end(),
+                    'start': match.start(),
+                    "color": matchColors[match.span()],
+                },
+                "unnamedGroups":[],
+                "namedGroups":{},
+            }
+
+            for i in range(len(unnamedGroups)):
+                match_json['unnamedGroups'].append({
+                    'string': match.group(i+1),
+                    'end': match.end(i+1),
+                    'start': match.start(i+1),
+                    "color": colors[match.span(i+1)],
+                })
+
+            for name, span in namedGroups.items():
+                match_json['namedGroups'][name] = {
+                    'string': match.group(name),
+                    'end': span[1],
+                    'start': span[0],
+                    "color": colors[span],
+                }
+            json['matches'].append(match_json)
+
+
+        # Don't forget to add any bit at the end that's not part of a match
+        st += testString[globalCursor:]
+        st += '</span></p>'
+        json['stringHTML'] = st
+        return json
 
     def inverse(self, amt=1, **kwargs):
         """ "Inverts" the current Regex expression to give an example of a string
