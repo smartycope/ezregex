@@ -157,7 +157,7 @@ def _anyCharExceptFunc(*inputs, cur=...):
     return cur
 anyCharExcept  = EZRegexMember(_anyCharExceptFunc)
 
-anyExcept = EZRegexMember(lambda input, type='.*', cur=...: cur + f'(?!{type}{input}){type}')
+anyExcept = EZRegexMember(lambda input, type='.*', cur=...: cur + f'(?!{input}){type}')
 
 # Single Characters
 whitespace = EZRegexMember(r'\s')
@@ -182,7 +182,6 @@ verticalTab    = EZRegexMember(r'\v')
 formFeed       = EZRegexMember(r'\f')
 comma          = EZRegexMember(r'\,')
 period         = EZRegexMember(r'\.')
-# TODO: punctuation    = EZRegexMember(r'[\.\,]')
 
 # Not Chuncks
 notWhitespace = EZRegexMember(r'\S')

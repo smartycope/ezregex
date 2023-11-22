@@ -79,17 +79,7 @@ inverting anyExcept(punctuation) or anyExcept(anyof(punctuation)) causes invert 
 ifFollowedBy(word) matching on `literal(hllow) + isExactly('thing')` fails in _matchJSON()
 
 ADD TESTS FOR:
-lineStart
-stringStart
-lineEnd
-stringEnd
-alphas
-alphanum
-one_of
-white
-literal -- replacing match
-unary + operator
-anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
+Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
 
 ADD DOCS FOR:
 alphas
