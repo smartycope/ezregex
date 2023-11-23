@@ -406,6 +406,11 @@ class EZRegexMember:
             match_html = ''
             match_parts = []
             for g in sorted(allGroups, key=lambda x: x[0]):
+                # This fixes the bug where overlapping groups get put in twice. By simply preventing
+                # the cursor from moving backwards, we eliminate the latter (parent) group from being shown.
+                if g[0] < cursor:
+                    continue
+
                 # Print the match up until the group
                 match_html += f'<span style="color: {matchColors[match.span()]};">{testString[cursor:g[0]]}</span>'
                 match_parts.append([matchColors[match.span()], None, testString[cursor:g[0]]])

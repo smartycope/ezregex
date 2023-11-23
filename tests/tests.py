@@ -269,21 +269,19 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
 
         (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test()
 
-        # TODO:
+        # This is actually accurate, if you think about it.
         # ifFollowedBy(word).test("literal(hllow) + isExactly('thing')")# fails in _matchJSON()
-        # ('(' + +(anything + optional(group(comma))) + ')').test()# -- empty groups print as None
 
-        # print((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test(rtn=str))
-        # print((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test(rtn=str, context=False, _internal=True))
-        # print((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test(None, context=False, _internal=True, rtn=str))
-        # (word + number).test(None, context=False, _internal=True)
+        ('(' + +(anything + optional(group(comma))) + ')').test()# -- empty groups print as None
+
+        group(+group(number) + group(anyof('98'))).test('999')
 
     if internal:
         # rprint((word + number)._matchJSON())
         # rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
-        # rprint(ifFollowedBy(word)._matchJSON())
-        # rprint(word._matchJSON())
-        # rprint(number._matchJSON('word'))
+        rprint(ifFollowedBy(word)._matchJSON())
+        rprint(word._matchJSON())
+        rprint(number._matchJSON('word'))
         r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
         s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
         rprint(r._matchJSON(s))
