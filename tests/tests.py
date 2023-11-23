@@ -19,7 +19,7 @@ regexs = (
     (anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*'),              ['a , *', 'b  *'],                                                      None),
     ('stuff' + anyof('a', 'b', 'c'),                                                        ['stuffa', 'stuffb'],                                                   None),
     (anyof('a', 'b', 'c'),                                                                  ['a', 'b', 'c'],                                                        None),
-    (one_of('a', 'b', 'c'),                                                                  ['a', 'b', 'c'],                                                        None),
+    (one_of('a', 'b', 'c'),                                                                 ['a', 'b', 'c'],                                                        None),
     ('a' + ifFollowedBy('*'),                                                               ['a*'],                                                                 None),
     (optional(comma) + space,                                                               [', ', ' '],                                                            None),
     (optional(word + ow + ',' + ow) + group(word) + optional(',') + ow,                     ['word\t ,word2, ', 'word', 'worddsfs    ', 'word,   '],                ('', '  ')),
@@ -270,8 +270,8 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test()
 
         # TODO:
+        # ifFollowedBy(word).test("literal(hllow) + isExactly('thing')")# fails in _matchJSON()
         # ('(' + +(anything + optional(group(comma))) + ')').test()# -- empty groups print as None
-        ifFollowedBy(word).test("literal(hllow) + isExactly('thing')")# fails in _matchJSON()
 
         # print((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test(rtn=str))
         # print((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7'))).test(rtn=str, context=False, _internal=True))
@@ -281,7 +281,12 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
     if internal:
         # rprint((word + number)._matchJSON())
         # rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
-        rprint(ifFollowedBy(word)._matchJSON())
+        # rprint(ifFollowedBy(word)._matchJSON())
+        # rprint(word._matchJSON())
+        # rprint(number._matchJSON('word'))
+        r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
+        s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
+        rprint(r._matchJSON(s))
 
     if operators:
         print('Testing operators...')
