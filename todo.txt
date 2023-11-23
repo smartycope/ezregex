@@ -75,6 +75,7 @@ arith_op
 
 BUGS:
 AnyExcept tests are currently failing
+try matchRange(0, 3, digit) matching 8888888, and see how many matches it finds
 
 ADD TESTS FOR:
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
@@ -86,6 +87,9 @@ one_of
 white
 unary + operator
 anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
+[] operators
+matchAtMost
+~ operator
 
 ADD INVERTS FOR:
 literallyAnything is broken, so I assume either is broken as well

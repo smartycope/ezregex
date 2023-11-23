@@ -116,6 +116,7 @@ regexs = (
     (exactly('foo' + anyExcept('boo') + 'bar'),                                             ('foonotbar', 'foobar'),                                                ('fooboobar', 'boobar', 'fooboo')), # not sure where 'foo boo bar' goes
     (exactly('foo' + anyExcept('boo', number) + 'bar'),                                     ('foo999bar', 'foo8bar'),                                               ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar')),
     (exactly('foo' + anyExcept('boo', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar', 'foo8bar', 'foo98')),
+    (exactly(matchAtMost(3, digit)),                                                        ('444', '33', '1'),                                                     ('9999','9830')),
     #TODO: (exactly('foo' + anyExcept('888', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'foo888bar', 'boobar', 'foo8bar', 'foo98')),
     #TODO: (exactly('foo' + anyExcept('boo', word) + 'bar'),                                       ('foonotbar',),                                                         ('fooboobar', 'foo99bar', 'fooboo', 'boobar', 'foobar')),
     # (,                                                                                    (,),                                                                    (,)),
@@ -301,13 +302,14 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         # else:
         #     assert False
 
+        assert +digit == matchMax(digit)
 
         assert anything + word == anything << word
         assert anything + word == anything >> word
 
         assert digit[2, 3] == match_range(2, 3, digit)
         assert digit[2, ...] == digit[2,] == digit[2, None] == digit[2] == match_at_least(2, digit)
-        # assert digit[..., 2] == digit[0, 2] == digit[None, 2] == match_at_most(2, digit)
+        assert digit[..., 2] == digit[0, 2] == digit[None, 2] == match_at_most(2, digit)
         assert digit[...] == digit[0, ...] == digit[None] == at_least_0(digit)
         assert digit[1, ...] == digit[1] == digit[1,] == digit[1, None] == at_least_1(digit)
         # expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
@@ -320,7 +322,7 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
     print('All Tests Passed!')
 
 runTests(
-    singletons=False,
+    singletons=True,
     invert=False,
     unitTests=False,
     replacement=False,

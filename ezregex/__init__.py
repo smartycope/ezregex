@@ -8,28 +8,25 @@ from re import RegexFlag, escape
 # Positional
 # wordStartsWith = EZRegexMember(lambda input, cur=...: input + r'\<' + cur)
 # wordEndsWith   = EZRegexMember(lambda input, cur=...: cur   + r'\>' + input)
+# \b       Matches the empty string, but only at the start or end of a word.
+# \B       Matches the empty string, but not at the start or end of a word.
 stringStartsWith = EZRegexMember(lambda input='', cur=...: r'\A' + input + cur)
 stringEndsWith   = EZRegexMember(lambda input='', cur=...: input + r'\Z' + cur)
 # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
 lineStartsWith   = EZRegexMember(lambda input='', cur=...: r'^' + input + cur, flags=RegexFlag.MULTILINE)
 lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
 
-# ifAtBeginning  = EZRegexMember(lambda cur=...: r'^' + cur)
-# ifAtEnd        = EZRegexMember(r'$')
-
 # Matching
 literal = EZRegexMember(lambda input, cur=...: cur + input)
 # isExactly = EZRegexMember(lambda input, cur=...: "^" + input + '$')
 isExactly = EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')
-# Not sure how to implement these, I don't have enough experience with Regex
-# \b       Matches the empty string, but only at the start or end of a word.
-# \B       Matches the empty string, but not at the start or end of a word.
 
 # Amounts
 matchMax      = EZRegexMember(lambda      input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')
 matchNum      = EZRegexMember(lambda num, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')
 matchMoreThan = EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')
 matchAtLeast  = EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')
+matchAtMost   = EZRegexMember(lambda max, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{0,' + str(max) + r'}')
 
 def _matchRangeFunc(min, max, input='', greedy=True, possessive=False, cur=..., ):
     """ Max can be an empty string to indicate no maximum
@@ -251,6 +248,7 @@ email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*
 
 # Psuedonyms
 match_max = matchExactly = match_exactly = matchMax
+match_at_most = matchAtMost
 match_num = matchAmt = match_amt = matchNum
 match_range = matchRange
 match_more_than = match_greater_than = matchGreaterThan = matchMoreThan

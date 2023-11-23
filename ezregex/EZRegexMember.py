@@ -254,7 +254,7 @@ class EZRegexMember:
             start, end = args
             if start is None or start is Ellipsis:
                 # match_at_most(2, self)
-                return NotImplemented
+                return EZRegexMember(fr'(?:{self._compile()}){{0,{end}}}', sanatize=False)
             elif end is None or end is Ellipsis:
                 if start == 0:
                     # at_least_0(self)
