@@ -74,9 +74,7 @@ arith_op
 
 
 BUGS:
-('(' + +(anything + optional(group(comma))) + ')').test() -- empty groups print as None
-inverting anyExcept(punctuation) or anyExcept(anyof(punctuation)) causes invert to go into an infinite loop at 134
-ifFollowedBy(word) matching on `literal(hllow) + isExactly('thing')` fails in _matchJSON()
+AnyExcept tests are currently failing
 
 ADD TESTS FOR:
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
@@ -95,3 +93,7 @@ literallyAnything is broken, so I assume either is broken as well
 
 FINISHED:
 start_of_string, and end, start_of_line, and end
+I *think* these all should work now
+('(' + +(anything + optional(group(comma))) + ')').test() -- empty groups print as None
+inverting anyExcept(punctuation) or anyExcept(anyof(punctuation)) causes invert to go into an infinite loop at 134
+ifFollowedBy(word) matching on `literal(hllow) + isExactly('thing')` fails in _matchJSON()

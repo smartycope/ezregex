@@ -301,8 +301,17 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         # else:
         #     assert False
 
+
         assert anything + word == anything << word
         assert anything + word == anything >> word
+
+        assert digit[2, 3] == match_range(2, 3, digit)
+        assert digit[2, ...] == digit[2,] == digit[2, None] == digit[2] == match_at_least(2, digit)
+        # assert digit[..., 2] == digit[0, 2] == digit[None, 2] == match_at_most(2, digit)
+        assert digit[...] == digit[0, ...] == digit[None] == at_least_0(digit)
+        assert digit[1, ...] == digit[1] == digit[1,] == digit[1, None] == at_least_1(digit)
+        # expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
+        # assert digit[...:'foo'] == digit[None:'foo'] == digit[,'foo'] ==
 
         # no idea why this doesnt work.
         # assert (anything + word) * 3 == '.\w+' * 3, f"'{(anything + word) * 3}' != '{'.\w+'*3}'"
@@ -315,9 +324,9 @@ runTests(
     invert=False,
     unitTests=False,
     replacement=False,
-    testMethod=True,
+    testMethod=False,
     internal=False,
-    operators=False,
+    operators=True,
     strictness=2,
     dontIncludePassed=True
 )
