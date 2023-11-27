@@ -12,9 +12,8 @@ from .invert import invertRegex
 from functools import partial
 from random import shuffle
 
-# These are mutable parts of the Regex statement, produced by EasyRegexElements.
-# Should not be instantiated by the user directly.
 class EZRegexMember:
+    """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
     def __init__(self, funcs:List[partial], sanatize=True, init=True, replacement=False, flags=0):
         """ The workhorse of the EZRegex library. This represents a regex pattern
         that can be combined with other EZRegexMembers and strings.
@@ -132,6 +131,8 @@ class EZRegexMember:
         return self._sanitizeInput(thing, addFlags=True) == self._compile()
 
     def __mul__(self, amt):
+        if amt is Ellipsis:
+            return NotImplemented
         rtn = self
         # This isn't optimal, but it's unlikely anyone will use this with large numbers
         for i in range(amt-1):
@@ -199,6 +200,24 @@ class EZRegexMember:
     def __pos__(self):
         comp = self._compile()
         return EZRegexMember(('' if not len(comp) else r'(?:' + comp + r')') + r'+', sanatize=False)
+
+    def __ror__(self, thing):
+        print('ror called')
+        return EZRegexMember(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', sanatize=False)
+
+    def __or__(self, thing):
+        print('or called')
+        return EZRegexMember(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', sanatize=False)
+
+    def __xor__(self, thing):
+        return NotImplemented
+
+    def __rxor__(self, thing):
+        return NotImplemented
+
+    # Have this use the re.sub operator
+    def __mod__(self, other):
+        return NotImplemented
 
     def __or__(self, other):
         return

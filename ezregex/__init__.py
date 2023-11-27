@@ -5,6 +5,11 @@ from sys import version_info
 from .invert import invertRegex as invert
 from re import RegexFlag, escape
 
+# NOTE: A bunch of these have wrapper functions around them. They're just for
+# linting and type hinting in the editor. Do note that passing the parameters
+# directly *doesn't* work, because when calling passed lambdas, EZRegexMember
+# sanatizes the parameters in a particular way, depending on internal members.
+
 # Positional
 # wordStartsWith = EZRegexMember(lambda input, cur=...: input + r'\<' + cur)
 # wordEndsWith   = EZRegexMember(lambda input, cur=...: cur   + r'\>' + input)
@@ -17,94 +22,138 @@ lineStartsWith   = EZRegexMember(lambda input='', cur=...: r'^' + input + cur, f
 lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
 
 # Matching
-literal = EZRegexMember(lambda input, cur=...: cur + input)
-# isExactly = EZRegexMember(lambda input, cur=...: "^" + input + '$')
-isExactly = EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')
+def isExactly(input):
+    "This matches the string if and only if the entire string is exactly equal to `input`"
+    return EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')(input)
 
-# Amounts
-matchMax      = EZRegexMember(lambda      input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')
-matchNum      = EZRegexMember(lambda num, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')
-matchMoreThan = EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')
-matchAtLeast  = EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')
-matchAtMost   = EZRegexMember(lambda max, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{0,' + str(max) + r'}')
+def literal(input):
+    "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
+    return EZRegexMember(lambda input, cur=...: cur + input)(input)
 
-def _matchRangeFunc(min, max, input='', greedy=True, possessive=False, cur=..., ):
-    """ Max can be an empty string to indicate no maximum
+
+# Amounts and Optionals
+def matchMax(input=''):
+    """Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
+    If `input` is not provided, it works on the previous regex pattern. That's not recommended for
+    clarity's sake though"""
+    return EZRegexMember(lambda      input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'+')(input)
+
+def matchNum(num, input=''):
+    "Match `num` amount of `input` in the string"
+    return EZRegexMember(lambda num, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(num) + r'}')(num, input)
+
+def matchMoreThan(min, input=''):
+    "Match more than `min` sequences of `input` in the string"
+    return EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(int(min) + 1) + r',}')(min, input)
+
+def matchAtLeast(min, input=''):
+    "Match at least `min` sequences of `input` in the string"
+    return EZRegexMember(lambda min, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',}')(min, input)
+
+def matchAtMost(max, input=''):
+    "Match at most `max` instances of `input` in the string"
+    return EZRegexMember(lambda max, input='', cur=...: cur + ('' if not len(input) else r'(?:' + input + r')') + r'{0,' + str(max) + r'}')(max, input)
+
+def matchRange(min, max, input='', greedy=True, possessive=False):
+    """ Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
+        Max can be an empty string to indicate no maximum
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     """
-    # return cur + ('' if not len(input) else r'(?:' + input + r')') + r'{' + str(min) + r',' + str(max) + r'}'
-    assert not ((not greedy) and possessive), 'Match Range can\'t be non-greedy AND possessive at the same time'
-    s = ''
-    if len(input):
-        s += r'(?:' + input + r')'
-    s += r'{' + str(min) + r',' + str(max) + r'}'
-    if not greedy:
-        s += r'?'
-    if possessive:
-        if version_info < (3, 11):
-            raise Exception('Possessive qualifiers require at least Python3.11 ')
-        s += r'+'
-    return s
-matchRange = EZRegexMember(_matchRangeFunc)
+    def _matchRangeFunc(min, max, input='', greedy=True, possessive=False, cur=..., ):
+        assert not ((not greedy) and possessive), 'Match Range can\'t be non-greedy AND possessive at the same time'
+        s = ''
+        if len(input):
+            s += r'(?:' + input + r')'
+        s += r'{' + str(min) + r',' + str(max) + r'}'
+        if not greedy:
+            s += r'?'
+        if possessive:
+            if version_info < (3, 11):
+                raise Exception('Possessive qualifiers require at least Python3.11 ')
+            s += r'+'
+        return s
+    return EZRegexMember(_matchRangeFunc)(min, max, input, greedy=greedy, possessive=possessive)
 
-# Optionals
-# multiOptional = EZRegexMember(lambda cur, input='': cur + (fr'(?:{input})*' if len(input) > 1 else (fr'{input}*' if len(input) == 1 else '')))
-def _optionalFunc(input='', greedy=True, possessive=False, cur=...):
-    assert not ((not greedy) and possessive), 'optional can\'t be non-greedy AND possessive at the same time'
-    s = cur
-    if len(input) > 1:
-        s += fr'(?:{input})?'
-    else:
-        if len(input) == 1:
-            s += fr'{input}?'
-    if not greedy:
-        s += r'?'
-    if possessive:
-        if version_info < (3, 11):
-            raise Exception('Possessive qualifiers require at least Python3.11 ')
-        s += r'+'
-    return s
-optional = EZRegexMember(_optionalFunc)
+def optional(input='', greedy=True, possessive=False):
+    """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+    """
+    def _optionalFunc(input='', greedy=True, possessive=False, cur=...):
+        assert not ((not greedy) and possessive), 'optional can\'t be non-greedy AND possessive at the same time'
+        s = cur
+        if len(input) > 1:
+            s += fr'(?:{input})?'
+        else:
+            if len(input) == 1:
+                s += fr'{input}?'
+        if not greedy:
+            s += r'?'
+        if possessive:
+            if version_info < (3, 11):
+                raise Exception('Possessive qualifiers require at least Python3.11 ')
+            s += r'+'
+        return s
+    return EZRegexMember(_optionalFunc)(input, greedy=greedy, possessive=possessive)
 
-def _atLeastOneFunc(input='', greedy=True, possessive=False, cur=...):
-    assert not ((not greedy) and possessive), 'At Least One can\'t be non-greedy AND possessive at the same time'
-    s = cur
-    if len(input) > 1:
-        s += fr'(?:{input})+'
-    else:
-        if len(input) == 1:
-            s += fr'{input}+'
-    if not greedy:
-        s += '?'
-    if possessive:
-        if version_info < (3, 11):
-            raise Exception('Possessive qualifiers require at least Python3.11 ')
-        s += '+'
-    return s
-atLeastOne = EZRegexMember(_atLeastOneFunc)
+def atLeastOne(input='', greedy=True, possessive=False):
+    """ Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+    """
+    def _atLeastOneFunc(input='', greedy=True, possessive=False, cur=...):
+        assert not ((not greedy) and possessive), 'At Least One can\'t be non-greedy AND possessive at the same time'
+        s = cur
+        if len(input) > 1:
+            s += fr'(?:{input})+'
+        else:
+            if len(input) == 1:
+                s += fr'{input}+'
+        if not greedy:
+            s += '?'
+        if possessive:
+            if version_info < (3, 11):
+                raise Exception('Possessive qualifiers require at least Python3.11 ')
+            s += '+'
+        return s
+    return EZRegexMember(_atLeastOneFunc)(input, greedy=greedy, possessive=possessive)
 
-def _atLeastNoneFunc(input='', greedy=True, possessive=False, cur=...):
-    assert not ((not greedy) and possessive), 'At Least None can\'t be non-greedy AND possessive at the same time'
-    s = cur
-    if len(input) > 1:
-        s += fr'(?:{input})*'
-    else:
-        if len(input) == 1:
-            s += fr'{input}*'
-    if not greedy:
-        s += '?'
-    if possessive:
-        if version_info < (3, 11):
-            raise Exception('Possessive qualifiers require at least Python3.11 ')
-        s += '+'
-    return s
-atLeastNone = EZRegexMember(_atLeastNoneFunc)
+def atLeastNone(input='', greedy=True, possessive=False):
+    """ Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+    """
+    def _atLeastNoneFunc(input='', greedy=True, possessive=False, cur=...):
+        assert not ((not greedy) and possessive), 'At Least None can\'t be non-greedy AND possessive at the same time'
+        s = cur
+        if len(input) > 1:
+            s += fr'(?:{input})*'
+        else:
+            if len(input) == 1:
+                s += fr'{input}*'
+        if not greedy:
+            s += '?'
+        if possessive:
+            if version_info < (3, 11):
+                raise Exception('Possessive qualifiers require at least Python3.11 ')
+            s += '+'
+        return s
+    return EZRegexMember(_atLeastNoneFunc)(input, greedy=greedy, possessive=possessive)
 
-either     = EZRegexMember(lambda input, or_input, cur=...: cur + rf'(?:{input}|{or_input})')
-anyBetween = EZRegexMember(lambda char, and_char, cur=...: cur + r'[' + char + r'-' + and_char + r']')
+def either(input, or_input):
+    return EZRegexMember(lambda input, or_input, cur=...: cur + rf'(?:{input}|{or_input})')(input, or_input)
+
+def anyBetween(char, and_char):
+    return EZRegexMember(lambda char, and_char, cur=...: cur + r'[' + char + r'-' + and_char + r']')(char, and_char)
 
 # def _anyCharsFunc(cur, *inputs, split=False):
 #     cur += r'['
@@ -247,12 +296,12 @@ ow = optional(whitechunk)
 email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
 
 # Psuedonyms
-match_max = matchExactly = match_exactly = matchMax
-match_at_most = matchAtMost
-match_num = matchAmt = match_amt = matchNum
+match_max = matchMax
+match_at_most = atMost = at_most = matchAtMost
+match_num = matchAmt = match_amt = amt = num = matchNum
 match_range = matchRange
-match_more_than = match_greater_than = matchGreaterThan = matchMoreThan
-match_at_least = match_min = matchMin = matchAtLeast
+match_more_than = match_greater_than = matchGreaterThan = moreThan = more_than = matchMoreThan
+match_at_least = match_min = matchMin = atLeast = at_least = matchAtLeast
 line_starts_with = line_start = lineStart = lineStartsWith
 string_starts_with = string_start = stringStart = stringStartsWith
 line_ends_with = line_end = lineEnd = lineEndsWith

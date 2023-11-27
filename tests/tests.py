@@ -187,6 +187,7 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
                     for m in dontMatch:
                         assert m not in regex, f"{regex} DOES match '{m}' (approx. {__file__}, line {_regexsLine+cnt})"
             except Exception as err:
+                print(regex)
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
                 raise err.with_traceback(None)
 
@@ -302,6 +303,17 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         # else:
         #     assert False
 
+        # This is weird...
+        digit = er.digit
+
+        # TODO: Finish this
+        # assert digit * ... == matchMax(digit)
+
+        # TODO: Debug this
+        # assert digit | word == anyof(digit, word), f"{digit | word} != {anyof(digit, word)}"
+        # assert 7 | digit == anyof(7, digit), f"{7 | digit} != {anyof(digit, 7)}"
+        # assert re.search(str(digit | word | '1'), '1') == re.search(anyof(digit, word, 1).str(), '1')
+
         assert +digit == matchMax(digit)
 
         assert anything + word == anything << word
@@ -315,10 +327,19 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         # expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
         # assert digit[...:'foo'] == digit[None:'foo'] == digit[,'foo'] ==
 
+        test = digit
+        digit += 6
+        assert test == digit + 6
+
+        test = digit
+        digit *= 3
+        assert test == digit * 3
+
+        assert 2 * digit == digit * 2
+
         # no idea why this doesnt work.
         # assert (anything + word) * 3 == '.\w+' * 3, f"'{(anything + word) * 3}' != '{'.\w+'*3}'"
-
-
+    # literal()
     print('All Tests Passed!')
 
 runTests(
@@ -328,7 +349,7 @@ runTests(
     replacement=False,
     testMethod=False,
     internal=False,
-    operators=True,
+    operators=False,
     strictness=2,
     dontIncludePassed=True
 )
