@@ -153,7 +153,7 @@ class EZRegexMember:
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
-            flags=self.flags | thing.flags if isinstance(thing, EZRegexMember) else self.flags
+            flags=(self.flags | thing.flags) if isinstance(thing, EZRegexMember) else self.flags
         )
 
     def __radd__(self, thing):

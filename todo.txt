@@ -67,19 +67,31 @@ nested groups (i.e. matchMax(group(comma))) will only match the last one. Add so
 arith_op
 & and `and` operator -- Each
 ^ and `or` operator -- anyof
+all the methods which return NotImplemented
+in tests, split the "unittest" catagory up into operators and stuff
+remove all the useless comments in elements.py
+dialects?
 
 
 BUGS:
 AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any line which doesn't have 'county' in it)
 | operator isn't working for some reason
 try matchRange(0, 3, digit) matching 8888888, and see how many matches it finds
+invert lambdas all do the same thing each time
 
 ADD TESTS FOR:
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
+docs
+punctuation
+All the todos in tests
+<<=, >>=
+some psuedonymns
+handle the deprication warnings
 
 ADD DOCS FOR:
 alphas
 alphanum
+punctuation
 one_of
 white
 unary + operator

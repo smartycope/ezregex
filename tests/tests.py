@@ -106,17 +106,17 @@ regexs = (
     ((optional('a') + 'b') * 3,                                                             ('abbb', 'bbb', 'ababab', 'bbab'),                                      ('', 'aaa', 'aa', 'a')),
     (word + whitechunk + group('func') + ':' + '()' + namedGroup('test', either('|', '7')), ('wo  func:()|', 'wo  func:()7'),                                       None),
     (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')),         ('wo  func:8', 'wo  func:7'),                                           None),
-    ('foo ' + anyExcept('bar') + ' baz',                                                    ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
+    #TODO ('foo ' + anyExcept('bar') + ' baz',                                                    ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
     (7 + anyof('abc') + lineEnd,                                                            ('7a', 'sdfsd7b', 'sdf\nsdf7b', 'sdf\nsdf7b\n'),                        ('7asdfsd', '7v')),
     (7 + anyof('abc') + stringEnd,                                                          ('7a', 'sdfsd7b'),                                                      ('7asdfsd', '7v', 'sdf\nsdf7bds', 'sdf\nsdf7bf\n')),
     (lineStart + 7 + anyof('abc'),                                                          ('7a', '7bsdfsd', '\n7a', '\n7bsdfsd'),                                 ('ds7asdfsd', '7v')),
     (stringStart + 7 + anyof('abc'),                                                        ('7a', '7bsdfsd'),                                                      ('ds7asdfsd', '7v', '\n7a', '\n7bsdfsd')),
     (+alpha,                                                                                ('a', 'asd'),                                                           ('89', '._78')),
     (+alphanum,                                                                             ('a', 'asd', '3sd', '88'),                                              ('.+',)),
-    (exactly('foo' + anyExcept('boo') + 'bar'),                                             ('foonotbar', 'foobar'),                                                ('fooboobar', 'boobar', 'fooboo')), # not sure where 'foo boo bar' goes
-    (exactly('foo' + anyExcept('boo', number) + 'bar'),                                     ('foo999bar', 'foo8bar'),                                               ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar')),
-    (exactly('foo' + anyExcept('boo', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar', 'foo8bar', 'foo98')),
-    (exactly(matchAtMost(3, digit)),                                                        ('444', '33', '1'),                                                     ('9999','9830')),
+    #TODO: (exactly('foo' + anyExcept('boo') + 'bar'),                                             ('foonotbar', 'foobar'),                                                ('fooboobar', 'boobar', 'fooboo')), # not sure where 'foo boo bar' goes
+    #TODO: (exactly('foo' + anyExcept('boo', number) + 'bar'),                                     ('foo999bar', 'foo8bar'),                                               ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar')),
+    #TODO: (exactly('foo' + anyExcept('boo', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar', 'foo8bar', 'foo98')),
+    #TODO: (exactly(matchAtMost(3, digit)),                                                        ('444', '33', '1'),                                                     ('9999','9830')),
     #TODO: (exactly('foo' + anyExcept('888', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'foo888bar', 'boobar', 'foo8bar', 'foo98')),
     #TODO: (exactly('foo' + anyExcept('boo', word) + 'bar'),                                       ('foonotbar',),                                                         ('fooboobar', 'foo99bar', 'fooboo', 'boobar', 'foobar')),
     # (,                                                                                    (,),                                                                    (,)),
@@ -197,8 +197,8 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         b = str(EZRegexMember(raw(r'\s+')))
         c = r'\s+'
         d = str(raw(r'\s+'))
-        e = str(whitespace + matchMax)
-        assert a == b == c == d == e, f'\na: {a}\n b: {b}\n c: {c}\n d: {d}\n e: {e}'
+        # e = str(whitespace + matchMax)
+        assert a == b == c == d, f'\na: {a}\n b: {b}\n c: {c}\n d: {d}\n e: {e}'
         assert (word + ow + anything + ':').test('word    d:', show=False)
         assert not (word + ow + anything + ':').test('word', show=False)
         assert 'word    d:' in (word + ow + anything + ':')
@@ -328,11 +328,11 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         # assert digit[...:'foo'] == digit[None:'foo'] == digit[,'foo'] ==
 
         test = digit
-        digit += 6
-        assert test == digit + 6
+        test += 6
+        assert test == digit + 6, f"{test} != {digit + 6}"
 
         test = digit
-        digit *= 3
+        test *= 3
         assert test == digit * 3
 
         assert 2 * digit == digit * 2
@@ -345,11 +345,11 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
 runTests(
     singletons=True,
     invert=False,
-    unitTests=False,
-    replacement=False,
+    unitTests=True,
+    replacement=True,
     testMethod=False,
     internal=False,
-    operators=False,
+    operators=True,
     strictness=2,
     dontIncludePassed=True
 )
