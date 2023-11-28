@@ -1,7 +1,7 @@
 # EZRegex
-An readable and intuitive way to generate Regular Expressions
+A readable and intuitive way to generate Regular Expressions
 
-Try my new frontend for this library at https://ezregex.streamlit.app/!
+Try my new frontend for this library at [ezregex.org](https://ezregex.org/)!
 
 TLDR: This is to regular expressions what CMake is to makefiles
 

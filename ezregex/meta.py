@@ -102,5 +102,8 @@ flags = {
     UNICODE,
 }
 
-all = positionals + literals + notLiterals + groups + replacement + amounts + \
+elementGroups = (positionals, literals, notLiterals, groups, replacement, amounts, \
+    choices, conditionals, grouping, misc, flags, combonations)
+
+elements = positionals + literals + notLiterals + groups + replacement + amounts + \
     choices + conditionals + grouping + misc + flags + combonations

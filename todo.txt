@@ -99,6 +99,7 @@ anyExcept, but of a specific type (i.e. anything which is a word, but not in arg
 [] operators
 matchAtMost
 ~ operator
+remove group, add namedGroup deprication
 
 ADD INVERTS FOR:
 literallyAnything is broken, so I assume either is broken as well
