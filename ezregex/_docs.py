@@ -74,3 +74,12 @@ group_docs = {
     flags:        None,
     combonations: "These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in later versions to make them more accurate"
 }
+
+operator_docs = {
+    "- `+`, `<<`, `>>`": "These all do the same thing: combine expressions",
+    "`*`": "This multiplies an expression, i.e. word * 3 == word + word + word",
+    "`+`": "A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator",
+    "`[]`": "",
+    "`&`": "Coming soon! This will work like the + operator, but they can be out of order. Like an and operation.",
+    "`|`": "Coming soon! This will work like an or operation, which will work just like anyOf()",
+}
