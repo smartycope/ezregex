@@ -337,6 +337,9 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
 
         assert 2 * digit == digit * 2
 
+        assert digit % 'sldkj' is None, f'{digit % "sldkj"} != None'
+        assert digit % '77sdsf88' == re.search('77sdsf88', digit.str())
+
         # no idea why this doesnt work.
         # assert (anything + word) * 3 == '.\w+' * 3, f"'{(anything + word) * 3}' != '{'.\w+'*3}'"
     # literal()

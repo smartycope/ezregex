@@ -215,9 +215,14 @@ class EZRegexMember:
     def __rxor__(self, thing):
         return NotImplemented
 
-    # Have this use the re.sub operator
     def __mod__(self, other):
-        return NotImplemented
+        """ I would prefer __rmod__(), but it doesn't work on strings, since
+            __mod__() is already specified for string formmating.
+        """
+        # I don't need to check this, re will do it for me
+        # if not isisntance(other, str):
+            # raise TypeError(f"Can't search type {type(other)} ")
+        return re.search(other, self._compile())
 
     def __or__(self, other):
         return
