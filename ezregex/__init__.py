@@ -6,5 +6,5 @@ from .invert import invertRegex as invert
 from .elements import *
 from .psuedonymns import *
 from re import RegexFlag, escape
-import _docs
-import _meta
+from . import _docs
+from . import _meta

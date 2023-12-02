@@ -19,15 +19,8 @@ Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
 caseless_literal
 a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
 operators: |, &, ^, ~
-add [] operators!
-    https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
-    expr[2, 3] is equivalent to expr + expr + Opt(expr)
-    expr[n, ...] or expr[n,] is equivalent to expr*n + ZeroOrMore(expr) (read as “at least n instances of expr”)
-    expr[... ,n] is equivalent to expr*(0, n) (read as “0 to n instances of expr”)
-    expr[...], expr[0, ...] and expr * ... are equivalent to ZeroOrMore(expr)
-    expr[1, ...] is equivalent to OneOrMore(expr)
-    expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
 QuotedString - supports the definition of custom quoted string formats, in addition to pyparsing’s built-in dbl_quoted_string and sgl_quoted_string. QuotedString allows you to specify the following parameters:
+expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
 
     quote_char - string of one or more characters defining the quote delimiting string
     esc_char - character to escape quotes, typically backslash (default=None)
@@ -44,7 +37,7 @@ nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method fo
     Use the ignore_expr argument to define expressions that may contain opening or closing characters that should not be treated as opening or closing characters for nesting, such as quoted_string or a comment expression. Specify multiple expressions using an Or or MatchFirst. The default is quoted_string, but if no expressions are to be ignored, then pass None for this argument.
 ungroup
 These https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#common-string-and-token-constants
-
+er.underscore
 
 (?>...)
 Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
@@ -100,6 +93,13 @@ anyExcept, but of a specific type (i.e. anything which is a word, but not in arg
 matchAtMost
 ~ operator
 remove group, add namedGroup deprication
+add [] operators!
+    https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
+    expr[2, 3] is equivalent to expr + expr + Opt(expr)
+    expr[n, ...] or expr[n,] is equivalent to expr*n + ZeroOrMore(expr) (read as “at least n instances of expr”)
+    expr[... ,n] is equivalent to expr*(0, n) (read as “0 to n instances of expr”)
+    expr[...], expr[0, ...] and expr * ... are equivalent to ZeroOrMore(expr)
+    expr[1, ...] is equivalent to OneOrMore(expr)
 
 ADD INVERTS FOR:
 literallyAnything is broken, so I assume either is broken as well

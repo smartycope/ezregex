@@ -223,7 +223,14 @@ class EZRegexMember:
         return
 
     def __hash__(self):
-        return hash(self._compile())
+        if len(self.funcList) > 1:
+            return hash(self._compile())
+        # If we only have 1 function lined up, that means we haven't
+        # been called at all. And that means we're one of the basic singletons,
+        # because users aren't supposed to instantiate this class directly.
+        # THAT means we can use this instance's pointer as a unique identifier.
+        else:
+            return hash(id(self))
 
     def __contains__(self, thing):
         assert isinstance(thing, str), "`in` statement can only be used with a string"
