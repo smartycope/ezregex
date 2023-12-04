@@ -50,6 +50,7 @@ in tests, split the "unittest" catagory up into operators and stuff
 remove all the useless comments in elements.py
 dialects?: http://web.archive.org/web/20080512021636/http://www.erudil.com/preqr.pdf
 more flags listed under https://pypi.org/project/regex/ under "Flags".
+(?:(?:a|b)|c) does not do the same as ((a|b)|c). Why? Is this intentional?
 
 BUGS:
 AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any line which doesn't have 'county' in it)
