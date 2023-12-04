@@ -135,7 +135,7 @@ regexs = (
 )
 
 
-def runTests(singletons=True, invert=False, unitTests=True, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True):
+def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -212,7 +212,7 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
         #TODO: assert (word + ow + anything + ':') in 'word    d:'
         #TODO: assert (word + ow + anything + ':') not in 'word'
 
-    if invert:
+    if _invert:
         print("Testing Invert...")
 
         table = Table(title="invert tests", expand=False)
@@ -230,12 +230,12 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
             try:
                 for _ in range(strictness):
                     # -1 means return it even if it's bad
-                    inv = invertRegex(regex, tries=-1)
+                    inv = invert(regex)
                     if inv not in regex or not dontIncludePassed:
                         table.add_row(str(_regexsLine+cnt), Text(regex.str()), '`' + inv + '`', Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
             except Exception as err:
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`')#, inv = `{inv}`')
-                raise err.with_traceback(None)
+                raise err#.with_traceback(None)
 
         # causes invert to go into an infinite loop at 134
         ~punctuation
@@ -346,13 +346,13 @@ def runTests(singletons=True, invert=False, unitTests=True, replacement=False, t
     print('All Tests Passed!')
 
 runTests(
-    singletons=True,
-    invert=False,
-    unitTests=True,
-    replacement=True,
+    singletons=False,
+    _invert=True,
+    unitTests=False,
+    replacement=False,
     testMethod=False,
     internal=False,
-    operators=True,
+    operators=False,
     strictness=2,
     dontIncludePassed=True
 )

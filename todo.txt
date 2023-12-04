@@ -38,7 +38,7 @@ nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method fo
 ungroup
 These https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#common-string-and-token-constants
 er.underscore
-
+switch to using __all__ instead of _meta
 (?>...)
 Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
 
@@ -63,8 +63,8 @@ arith_op
 all the methods which return NotImplemented
 in tests, split the "unittest" catagory up into operators and stuff
 remove all the useless comments in elements.py
-dialects?
-
+dialects?: http://web.archive.org/web/20080512021636/http://www.erudil.com/preqr.pdf
+more flags listed under https://pypi.org/project/regex/ under "Flags".
 
 BUGS:
 AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any line which doesn't have 'county' in it)
@@ -80,6 +80,7 @@ All the todos in tests
 <<=, >>=
 some psuedonymns
 handle the deprication warnings
+more flags
 
 ADD DOCS FOR:
 alphas

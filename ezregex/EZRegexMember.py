@@ -8,7 +8,7 @@ from rich import print as rprint
 from rich.panel import Panel
 from rich.text import Text
 
-from .invert import invertRegex
+from .invert import invert
 from functools import partial
 from random import shuffle
 
@@ -555,4 +555,4 @@ class EZRegexMember:
             it would match.
             Useful for debugging purposes.
         """
-        return '\n'.join([invertRegex(self._compile(), **kwargs) for _ in range(amt)])
+        return '\n'.join([invert(self._compile(), **kwargs) for _ in range(amt)])
