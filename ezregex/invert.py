@@ -1,4 +1,3 @@
-#%%
 from random import randint, choice, choices
 # import sre_parse36 as sre
 from re import _parser as sre
@@ -69,56 +68,98 @@ def invert(
                 return i
         case 'sre_parse':
             def handle(pattern, amt=1):
+                # print(f'Handling {pattern} * {amt}')
                 s = ''
                 for op, args in pattern:
                     match op:
                         case sre.LITERAL:
-                            s += chr(args)
-                        case sre.MAX_REPEAT:
-                            num, thing, sub = args
+                            s += chr(args) * amt
+                        case sre.RANGE:
+                            start, end = args
+                            s += chr(randint(start, end))
+                        case sre.MAX_REPEAT | sre.MIN_REPEAT:
+                            min, max, sub = args
+                            # s += f'\n--- min: {min}, max: {max} ---\n'
+                            if max is None or max is sre.MAXREPEAT:
+                                max = randint(min, alot)
                             try:
                                 # If we know we're getting word chars, make a word of it
-                                if LOOKUP_WORDS and sub[0][1][0][1] in (sre.CATEGORY_WORD, sre.CATEGORY_UNI_WORD, sre.CATEGORY_LOC_WORD):
+                                if type(sub[0][1][0]) is not int and sub[0][1][0][1] in (sre.CATEGORY_WORD, sre.CATEGORY_UNI_WORD, sre.CATEGORY_LOC_WORD):
                                     s += _randWord(randint(1, alot), word=words)
-                                elif not RANDOM_NUMBERS and sub[0][1][0][1] in (sre.CATEGORY_DIGIT, sre.CATEGORY_UNI_DIGIT):
+                                elif type(sub[0][1][0]) is not int and sub[0][1][0][1] in (sre.CATEGORY_DIGIT, sre.CATEGORY_UNI_DIGIT):
                                     s += _randNumber(randint(1, alot), random=randomNumbers)
                                 else:
-                                    s += handle(sub, randint(1, alot) * amt)
+                                    s += handle(sub, randint(min, max) * amt)
                             except:
-                                s += handle(sub, randint(1, alot) * amt)
+                                s += handle(sub, randint(min, max) * amt)
+                        # case sre.MIN_REPEAT:
+                        #     min, max, sub = args
+                        #     s += handle(sub, amt * randint(min, max))
                         case sre.ANY:
                             for _ in range(amt):
                                 s += choice(_everything)
                         case sre.ASSERT:
                             num, sub = args
                             s += handle(sub, amt)
+                        case sre.ASSERT_NOT:
+                            num, sub = args
+                            # If it needs to be followed by that sequence, simply add that sequence
+                            s += handle(sub)
                         case sre.CATEGORY:
                             for _ in range(amt):
                                 match args:
                                     case sre.CATEGORY_DIGIT | sre.CATEGORY_UNI_DIGIT:
                                         s += str(randint(0, 10))
                                     case sre.CATEGORY_LINEBREAK | sre.CATEGORY_UNI_LINEBREAK:
-                                        s += '\n--- unimplemented {CATEGORY_LINEBREAK} ---\n'
+                                        s += '\n'
                                     case sre.CATEGORY_NOT_DIGIT | sre.CATEGORY_UNI_NOT_DIGIT:
-                                        s += '\n--- unimplemented {CATEGORY_NOT_DIGIT} ---\n'
+                                        s += choice(_letters + _punctuation + _whitespace)
                                     case sre.CATEGORY_NOT_LINEBREAK | sre.CATEGORY_UNI_NOT_LINEBREAK:
-                                        s += '\n--- unimplemented {CATEGORY_NOT_LINEBREAK} ---\n'
+                                        s += choice(_everything)
                                     case sre.CATEGORY_NOT_SPACE | sre.CATEGORY_UNI_NOT_SPACE:
-                                        s += '\n--- unimplemented {CATEGORY_NOT_SPACE} ---\n'
+                                        s += choice(_punctuation + _letters + _digits)
                                     case sre.CATEGORY_NOT_WORD | sre.CATEGORY_UNI_NOT_WORD | sre.CATEGORY_LOC_NOT_WORD:
-                                        s += '\n--- unimplemented {CATEGORY_NOT_WORD} ---\n'
+                                        s += choice(_punctuation + _whitespace)
                                     case sre.CATEGORY_SPACE | sre.CATEGORY_UNI_SPACE:
                                         s += ' '
                                     case sre.CATEGORY_WORD | sre.CATEGORY_UNI_WORD | sre.CATEGORY_LOC_WORD:
-                                        s += choice(_letters)
+                                        s += choice(_letters + '_')
                                     case _:
                                         s += f'\n--- Unknown catagory {args} ---\n'
                         case sre.IN:
-                            s += handle(args, amt)
+                            # If this is a pattern like [^abc]
+                            if args[0][0] is sre.NEGATE:
+                                # Handle all the args except the negate flag and remove it from the options
+                                otherthan = handle(args[1:])
+                                if otherthan in _everything:
+                                    s += choice(list(_everything).remove(otherthan))
+                                else:
+                                    s += choice(_everything)
+                            else:
+                                s += handle([choice(args)], amt)
                         case sre.SUBPATTERN:
                             idk, num, num2, sub = args
-                            s += handle(sub, amt)
+                            s += handle(sub)  * amt
+                        case sre.AT:
+                            if args is sre.AT_BEGINNING_STRING:
+                                # Whatever comes next better be first
+                                s = ''
+                            elif args is sre.AT_END_STRING:
+                                # Whatever comes next better be last
+                                return s
+                            elif args is sre.AT_BEGINNING:
+                                s += '\n'
+                            elif args is sre.AT_END:
+                                s += '\n'
+                            else:
+                                raise NotImplementedError(f'Unknown parameter[s] given for AT op: {args}')
+                        case sre.BRANCH:
+                            something, branches = args
+                            s += handle(choice(branches), amt)
+                        case sre.NEGATE:
+                            pass
                         case _:
-                            s += f'\n--- Unknonwn op {op} has args {args} ---\n'
+                            raise NotImplementedError(f'Unknown op {op} given with args {args}')
+                            # s += f'\n--- Unknonwn op {op} has args {args} ---\n'
                 return s
             return handle(sre.parse(expr))

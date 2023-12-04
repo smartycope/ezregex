@@ -109,14 +109,10 @@ class EZRegexMember:
 
         # Sanatize the arguments
         args = list(map(self._sanitizeInput if self.sanatize else deepcopy, args))
-        # args = list(args)
-        # for cnt, i in enumerate(args):
-        #     args[cnt] = self._sanitizeInput(i) if self.sanatize else deepcopy(i)
+
         _kwargs = {}
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitizeInput(val) if self.sanatize else deepcopy(val)
-        # _kwargs['cur'] = args[0]
-        # del args[0]
 
         return EZRegexMember([partial(self.funcList[0], *args, **_kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
 

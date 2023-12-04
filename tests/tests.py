@@ -104,9 +104,9 @@ regexs = (
     (atLeastOne('a', greedy=False),                                                         ('a','aa', 'a'*20),                                                     ('', 'b')),
     (atLeastNone('a'),                                                                      ('', 'a', 'a'*20, 'b'),                                                 None),
     ((optional('a') + 'b') * 3,                                                             ('abbb', 'bbb', 'ababab', 'bbab'),                                      ('', 'aaa', 'aa', 'a')),
-    (word + whitechunk + group('func') + ':' + '()' + namedGroup('test', either('|', '7')), ('wo  func:()|', 'wo  func:()7'),                                       None),
-    (word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')),         ('wo  func:8', 'wo  func:7'),                                           None),
-    #TODO ('foo ' + anyExcept('bar') + ' baz',                                                    ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
+    (word + whitechunk + group('func') + ':' + '()' + group(either('|', '7'), name='test'), ('wo  func:()|', 'wo  func:()7'),                                       None),
+    (word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test'),              ('wo  func:8', 'wo  func:7'),                                           None),
+    #TODO ('foo ' + anyExcept('bar') + ' baz',                                               ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
     (7 + anyof('abc') + lineEnd,                                                            ('7a', 'sdfsd7b', 'sdf\nsdf7b', 'sdf\nsdf7b\n'),                        ('7asdfsd', '7v')),
     (7 + anyof('abc') + stringEnd,                                                          ('7a', 'sdfsd7b'),                                                      ('7asdfsd', '7v', 'sdf\nsdf7bds', 'sdf\nsdf7bf\n')),
     (lineStart + 7 + anyof('abc'),                                                          ('7a', '7bsdfsd', '\n7a', '\n7bsdfsd'),                                 ('ds7asdfsd', '7v')),
@@ -353,6 +353,6 @@ runTests(
     testMethod=False,
     internal=False,
     operators=False,
-    strictness=2,
+    strictness=1,
     dontIncludePassed=True
 )

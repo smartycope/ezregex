@@ -1,33 +1,28 @@
 TODO:
 is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
-in test(), if there's an empty match, it prints None -- and also prints wrong cause the span is (-1,-1)
 emoji() member
-figure out how to add proper linting to all of them -- manually override __doc__?
 maybe a function like line(stuff in a line), which automatically adds line start and line end to it
 README links are broken
-change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
+maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
 wordStart/wordEnd
 Everything on https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#basic-parserelement-subclasses for compatibility
-punctuation
 CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
+caseless_literal -- a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
 Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
 CaselessKeyword - similar to Keyword, but with caseless matching behavior as described in CaselessLiteral.
 empty -- matches an empty string in an expression. useful for something like empty + ifFollowedBy(...)
 DelimitedList - used for matching one or more occurrences of expr, separated by delim.
 NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
 Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#expression-operators
-caseless_literal
-a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
 operators: |, &, ^, ~
 QuotedString - supports the definition of custom quoted string formats, in addition to pyparsing’s built-in dbl_quoted_string and sgl_quoted_string. QuotedString allows you to specify the following parameters:
 expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
-
-    quote_char - string of one or more characters defining the quote delimiting string
-    esc_char - character to escape quotes, typically backslash (default=None)
-    esc_quote - special quote sequence to escape an embedded quote string (such as SQL’s “” to escape an embedded “) (default=None)
-    multiline - boolean indicating whether quotes can span multiple lines (default=False)
-    unquote_results - boolean indicating whether the matched text should be unquoted (default=True)
-    end_quote_char - string of one or more characters defining the end of the quote delimited string (default=None => same as quote_char)
+quote_char - string of one or more characters defining the quote delimiting string
+esc_char - character to escape quotes, typically backslash (default=None)
+esc_quote - special quote sequence to escape an embedded quote string (such as SQL’s “” to escape an embedded “) (default=None)
+multiline - boolean indicating whether quotes can span multiple lines (default=False)
+unquote_results - boolean indicating whether the matched text should be unquoted (default=True)
+end_quote_char - string of one or more characters defining the end of the quote delimited string (default=None => same as quote_char)
 nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
     opener - opening character for a nested list (default=”(“); can also be a pyparsing expression
     closer - closing character for a nested list (default=”)”); can also be a pyparsing expression
@@ -39,23 +34,13 @@ ungroup
 These https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#common-string-and-token-constants
 er.underscore
 switch to using __all__ instead of _meta
-(?>...)
-Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
-
-(?P=name)
-A backreference to a named group; it matches whatever text was matched by the earlier group named name.
-
-\b
-Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, \b is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that r'\bfoo\b' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
-
-\B
-Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of \b, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
-
-(?(id/name)yes-pattern|no-pattern)
-Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
-
-\number
-Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
+I don't think punctuation has all of the punctuation chars
+(?>...) -- Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
+(?P=name) -- A backreference to a named group; it matches whatever text was matched by the earlier group named name.
+\b -- Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, \b is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that r'\bfoo\b' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
+\B -- Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of \b, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
+(?(id/name)yes-pattern|no-pattern) -- Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
+\number -- Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
 nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
 arith_op
 & and `and` operator -- Each
@@ -70,7 +55,6 @@ BUGS:
 AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any line which doesn't have 'county' in it)
 | operator isn't working for some reason
 try matchRange(0, 3, digit) matching 8888888, and see how many matches it finds
-invert lambdas all do the same thing each time
 
 ADD TESTS FOR:
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
