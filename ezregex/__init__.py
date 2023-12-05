@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-__version__ = '1.5.0'
+__version__ = '1.5.1'
 from .invert import invert
 from .EZRegexMember import EZRegexMember
 from .elements import *
@@ -15,23 +15,23 @@ __groups__ = {
         "lineEndsWith",
     ),
     "literals": (
-        "spaceOrTab",
-        "newLine",
-        "carriageReturn",
         "tab",
         "space",
+        "spaceOrTab",
+        "newline",
+        "carriageReturn",
         "quote",
         "verticalTab",
         "formFeed",
         "comma",
         "period",
     ),
-    "notLiterals": (
+    "not literals": (
         "notWhitespace",
         "notDigit",
         "notWord",
     ),
-    "groups": (
+    "catagories": (
         "whitespace",
         "whitechunk",
         "digit",
@@ -51,25 +51,21 @@ __groups__ = {
         "printableAndSpace",
         "alphaNum",
         "unicode",
-    ),
-    "replacement": (
-        "rgroup",
-        "replaceEntire",
+        "anyBetween",
     ),
     "amounts": (
         "matchMax",
-        "matchNum",
-        "matchMoreThan",
-        "matchAtLeast",
-        "matchAtMost",
+        "amt",
+        "moreThan",
         "matchRange",
-        "optional",
+        "atLeast",
+        "atMost",
         "atLeastOne",
         "atLeastNone",
     ),
     "choices": (
+        "optional",
         "either",
-        "anyBetween",
         "anyOf",
         "anyCharExcept",
         "anyExcept",
@@ -86,7 +82,11 @@ __groups__ = {
         "passiveGroup",
         "namedGroup",
     ),
-    "combonations": (
+    "replacement": (
+        "rgroup",
+        "replaceEntire",
+    ),
+    "premade": (
         "literallyAnything",
         "signed",
         "unsigned",
@@ -111,4 +111,5 @@ __groups__ = {
     ),
 }
 
-__all__ = sum([elems for elems in __groups__.values()], start=tuple())
+# We *dont* want to do this, actually, cause then it won't import all our psuedonymns
+# __all__ = sum([elems for elems in __groups__.values()], start=tuple())

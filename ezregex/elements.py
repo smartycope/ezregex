@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-__version__ = '1.4.4'
-# from .EZRegexMember import EZRegexMember
-from ezregex import EZRegexMember
+from .EZRegexMember import EZRegexMember
 from sys import version_info
 from re import RegexFlag, escape
 from warnings import warn
@@ -11,28 +9,61 @@ from warnings import warn
 # directly *doesn't* work, because when calling passed lambdas, EZRegexMember
 # sanatizes the parameters in a particular way, depending on internal members.
 
-# Positional
-# wordStartsWith = EZRegexMember(lambda input, cur=...: input + r'\<' + cur)
-# wordEndsWith   = EZRegexMember(lambda input, cur=...: cur   + r'\>' + input)
-# \b       Matches the empty string, but only at the start or end of a word.
-# \B       Matches the empty string, but not at the start or end of a word.
+
+## Positional
 stringStartsWith = EZRegexMember(lambda input='', cur=...: r'\A' + input + cur)
 stringEndsWith   = EZRegexMember(lambda input='', cur=...: input + r'\Z' + cur)
 # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
 lineStartsWith   = EZRegexMember(lambda input='', cur=...: r'^' + input + cur, flags=RegexFlag.MULTILINE)
 lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
 
-# Matching
-def isExactly(input) -> EZRegexMember:
-    "This matches the string if and only if the entire string is exactly equal to `input`"
-    return EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')(input)
 
-def literal(input) -> EZRegexMember:
-    "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
-    return EZRegexMember(lambda input, cur=...: cur + input)(input)
+## Literals
+tab            = EZRegexMember(r'\t')
+space          = EZRegexMember(r' ')
+spaceOrTab     = EZRegexMember(r'[ \t]')
+newLine        = EZRegexMember(r'\n')
+carriageReturn = EZRegexMember(r'\r')
+quote          = EZRegexMember(r'(?:\'|")')
+verticalTab    = EZRegexMember(r'\v')
+formFeed       = EZRegexMember(r'\f')
+comma          = EZRegexMember(r'\,')
+period         = EZRegexMember(r'\.')
 
 
-# Amounts and Optionals
+## Not Literals
+notWhitespace = EZRegexMember(r'\S')
+notDigit      = EZRegexMember(r'\D')
+notWord       = EZRegexMember(r'\W')
+
+
+## Catagories
+whitespace = EZRegexMember(r'\s')
+whitechunk = EZRegexMember(r'\s+')
+digit      = EZRegexMember(r'\d')
+number     = EZRegexMember(r'\d+')
+word       = EZRegexMember(r'\w+')
+wordChar   = EZRegexMember(r'\w')
+anything   = EZRegexMember(r'.')
+# A "chunk": Any clump of characters up until the next newline
+chunk      = EZRegexMember(r'.+')
+uppercase       = EZRegexMember(r'[A-Z]')
+lowercase       = EZRegexMember(r'[a-z]')
+letter          = EZRegexMember(r'[A-Za-z]')
+hexDigit        = EZRegexMember(r'[0-9a-fA-F]')
+octDigit        = EZRegexMember(r'[0-7]')
+punctuation     = EZRegexMember(r'[' + escape('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]') + r']')
+controller        = EZRegexMember(r'[\x00-\x1F\x7F]')
+printable         = EZRegexMember(r'[\x21-\x7E]')
+printableAndSpace = EZRegexMember(r'[\x20-\x7E]')
+alphaNum          = EZRegexMember(r'[A-Za-z0-9_]')
+unicode            = EZRegexMember(lambda name, cur=...: fr'\N{name}')
+def anyBetween(char, and_char) -> EZRegexMember:
+    "Match any char between `char` and `and_char`, using the ASCII table for reference"
+    return EZRegexMember(lambda char, and_char, cur=...: cur + r'[' + char + r'-' + and_char + r']')(char, and_char)
+
+
+## Amounts
 def matchMax(input) -> EZRegexMember:
     """Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
     If `input` is not provided, it works on the previous regex pattern. That's not recommended for
@@ -77,30 +108,6 @@ def matchRange(min, max, input, greedy=True, possessive=False) -> EZRegexMember:
             s += r'+'
         return s
     return EZRegexMember(_matchRangeFunc)(min, max, input, greedy=greedy, possessive=possessive)
-
-def optional(input, greedy=True, possessive=False) -> EZRegexMember:
-    """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
-        greedy means it will try to match as many repititions as possible
-        non-greedy will try to match as few repititions as possible
-        possessive means it won't backtrack to try to find any repitions
-        see https://docs.python.org/3/library/re.html for more help
-    """
-    def _optionalFunc(input, greedy=True, possessive=False, cur=...):
-        assert not ((not greedy) and possessive), 'optional can\'t be non-greedy AND possessive at the same time'
-        s = cur
-        if len(input) > 1:
-            s += fr'(?:{input})?'
-        else:
-            if len(input) == 1:
-                s += fr'{input}?'
-        if not greedy:
-            s += r'?'
-        if possessive:
-            if version_info < (3, 11):
-                raise Exception('Possessive qualifiers require at least Python3.11 ')
-            s += r'+'
-        return s
-    return EZRegexMember(_optionalFunc)(input, greedy=greedy, possessive=possessive)
 
 def atLeastOne(input, greedy=True, possessive=False) -> EZRegexMember:
     """ Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
@@ -150,20 +157,35 @@ def atLeastNone(input, greedy=True, possessive=False) -> EZRegexMember:
         return s
     return EZRegexMember(_atLeastNoneFunc)(input, greedy=greedy, possessive=possessive)
 
+
+## Choices
+def optional(input, greedy=True, possessive=False) -> EZRegexMember:
+    """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+    """
+    def _optionalFunc(input, greedy=True, possessive=False, cur=...):
+        assert not ((not greedy) and possessive), 'optional can\'t be non-greedy AND possessive at the same time'
+        s = cur
+        if len(input) > 1:
+            s += fr'(?:{input})?'
+        else:
+            if len(input) == 1:
+                s += fr'{input}?'
+        if not greedy:
+            s += r'?'
+        if possessive:
+            if version_info < (3, 11):
+                raise Exception('Possessive qualifiers require at least Python3.11 ')
+            s += r'+'
+        return s
+    return EZRegexMember(_optionalFunc)(input, greedy=greedy, possessive=possessive)
+
 def either(input, or_input) -> EZRegexMember:
     return EZRegexMember(lambda input, or_input, cur=...: cur + rf'(?:{input}|{or_input})')(input, or_input)
 
-def anyBetween(char, and_char) -> EZRegexMember:
-    "Match any char between `char` and `and_char`, using the ASCII table for reference"
-    return EZRegexMember(lambda char, and_char, cur=...: cur + r'[' + char + r'-' + and_char + r']')(char, and_char)
-
-# def _anyCharsFunc(cur, *inputs, split=False):
-#     cur += r'['
-#     for i in inputs:
-#         cur += i
-#     cur += r']'
-#     return cur
-# anyChars = EZRegexMember(_anyCharsFunc)
 def anyOf(*inputs, chars=None, split=None) -> EZRegexMember:
     """ Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
         or a single string. Can also accept parameters chars and split. If char is set
@@ -224,54 +246,8 @@ def anyExcept(input, type='.*') -> EZRegexMember:
     warn('This is likely to fail')
     return EZRegexMember(lambda input, type='.*', cur=...: cur + f'(?!{input}){type}')(input, type=type)
 
-# Single Characters
-whitespace = EZRegexMember(r'\s')
-whitechunk = EZRegexMember(r'\s+')
-digit      = EZRegexMember(r'\d')
-number     = EZRegexMember(r'\d+')
-word       = EZRegexMember(r'\w+')
-wordChar   = EZRegexMember(r'\w')
-anything   = EZRegexMember(r'.')
-# A "chunk": Any clump of characters up until the next newline
-chunk      = EZRegexMember(r'.+')
 
-# Explicit Characters
-spaceOrTab     = EZRegexMember(r'[ \t]')
-newLine        = EZRegexMember(r'\n')
-carriageReturn = EZRegexMember(r'\r')
-tab            = EZRegexMember(r'\t')
-space          = EZRegexMember(r' ')
-quote          = EZRegexMember(r'(?:\'|")')
-verticalTab    = EZRegexMember(r'\v')
-formFeed       = EZRegexMember(r'\f')
-comma          = EZRegexMember(r'\,')
-period         = EZRegexMember(r'\.')
-
-# Not Chuncks
-notWhitespace = EZRegexMember(r'\S')
-notDigit      = EZRegexMember(r'\D')
-notWord       = EZRegexMember(r'\W')
-
-# Sets
-uppercase       = EZRegexMember(r'[A-Z]')
-lowercase       = EZRegexMember(r'[a-z]')
-letter          = EZRegexMember(r'[A-Za-z]')
-# anyAlphaNum        = EZRegexMember(r'[A-Za-z0-9]')
-# anyDigit           = EZRegexMember(r'[0-9]')
-hexDigit        = EZRegexMember(r'[0-9a-fA-F]')
-octDigit        = EZRegexMember(r'[0-7]')
-# hexDigit   = EZRegexMember(r'\X')
-# octDigit   = EZRegexMember(r'\O')
-# punctuation     = EZRegexMember(r'[:punct:]')
-punctuation     = EZRegexMember(r'[' + escape('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]') + r']')
-# anyBlank           = EZRegexMember(r'[ \t\r\n\v\f]')
-controller        = EZRegexMember(r'[\x00-\x1F\x7F]')
-printable         = EZRegexMember(r'[\x21-\x7E]')
-printableAndSpace = EZRegexMember(r'[\x20-\x7E]')
-alphaNum          = EZRegexMember(r'[A-Za-z0-9_]')
-unicode            = EZRegexMember(lambda name, cur=...: fr'\N{name}')
-
-# Conditionals
+## Conditionals
 def ifProceededBy(condition) -> EZRegexMember:
     "Matches the prior pattern if it has `condition` coming after it"
     return EZRegexMember(lambda condition, cur=...: fr'{cur}(?={condition})')(condition)
@@ -297,8 +273,7 @@ def ifEnclosedWith(open, stuff, close=None) -> EZRegexMember:
     return EZRegexMember(lambda open, stuff, close, cur=...: fr'((?<={open}){stuff}(?={close}))')(cur, open, close)
 
 
-# Groups
-# referenceGroup = EZRegexMember(lambda cur, name:        f'{cur}(?P={name})')
+# Grouping
 def group(input, name:str=None) -> EZRegexMember:
     "Causes `input` to be captured as an unnamed group. Only useful when replacing regexs"
     if name is None:
@@ -316,36 +291,16 @@ def namedGroup(name, input) -> EZRegexMember:
     return EZRegexMember(lambda name, input, cur=...: f'{cur}(?P<{name}>{input})')(name, input)
 
 
-# Flags
-ASCII      = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.ASCII)
-DOTALL     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.DOTALL)
-IGNORECASE = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.IGNORECASE)
-LOCALE     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.LOCALE)
-MULTILINE  = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
-UNICODE    = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.UNICODE)
-
-# TODO
-# keyword = EZRegexMember(lambda input, cur=...: cur + input + fr'{cur}(?={condition})'+ input)
-# Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
-# keyword = lambda input: literal() + ifProceededBy(anyof(whitespace, pun))
-
-# For adding raw regex statements without sanatizing them
-def raw(regex) -> EZRegexMember:
-    """ If you already have some regular regex written, and you want to incorperate
-        it, this will allow you to include it without sanatizing all the backslaches
-        and such, which all the other EZRegexMembers do automatically."""
-    return EZRegexMember(lambda regex, cur=...: str(regex), sanatize=False)(regex)
-
-# Replace syntax
+## Replacement
 def rgroup(num_or_name) -> EZRegexMember:
     """ Puts in its place the group specified, either by group number (for unnamed
         groups) or group name (for named groups). Named groups are also counted by
         number, I'm pretty sure. Groups are numbered starting from 1."""
     return EZRegexMember(lambda num_or_name, cur=...: fr'\g<{num_or_name}>', replacement=True)(num_or_name)
-
 replaceEntire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
 
-# Useful Combonations
+
+## Premade
 literallyAnything = either(anything, newLine)
 signed = optional(either('-', '+')) + number
 unsigned = number
@@ -355,3 +310,27 @@ int_or_float = optional('-') + number + optional(period + optional(number))
 ow = optional(whitechunk)
 # Source: http://stackoverflow.com/questions/201323/ddg#201378
 email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
+
+## Misc.
+def isExactly(input) -> EZRegexMember:
+    "This matches the string if and only if the entire string is exactly equal to `input`"
+    return EZRegexMember(lambda input, cur=...: r"\A" + input + r'\Z')(input)
+
+def literal(input) -> EZRegexMember:
+    "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
+    return EZRegexMember(lambda input, cur=...: cur + input)(input)
+# For adding raw regex statements without sanatizing them
+def raw(regex) -> EZRegexMember:
+    """ If you already have some regular regex written, and you want to incorperate
+        it, this will allow you to include it without sanatizing all the backslaches
+        and such, which all the other EZRegexMembers do automatically."""
+    return EZRegexMember(lambda regex, cur=...: str(regex), sanatize=False)(regex)
+
+
+## Flags
+ASCII      = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.ASCII)
+DOTALL     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.DOTALL)
+IGNORECASE = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.IGNORECASE)
+LOCALE     = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.LOCALE)
+MULTILINE  = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
+UNICODE    = EZRegexMember(lambda cur=...: cur, flags=RegexFlag.UNICODE)
