@@ -8,8 +8,8 @@ TLDR: This is to regular expressions what CMake is to makefiles
 **Table of Contents**
 * [Usage](#usage)
 * [Installation](#installation)
-* [Explanation](#Explanation)
-* [Limitations](#current_limitations)
+* [Explanation](#explanation-of-how-it-works)
+* [Limitations](#current-limitations)
 * [Documentation](#documentation)
 * [ToDo](#todo)
 * [License](#license)
