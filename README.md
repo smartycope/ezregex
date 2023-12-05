@@ -76,143 +76,183 @@ $ pip install ezregex
 - In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group() or namedGroup().
 - All EZRegexMembers (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
 - Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
-### Matching
-- literal(input)
-    - This is a redundant function. You should always be able to use "... + 'stuff'" just as easily as "... + match('stuff')"
-- isExactly(input)
-    - This matches the string if and only if the entire string is exactly equal to `input`
-### Amounts
-- matchMax(input='')
-    - Match as many of `input` in the string as you can. If `input` is not provided, it works on the previous regex pattern. That's not recommended for clarity's sake though
-- matchNum(num, input='')
-    - Match `num` amount of `input` in the string
-- matchMoreThan(min, input='')
-    - Match more than `min` sequences of `input` in the string
-- matchAtLeast(min, input='')
-    - Match at least `min` sequences of `input` in the string
-- matchRange(min, max, input='', greedy=True, possessive=False)
-    - Match between `min` and `max` sequences of `input` in the string.
-### Optionals
-- optional(input='', greedy=True, possessive=False)
-    - Match `input` if it's in string, otherwise still match.
-- atLeastOne(input='', greedy=True, possessive=False)
-    - Match at least one of `input` in the string.
-- atLeastNone(input='', greedy=True, possessive=False)
-    - Match 0 or more sequences of `input`
-- either(input, or_input)
-- anyBetween(char, and_char)
-    - Match any char between `char` and `and_char`, using the ASCII table for reference
-- anyOf(*inputs, chars=None, split=None)
-    - Match any of the given `inputs`. Note that `inputs` can be multiple parameters, or a single string. If char is set to True, then `inputs` must only be a single string, and it interprets `inputs` as characters, and splits it up to find any of the chars in the string. If split is set to true, it forces the ?(...) regex syntax instead of the \[...\] syntax. It should act the same way, but your output regex will look different. None just means "optimize it for me"
-- anyCharExcept(*inputs)
-    - This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- anyExcept(input)
-    - Matches anything other than `input`
-### Positional
+### Positionals
 #### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.
-- stringStartsWith(input='') / stringStart
-- stringEndsWith(input='') / stringEnd
-- lineStartsWith(input='') / lineStart
-- lineEndsWith(input='') / lineEnd
-### Single CharactersMatches
-- whitespace
-- whitechunk
-    - A "chunk" of whitespace. Just any amount of whitespace together
-- digit
-    - Matches a single digit
-- number
-    - Matches multiple digits next to each other. Does **not** match negatives or decimals
-- word
-- wordChar
-    - Matches just a single "word character", defined as any letter, number, or _
-- anything
-    - Matches any single character, except a newline. To also match a newline, use literallyAnything
-- chunk
-    - A "chunk": Any clump of characters up until the next newline
-### Explicit Characters
-- spaceOrTab
-- newLine
-- carriageReturn
+- stringStartsWith
+- stringEndsWith
+- lineStartsWith
+- lineEndsWith
+### Literals
 - tab
 - space
+- spaceOrTab
+- newline
+- carriageReturn
 - quote
 - verticalTab
 - formFeed
 - comma
 - period
-### Not Chuncks
+### Not Literals
 - notWhitespace
 - notDigit
 - notWord
-### Sets
-- uppercase
-    - Matches just uppercase letters
-- lowercase
-    - Matches just lowercase letters
+### Catagories
+- whitespace
+- whitechunk
+	- A "chunk" of whitespace. Just any amount of whitespace together
+- digit
 - letter
-    - Matches just a letter -- not numbers or _ like wordChar.
+	- Matches just a letter -- not numbers or _ like wordChar.
+- number
+	- Matches multiple digits next to each other. Does not match negatives or decimals
+- word
+- wordChar
+	- Matches just a single "word character", defined as any letter, number, or _
+- anything
+	- Matches any single character, except a newline. To also match a newline, use literallyAnything
+- chunk
+	- A "chunk": Any clump of characters up until the next newline
+- uppercase
+- lowercase
 - hexDigit
 - octDigit
+- punctuation
 - controller
-    - Matches a metadata ASCII characters
+	- Matches a metadata ASCII characters
 - printable
-    - Matches printable ASCII characters
+	- Matches printable ASCII characters
 - printableAndSpace
-- unicode(name)
-    - Matches a unicode character by name
+- alphaNum
+- unicode
+	- Matches a unicode character by name
+- anyBetween
+	- Match any char between `char` and `and_char`, using the ASCII table for reference
+### Amounts
+- matchMax
+	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
+    If `input` is not provided, it works on the previous regex pattern. That's not recommended for
+    clarity's sake though
+- amt
+	- Match `num` amount of `input` in the string
+- moreThan
+	- Match more than `min` sequences of `input` in the string
+- matchRange
+	-  Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
+        Max can be an empty string to indicate no maximum
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+
+- atLeast
+	- Match at least `min` sequences of `input` in the string
+- atMost
+	- Match at most `max` instances of `input` in the string
+- atLeastOne
+	-  Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+
+- atLeastNone
+	-  Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+
+### Choices
+- optional
+	-  Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
+        greedy means it will try to match as many repititions as possible
+        non-greedy will try to match as few repititions as possible
+        possessive means it won't backtrack to try to find any repitions
+        see https://docs.python.org/3/library/re.html for more help
+
+- either
+- anyOf
+	-  Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
+        or a single string. Can also accept parameters chars and split. If char is set
+        to True, then `inputs` must only be a single string, it interprets `inputs`
+        as characters, and splits it up to find any of the chars in the string. If
+        split is set to true, it forces the ?(...) regex syntax instead of the [...]
+        syntax. It should act the same way, but your output regex will look different.
+        By default, it just optimizes it for you.
+
+- anyCharExcept
+	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
+- anyExcept
+	-  Matches anything other than `input`, which must be a single string or
+    EZRegex chain, **not** a list. Also optionally accepts the `type` parameter,
+    which works like this: "Match any `type` other than `input`". For example,
+    "match any word which is not foo". Do note that this function is new, and
+    I'm still working out the kinks.
 ### Conditionals
-- ifProceededBy(condition)
-    - Matches the prior pattern if it has `condition` coming after it
-- ifNotProceededBy(condition)
-    - Matches the prior pattern if it does **not** have `condition` coming after it
-- ifPrecededBy(condition)
-    - Matches the prior pattern if it has `condition` coming before it
-- ifNotPreceededBy(condition)
-    - Matches the prior pattern if it does **not** have `condition` coming before it
-- ifEnclosedWith(open, stuff, close)
-    - Matches if the string has `open`, then `stuff`, then `close`, but only "matches" stuff. Just a combination of ifProceededBy and ifPreceededBy.
-### Groups
-- group(chain)
-    - Causes `chain` to be captured as an unnamed group. Only useful for replacing regexs
-- passiveGroup(chain)
-    - As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- namedGroup(name, chain)
-    - Causes `chain` to be captured as a named group, with the name `name`. Only useful for replacing regexs
-### Flags
+- ifProceededBy
+	- Matches the prior pattern if it has `condition` coming after it
+- ifNotProceededBy
+	- Matches the prior pattern if it does **not** have `condition` coming after it
+- ifPrecededBy
+	- Matches the prior pattern if it has `condition` coming before it
+- ifNotPreceededBy
+	- Matches the prior pattern if it does **not** have `condition` coming before it
+- ifEnclosedWith
+	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
+        stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
+
+### Grouping
+- group
+	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
+- passiveGroup
+	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
+- namedGroup
+	- Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs
+### Replacement
+#### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they are not interoperable with the other EZRegexMembers, and can only be used with other strings and each other.
+- rgroup
+	-  Puts in its place the group specified, either by group number (for unnamed
+        groups) or group name (for named groups). Named groups are also counted by
+        number, I'm pretty sure. Groups are numbered starting from 1.
+- replaceEntire
+	- Puts in its place the entire match
+### Premade
+#### These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in later versions to make them more accurate
+- literallyAnything
+	- *Any* character, include newline
+- signed
+	- a signed number, including 123, -123, and +123
+- unsigned
+	- Same as number. Will not match +123
+- plain_float
+	- Will match 123.45 and 123.
+- full_float
+	- Will match plain_float as well as things like 1.23e-10 and 1.23e+10
+- int_or_float
+- ow
+	- "Optional Whitechunk"
+- email
+	- Matches an email
+### Misc
 #### These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're provided here for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details
+- literal
+	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
+- isExactly
+	- This matches the string if and only if the entire string is exactly equal to `input`
+- raw
+	-  If you already have some regular regex written, and you want to incorperate
+        it, this will allow you to include it without sanatizing all the backslaches
+        and such, which all the other EZRegexMembers do automatically.
+### Flags
 - ASCII
 - DOTALL
 - IGNORECASE
 - LOCALE
 - MULTILINE
 - UNICODE
-### Misc.
-- raw(regex)
-    - If you already have some regular regex written, and you want to incorperate it, this will allow you to include it without sanatizing all the backslaches and such, which all the other EZRegexMembers do automatically.
-### Replace syntax
-#### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they are **not** interoperable with the other EZRegexMembers, and can only be used with other strings and each other.
-- replace_group(num_or_name)
-    - Puts in its place the group specified, either by group number (for unnamed groups) or group name (for named groups). Named groups are also counted by number, I'm pretty sure. Groups are numbered starting from 1.
-- replace_entire
-    - Puts in its place the entire match
-### Useful Combinations
-#### These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in later versions to make them more accurate
-- literallyAnything
-    - *Any* character, include newline
-- signed
-    - a signed number, including 123, -123, and +123
-- unsigned
-    - Same as number. Will not match +123
-- plain_float
-    - Will match 123.45 and 123.
-- full_float
-    - Will match plain_float as well as things like 1.23e-10 and 1.23e+10
-- int_or_float
-    - Exactly what it sounds like
-- ow
-    - "Optional Whitechunk"
-- email
-    - Matches an email
+
+
 
 ## Explanation of How it Works
 Everything relies on the EZRegexMember class. In the \__init\__ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.

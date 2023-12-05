@@ -14,12 +14,12 @@ from random import shuffle
 
 class EZRegexMember:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
+
     def __init__(self, funcs:List[partial], sanatize=True, init=True, replacement=False, flags=0):
         """ The workhorse of the EZRegex library. This represents a regex pattern
         that can be combined with other EZRegexMembers and strings.
         Ideally, this should only be called internally, but it should still
-        work from the user's end
-        """
+        work from the user's end """
         self.flags = flags
 
         # Parse params
@@ -96,8 +96,7 @@ class EZRegexMember:
     def __call__(self, *args, **kwargs):
         """ This should be called by the user to specify the specific parameters
             of this instance
-            i.e. anyof('a', 'b')
-        """
+            i.e. anyof('a', 'b') """
         # If this is being called without parameters, just compile the chain.
         # If it's being called *with* parameters, then it better be a fundemental
         # member, otherwise that doesn't make any sense.
@@ -213,8 +212,7 @@ class EZRegexMember:
 
     def __mod__(self, other):
         """ I would prefer __rmod__(), but it doesn't work on strings, since
-            __mod__() is already specified for string formmating.
-        """
+            __mod__() is already specified for string formmating. """
         # I don't need to check this, re will do it for me
         # if not isisntance(other, str):
             # raise TypeError(f"Can't search type {type(other)} ")
@@ -365,9 +363,7 @@ class EZRegexMember:
 
     def test(self, testString=None, show=True, context=True) -> bool:
         """ Tests the current regex expression to see if it's in @param testString.
-            Returns the match objects (None if there was no match)
-        """
-
+            Returns the match objects (None if there was no match)"""
         json = self._matchJSON(testString=testString)
         if not show:
             return bool(len(json['matches']))
@@ -549,6 +545,5 @@ class EZRegexMember:
     def inverse(self, amt=1, **kwargs):
         """ "Inverts" the current Regex expression to give an example of a string
             it would match.
-            Useful for debugging purposes.
-        """
+            Useful for debugging purposes. """
         return '\n'.join([invert(self._compile(), **kwargs) for _ in range(amt)])

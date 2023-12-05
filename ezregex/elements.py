@@ -20,6 +20,7 @@ lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', f
 
 ## Literals
 tab            = EZRegexMember(r'\t')
+# It's a space.
 space          = EZRegexMember(r' ')
 spaceOrTab     = EZRegexMember(r'[ \t]')
 newLine        = EZRegexMember(r'\n')
@@ -300,17 +301,6 @@ def rgroup(num_or_name) -> EZRegexMember:
 replaceEntire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
 
 
-## Premade
-literallyAnything = either(anything, newLine)
-signed = optional(either('-', '+')) + number
-unsigned = number
-plain_float = signed + period + optional(number)
-full_float = plain_float + optional('e' + signed)
-int_or_float = optional('-') + number + optional(period + optional(number))
-ow = optional(whitechunk)
-# Source: http://stackoverflow.com/questions/201323/ddg#201378
-email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
-
 ## Misc.
 def isExactly(input) -> EZRegexMember:
     "This matches the string if and only if the entire string is exactly equal to `input`"
@@ -325,6 +315,18 @@ def raw(regex) -> EZRegexMember:
         it, this will allow you to include it without sanatizing all the backslaches
         and such, which all the other EZRegexMembers do automatically."""
     return EZRegexMember(lambda regex, cur=...: str(regex), sanatize=False)(regex)
+
+
+## Premade
+literallyAnything = either(anything, newLine)
+signed = optional(either('-', '+')) + number
+unsigned = number
+plain_float = signed + period + optional(number)
+full_float = plain_float + optional('e' + signed)
+int_or_float = optional('-') + number + optional(period + optional(number))
+ow = optional(whitechunk)
+# Source: http://stackoverflow.com/questions/201323/ddg#201378
+email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
 
 
 ## Flags
