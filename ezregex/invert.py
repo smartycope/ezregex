@@ -1,20 +1,14 @@
 from random import randint, choice, choices
 # import sre_parse36 as sre
 from re import _parser as sre
-from rich import print
 from .invert_old import invertRegex
 from ezregex import *
-from functools import partial
 from random_word.services.local import Local
 import json
 from typing import Union, Literal
 
 with open(Local().source) as f:
     words = json.load(f).keys()
-
-# rtn = sre_parse36.parse("(?:foo (?:bar) | (?:baz))")
-# regex = str(word + chunk + ow + ifFollowedBy(number) + 'thing')
-# rtn = sre.parse(regex)
 
 _digits       = '0123456789'
 _letters      = 'abcdefghijklmnopqrstuvwxyz'
@@ -23,18 +17,14 @@ _punctuation  = "./;=-&%$#@~"
 _whitespace   = '  '
 _everything   = _digits + _letters + _punctuation + _whitespace + '_'
 
-
-def unsanitize(string):
-    return re.sub(r'\\([' + re.escape(')([]{}+*$^-\\?| ,') + r'])', '\g<1>', string)
-
-def randbool():
-    return bool(randint(0, 1))
-
 def _randWord(length, word='lookup'):
     if word == 'random':
         return ''.join(choices(_letters + '_', k=length))
     elif word == 'lookup':
-        return choice(list(filter(lambda i: len(i) == 4, words)))
+        options = list(filter(lambda i: len(i) == 4, words))
+        if not len(options):
+            _randWord(length, word='random')
+        return choice(options)
     elif word is None:
         return 'word'
     else:
@@ -52,7 +42,7 @@ def invert(
         randomNumbers=False,
         alot=6,
         tries:int=10,
-        backend:Literal['sre_parse', 'regex', 'xeger', 'sre_yield']='sre_parse',
+        backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']='re_parser',
     ):
     expr = str(expr)
 
@@ -66,7 +56,7 @@ def invert(
             import sre_yield
             for i in sre_yield.AllStrings(expr):
                 return i
-        case 'sre_parse':
+        case 're_parser':
             def handle(pattern, amt=1):
                 # print(f'Handling {pattern} * {amt}')
                 s = ''
@@ -79,7 +69,6 @@ def invert(
                             s += chr(randint(start, end))
                         case sre.MAX_REPEAT | sre.MIN_REPEAT:
                             min, max, sub = args
-                            # s += f'\n--- min: {min}, max: {max} ---\n'
                             if max is None or max is sre.MAXREPEAT:
                                 max = randint(min, alot)
                             try:
@@ -92,9 +81,6 @@ def invert(
                                     s += handle(sub, randint(min, max) * amt)
                             except:
                                 s += handle(sub, randint(min, max) * amt)
-                        # case sre.MIN_REPEAT:
-                        #     min, max, sub = args
-                        #     s += handle(sub, amt * randint(min, max))
                         case sre.ANY:
                             for _ in range(amt):
                                 s += choice(_everything)
@@ -160,6 +146,5 @@ def invert(
                             pass
                         case _:
                             raise NotImplementedError(f'Unknown op {op} given with args {args}')
-                            # s += f'\n--- Unknonwn op {op} has args {args} ---\n'
                 return s
             return handle(sre.parse(expr))

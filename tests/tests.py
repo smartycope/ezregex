@@ -147,7 +147,7 @@ regexs = (
 )
 
 
-def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True):
+def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True, invertBackend='re_parser'):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -234,19 +234,18 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
 
         for cnt, r in enumerate(regexs):
             regex, match, dontMatch = r
-            # regex, matches = r
-            # match, dontMatch, = matches
+
             if match is None:
                 continue
             try:
                 for _ in range(strictness):
                     # -1 means return it even if it's bad
-                    inv = invert(regex)
+                    inv = invert(regex, backend=invertBackend)
                     if inv not in regex or not dontIncludePassed:
                         table.add_row(str(_regexsLine+cnt), Text(regex.str()), '`' + inv + '`', Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
             except Exception as err:
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`')#, inv = `{inv}`')
-                raise err#.with_traceback(None)
+                raise err.with_traceback(None)
 
         # causes invert to go into an infinite loop at 134
         ~punctuation
@@ -365,5 +364,6 @@ runTests(
     internal=False,
     operators=True,
     strictness=1,
-    dontIncludePassed=True
+    dontIncludePassed=True,
+    invertBackend='re_parser',
 )
