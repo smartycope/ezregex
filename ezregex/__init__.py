@@ -7,7 +7,6 @@ from .EZRegexMember import EZRegexMember
 from .elements import *
 from .psuedonymns import *
 from re import RegexFlag, escape
-# from . import _docs
 
 __groups__ = {
     "positionals": (

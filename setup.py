@@ -18,7 +18,7 @@ with open('ezregex/__init__.py', 'r') as f:
 with open('README.md', 'r', encoding='utf-8') as f:
     readme = f.read()
 
-REQUIRES = ['rich']
+REQUIRES = ['rich', 'random_word']
 
 kwargs = {
     'name': 'ezregex',
@@ -56,4 +56,9 @@ kwargs = {
 # Add your customizations in this section.
 ###################### END USER OVERRIDES ####################
 
-setup(**kwargs, long_description=readme, long_description_content_type='text/markdown')
+setup(
+    **kwargs,
+    long_description=readme,
+    long_description_content_type='text/markdown',
+    url='http://ezregex.org',
+)

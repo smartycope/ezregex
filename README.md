@@ -33,7 +33,7 @@ import ezregex as er
 params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
 function = er.word + er.ow + '(' + params + ')'
 re.search('some string containing func( param1 , param2)', str(function))
-# or the test() method is super helpful (if I don't say so myself)
+# or the test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
 ```markdown
