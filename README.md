@@ -1,3 +1,4 @@
+![EZRegex](https://ezregex.org/favicon.png)
 # EZRegex
 A readable and intuitive way to generate Regular Expressions
 
@@ -19,12 +20,12 @@ TLDR: This is to regular expressions what CMake is to makefiles
 Quickstart
 ```python
 from ezregex import *
-number + optional(whitespace) + word
-# Matches `123abc` and `123 abc`
-# but not `abc123` or  `foo bar`
+'foo' + number + optional(whitespace) + word
+# Matches `foo123abc` and `foo123 abc`
+# but not `abc123foo` or  `foo bar`
 ```
 
-Importing as a named package is recommended, as many of the functions have common names
+Importing as a named package is recommended
 ```python
 import ezregex as er
 # ow is part of er already as optional whitespace
@@ -65,16 +66,6 @@ Python 3.10+ and PyPy.
 ```bash
 $ pip install ezregex
 ```
-
-## Explanation of How it Works
-Everything relies on the EZRegexMember class. In the \__init\__ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
-
-I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStartsWith/lineEndsWith are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
-
-## Current limitations
-- inverse() is not totally functional yet. It's close, but has a couple bugs I haven't yet figured out. It's very useful, but try not to rely on it *too* much
-- I had previously included seperate dialects of the regex syntax, but ultimately decided it was too much effort and complication to maintain, so I did away with it and it only produces Python-style regex now.
-- Not quite all of the regex syntax is implemented yet, though it's close. See the ToDo section
 
 ## Documentation
 ### Notes and Gotchas
@@ -223,20 +214,18 @@ I also have everything which could capture a group capture it passively, except 
 - email
     - Matches an email
 
+## Explanation of How it Works
+Everything relies on the EZRegexMember class. In the \__init\__ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
+
+I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStartsWith/lineEndsWith are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
+
+## Current limitations
+- inverse() is not totally functional yet. It's close, but has a couple bugs I haven't yet figured out. It's very useful, but try not to rely on it *too* much
+- I had previously included seperate dialects of the regex syntax, but ultimately decided it was too much effort and complication to maintain, so I did away with it and it only produces Python-style regex now.
+- Not quite all of the regex syntax is implemented yet, though it's close. See the ToDo section
+
 ## ToDo
-See https://docs.python.org/3/library/re.html for details
-- (?>...)
-    - Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it.
-- (?P=name)
-    - A backreference to a named group; it matches whatever text was matched by the earlier group named name.
-- \b
-    - Matches the empty string, but only at the beginning or end of a word.
-- \B
-    Matches the empty string, but only when it is not at the beginning or end of a word.
-- (?(id/name)yes-pattern|no-pattern)
-    - Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t.
-- \number
-    - Matches the contents of the group of the same number.
+See [the todo](todo.txt)
 
 ## License
 ezregex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
