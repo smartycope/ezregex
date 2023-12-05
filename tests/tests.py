@@ -67,6 +67,18 @@ regexs = (
     (raw(r'(?<=stuff)'),                                                                    ['thingstuffs'],                                                        None),
     (raw(r'(?<!stuff)'),                                                                    ['thingstuffs'],                                                        None),
     (raw(r'(a|b|c|thing|st)uff'),                                                           ["auff", "buff", "cuff", "thinguff", "stuff"],                          None),
+    (raw("A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}"),              None,                                                                   None),
+    (raw("[\d] [^\d] [A-Za-z0-9_]+ . .*"),                                                  None,                                                                   None),
+    (raw("AB|CD AB|CD|EF|GH (AB|CD)*"),                                                     None,                                                                   None),
+    (raw("(a??) a*? a{3,}? ab{4,7}?"),                                                      None,                                                                   None),
+    (raw("(?P<test>ABC*) (?P<a>x)|(?P<b>y)"),                                               None,                                                                   None),
+    (raw("[b:]+ (b)|(:+) a|(b)"),                                                           None,                                                                   None),
+    (raw("(?:Q)(Q) ^A*$"),                                                                  None,                                                                   None),
+    (raw("(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?"),                                              None,                                                                   None),
+    (raw("(?=AB)C (?!CD)DC AB(?<=CD) AB(?<!CD)"),                                           None,                                                                   None),
+    (raw("[ABC]+(?=D).*$ <.*?>"),                                                           None,                                                                   None),
+    (raw("(?P<name>[a-zA-Z]+)(?P=name)"),                                                   None,                                                                   None),
+    (raw("[AB\]C] [--A] [ABC\-D] [\^ABC]"),                                                 None,                                                                   None),
     (stringStartsWith('a'),                                                                 ('asdfs', 'a 89sdf a', 'a'),                                            (' asdf', 'sdfa', 'sdf')),
     (lineStartsWith('a'),                                                                   ('asdfs', 'a 89sdf a', 'a', 'sdfs\nasdfd'),                             (' asdf', 'sdf\nsdf', 'sdf\n a', 'sdfa', 'sdf')),
     (stringEndsWith('a'),                                                                   ('lklkjfda', 'sdf 8 a', 'a'),                                           ('asdfds', 'sd fd')),
@@ -191,8 +203,6 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
                 raise err.with_traceback(None)
 
-    if unitTests:
-        print("Running EasyRegex Singleton Unit Tests...")
         a = str(EZRegexMember(r'\s+'))
         b = str(EZRegexMember(raw(r'\s+')))
         c = r'\s+'
@@ -209,6 +219,7 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
         assert test == word + chunk + word
         assert either('(' + word + ')', '.') == either(er.literal('(') + word() + er.literal(')'), '.'), f"{either('(' + word + ')', '.')} != {either(er.literal('(') + word() + er.literal(')'), '.')}"
         assert str(ifFollowedBy(word)) == r'(?=\w+)'
+
         #TODO: assert (word + ow + anything + ':') in 'word    d:'
         #TODO: assert (word + ow + anything + ':') not in 'word'
 
@@ -346,13 +357,13 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
     print('All Tests Passed!')
 
 runTests(
-    singletons=False,
+    singletons=True,
     _invert=True,
-    unitTests=False,
-    replacement=False,
+    unitTests=True,
+    replacement=True,
     testMethod=False,
     internal=False,
-    operators=False,
+    operators=True,
     strictness=1,
     dontIncludePassed=True
 )

@@ -1,56 +1,59 @@
-TODO:
-is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
-emoji() member
-maybe a function like line(stuff in a line), which automatically adds line start and line end to it
-README links are broken
-maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
-wordStart/wordEnd
-Everything on https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#basic-parserelement-subclasses for compatibility
-CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
-caseless_literal -- a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
-Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
-CaselessKeyword - similar to Keyword, but with caseless matching behavior as described in CaselessLiteral.
-empty -- matches an empty string in an expression. useful for something like empty + ifFollowedBy(...)
-DelimitedList - used for matching one or more occurrences of expr, separated by delim.
-NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
-Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#expression-operators
-operators: |, &, ^, ~
-QuotedString - supports the definition of custom quoted string formats, in addition to pyparsing’s built-in dbl_quoted_string and sgl_quoted_string. QuotedString allows you to specify the following parameters:
-expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
-quote_char - string of one or more characters defining the quote delimiting string
-esc_char - character to escape quotes, typically backslash (default=None)
-esc_quote - special quote sequence to escape an embedded quote string (such as SQL’s “” to escape an embedded “) (default=None)
-multiline - boolean indicating whether quotes can span multiple lines (default=False)
-unquote_results - boolean indicating whether the matched text should be unquoted (default=True)
-end_quote_char - string of one or more characters defining the end of the quote delimited string (default=None => same as quote_char)
-nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
-    opener - opening character for a nested list (default=”(“); can also be a pyparsing expression
-    closer - closing character for a nested list (default=”)”); can also be a pyparsing expression
-    content - expression for items within the nested lists (default=None)
-    ignore_expr - expression for ignoring opening and closing delimiters (default=``quoted_string``)
-    If an expression is not provided for the content argument, the nested expression will capture all whitespace-delimited content between delimiters as a list of separate values.
-    Use the ignore_expr argument to define expressions that may contain opening or closing characters that should not be treated as opening or closing characters for nesting, such as quoted_string or a comment expression. Specify multiple expressions using an Or or MatchFirst. The default is quoted_string, but if no expressions are to be ignored, then pass None for this argument.
-ungroup
-These https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#common-string-and-token-constants
+TODO (these are in order):
+in tests, split the "unittest" catagory up into operators and stuff
 er.underscore
+README links are broken
+remove all the useless comments in elements.py
 switch to using __all__ instead of _meta
 I don't think punctuation has all of the punctuation chars
-(?>...) -- Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
-(?P=name) -- A backreference to a named group; it matches whatever text was matched by the earlier group named name.
-\b -- Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, \b is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that r'\bfoo\b' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
-\B -- Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of \b, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
+
+umber -- Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
 (?(id/name)yes-pattern|no-pattern) -- Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
-\number -- Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
-nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
-arith_op
-& and `and` operator -- Each
-^ and `or` operator -- anyof
+\b -- Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that rfo' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
+nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
+\B -- Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
+maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
+(?P=name) -- A backreference to a named group; it matches whatever text was matched by the earlier group named name.
 all the methods which return NotImplemented
-in tests, split the "unittest" catagory up into operators and stuff
-remove all the useless comments in elements.py
-dialects?: http://web.archive.org/web/20080512021636/http://www.erudil.com/preqr.pdf
-more flags listed under https://pypi.org/project/regex/ under "Flags".
 (?:(?:a|b)|c) does not do the same as ((a|b)|c). Why? Is this intentional?
+operators: |, &, ^, ~
+wordStart/wordEnd
+maybe a function like line(stuff in a line), which automatically adds line start and line end to it
+& and `and` operator -- Each
+Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#expression-operators
+DelimitedList - used for matching one or more occurrences of expr, separated by delim.
+^ and `or` operator -- anyof
+CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
+caseless_literal -- a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
+nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
+dialects?: http://web.archive.org/web/20080512021636/http://www.erudil.com/preqr.pdf
+QuotedString - supports the definition of custom quoted string formats, in addition to pyparsing’s built-in dbl_quoted_string and sgl_quoted_string. QuotedString allows you to specify the following parameters:
+Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
+arith_op
+These https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#common-string-and-token-constants
+empty -- matches an empty string in an expression. useful for something like empty + ifFollowedBy(...)
+expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
+CaselessKeyword - similar to Keyword, but with caseless matching behavior as described in CaselessLiteral.
+ungroup
+NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
+is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
+quote_char - string of one or more characters defining the quote delimiting string
+emoji() member
+Everything on https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#basic-parserelement-subclasses for compatibility
+(?>...) -- Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
+more flags listed under https://pypi.org/project/regex/ under "Flags".
+multiline - boolean indicating whether quotes can span multiple lines (default=False)
+opener - opening character for a nested list (default=”(“); can also be a pyparsing expression
+esc_char - character to escape quotes, typically backslash (default=None)
+content - expression for items within the nested lists (default=None)
+closer - closing character for a nested list (default=”)”); can also be a pyparsing expression
+end_quote_char - string of one or more characters defining the end of the quote delimited string (default=None => same as quote_char)
+ignore_expr - expression for ignoring opening and closing delimiters (default=``quoted_string``)
+esc_quote - special quote sequence to escape an embedded quote string (such as SQL’s “” to escape an embedded “) (default=None)
+unquote_results - boolean indicating whether the matched text should be unquoted (default=True)
+If an expression is not provided for the content argument, the nested expression will capture all whitespace-delimited content between delimiters as a list of separate values.
+Use the ignore_expr argument to define expressions that may contain opening or closing characters that should not be treated as opening or closing characters for nesting, such as quoted_string or a comment expression. Specify multiple expressions using an Or or MatchFirst. The default is quoted_string, but if no expressions are to be ignored, then pass None for this argument.
+
+
 
 BUGS:
 AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any line which doesn't have 'county' in it)
