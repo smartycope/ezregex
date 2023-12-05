@@ -96,6 +96,7 @@ regexs = (
     (white,                                                                                 (' ', '\t', '\t  ', '\n'),                                              ('dfsd',)),
     (digit,                                                                                 ('6',),                                                                 ('_', '-', 'a')),
     (number,                                                                                ('6', '69'),                                                            ('-a', 'A')),
+    (punctuation,                                                                           '@#$%^&*()'.split(),                                                    '12345678sdfsdf'.split()),
     (wordChar,                                                                              ('w',),                                                                 ('-',)),
     (hexDigit,                                                                              ('A', 'a', '0'),                                                        ('g', 'G')),
     (octDigit,                                                                              ('7',),                                                                 ('9', 'a', 'A', '8')),
@@ -131,6 +132,9 @@ regexs = (
     #TODO: (exactly(matchAtMost(3, digit)),                                                        ('444', '33', '1'),                                                     ('9999','9830')),
     #TODO: (exactly('foo' + anyExcept('888', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'foo888bar', 'boobar', 'foo8bar', 'foo98')),
     #TODO: (exactly('foo' + anyExcept('boo', word) + 'bar'),                                       ('foonotbar',),                                                         ('fooboobar', 'foo99bar', 'fooboo', 'boobar', 'foobar')),
+    # TODO: punctuation
+    # TODO: anyExcept(punctuation)
+    # TODO: anyExcept(anyof(punctuation))
     # (,                                                                                    (,),                                                                    (,)),
     # TODO:
     # (matchRange(3, 5, 'a', possessive=True) + 'aa',                                       ('a'*7,),                                                               ('a'*6,)),
@@ -243,15 +247,9 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
                     inv = invert(regex, backend=invertBackend)
                     if inv not in regex or not dontIncludePassed:
                         table.add_row(str(_regexsLine+cnt), Text(regex.str()), '`' + inv + '`', Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
-            except Exception as err:
+            except (Exception, AssertionError) as err:
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`')#, inv = `{inv}`')
                 raise err.with_traceback(None)
-
-        # causes invert to go into an infinite loop at 134
-        ~punctuation
-        ~anyExcept(punctuation)
-        ~anyExcept(anyof(punctuation))
-
         rprint(table)
 
     if replacement:

@@ -9,6 +9,7 @@ TLDR: This is to regular expressions what CMake is to makefiles
 **Table of Contents**
 * [Usage](#usage)
 * [Installation](#installation)
+* [Invert](#inverting)
 * [Explanation](#explanation-of-how-it-works)
 * [Limitations](#current-limitations)
 * [Documentation](#documentation)
@@ -36,25 +37,26 @@ re.search('some string containing func( param1 , param2)', str(function))
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
 ```markdown
-╭───────────────────────────────────────────────── Testing Regex ─────────────────────────────────────────────────╮
-│ Testing expression:                                                                                             │
-│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)                                                     │
-│ for matches in:                                                                                                 │
-│         this should match func(param1, param2 ), foo(), and bar( foo,)                                          │
-│                                                                                                                 │
-│ Match = "func(param1, param2 )" (18:39)                                                                         │
-│ Unnamed Groups:                                                                                                 │
-│         1: "param1, param2 " (23:38)                                                                            │
-│                                                                                                                 │
-│ Match = "foo()" (41:46)                                                                                         │
-│ Unnamed Groups:                                                                                                 │
-│         1: "" (45:45)                                                                                           │
-│                                                                                                                 │
-│ Match = "bar( foo,)" (52:62)                                                                                    │
-│ Unnamed Groups:                                                                                                 │
-│         1: " foo," (56:61)                                                                                      │
-│                                                                                                                 │
-╰──────────────────────────────────────────────────── Found  ─────────────────────────────────────────────────────╯
+╭───────────────────────────── Testing Regex ──────────────────────────────╮
+│ Testing expression:                                                      │
+│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)              │
+│ for matches in:                                                          │
+│         this should match func(param1,  param2 ), foo(), and bar( foo,)  │
+│                                                                          │
+│ Match = "func(param1,   param2 )" (18:39)                                │
+│ Unnamed Groups:                                                          │
+│         1: "param1,     param2 " (23:38)                                 │
+│                                                                          │
+│ Match = "foo()" (41:46)                                                  │
+│ Unnamed Groups:                                                          │
+│         1: "" (45:45)                                                    │
+│                                                                          │
+│ Match = "bar( foo,)" (52:62)                                             │
+│ Unnamed Groups:                                                          │
+│         1: " foo," (56:61)                                               │
+│                                                                          │
+│                                                                          │
+╰───────────────────────────────── Found  ─────────────────────────────────╯
 ```
 
 
@@ -67,11 +69,17 @@ Python 3.10+ and PyPy.
 $ pip install ezregex
 ```
 
+## Inverting
+There's also an `invert` function (available either as er.invert, or ~(\<expression\>)) that is useful
+for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to
+match the provided expression.
+
+
 ## Documentation
 ### Notes and Gotchas
 - When using the re library, functions like search() and sub() don't accept EZRegexMembers as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk isEx+ whitespace).str().
 - The `input` parameter can accept strings, other EZRegexMembers, or entire sequences of EZRegex patterns.
-- A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to https://docs.python.org/3/library/re.html for details.
+- A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to [the Python re docs](https://docs.python.org/3/library/re.html) for details.
 - In future versions, conditionals may change to taking in 2 parameters (the current pattern, and their associated condition) instead
 - In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group() or namedGroup().
 - All EZRegexMembers (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
@@ -253,9 +261,8 @@ $ pip install ezregex
 - UNICODE
 
 
-
 ## Explanation of How it Works
-Everything relies on the EZRegexMember class. In the \__init\__ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
+Everything relies on the EZRegexMember class. In the \_\_init\_\_ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
 
 I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStartsWith/lineEndsWith are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
 

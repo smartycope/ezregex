@@ -1,6 +1,7 @@
 from random import randint, choice, choices
 # import sre_parse36 as sre
 from re import _parser as sre
+from re import search
 from .invert_old import invertRegex
 from ezregex import *
 from random_word.services.local import Local
@@ -147,4 +148,6 @@ def invert(
                         case _:
                             raise NotImplementedError(f'Unknown op {op} given with args {args}')
                 return s
-            return handle(sre.parse(expr))
+            rtn = handle(sre.parse(expr))
+            assert search(expr, rtn), f'Failed to invert pattern {expr}. Likely, bad regex was given. Otherwise, there\'s a bug in the invert function. You can submit a bug report to smartycope@gmail.com, and include the regex you used to get this error.'
+            return rtn
