@@ -19,7 +19,6 @@ alpha      = letter
 alphanum   = alpha_num = alphaNum
 white      = whitechunk
 
-# anyAmt = any_amt = multi_optional = multiOpt = multi_opt = multiOptional
 anyAmt = any_amt = atLeastNone
 any_between = anyBetween
 word_char = wordChar
@@ -35,23 +34,20 @@ intOrFloat = int_or_float
 not_whitespace = notWhitespace
 not_digit = notDigit
 not_word = notWord
-# any_chars = anyChars
 anyof = any_of = oneOf = one_of = anyOf
 any_except = anyExcept
 any_char_except = anyCharExcept
 printable_and_space = printableAndSpace
-ifFollowedBy     = ifProceededBy
-ifNotFollowedBy  = ifNotProceededBy
-if_proceeded_by = ifProceededBy
-if_notProceeded_by = ifNotProceededBy
+ifFollowedBy     = ifProcededBy
+ifNotFollowedBy  = ifNotProcededBy
 if_preceded_by = ifPrecededBy
-if_notPreceded_by = ifNotPreceededBy
+if_not_preceded_by = ifNotPrecededBy
 if_enclosed_with = ifEnclosedWith
-if_proceeded_by = ifProceededBy
-if_notProceeded_by = ifNotProceededBy
+if_proceded_by = ifProcededBy
+if_not_proceded_by = ifNotProcededBy
 passive_group = passiveGroup
 named_group = namedGroup
-exactly = isExactly
+exactly = is_exactly = isExactly
 oneOrNone = one_or_none = opt = optional
 oneOrMore = one_or_more = at_least_one = atLeast1 = at_least_1 = atLeastOne
 noneOrMore = none_or_more = at_least_none = at_least_0 = atLeast0 = atLeastNone
@@ -63,6 +59,7 @@ multiline = m = MULTILINE
 unicode = u = UNICODE
 # Useful Combinations
 integer = signed
+literally_anything = literallyAnything
 
 replaceGroup = replace_group = rgroup
 replace_all = replaceAll = replace_entire = replaceEntire

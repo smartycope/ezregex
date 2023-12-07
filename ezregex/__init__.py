@@ -8,12 +8,13 @@ from .elements import *
 from .psuedonymns import *
 from re import RegexFlag, escape
 
+# These should all be the prefered psuedonymn, in camel case
 __groups__ = {
     "positionals": (
-        "stringStartsWith",
-        "stringEndsWith",
-        "lineStartsWith",
-        "lineEndsWith",
+        "stringStart",
+        "stringEnd",
+        "lineStart",
+        "lineEnd",
     ),
     "literals": (
         "tab",
@@ -72,10 +73,10 @@ __groups__ = {
         "anyExcept",
     ),
     "conditionals": (
-        "ifProceededBy",
-        "ifNotProceededBy",
+        "ifProcededBy",
+        "ifNotProcededBy",
         "ifPrecededBy",
-        "ifNotPreceededBy",
+        "ifNotPrecededBy",
         "ifEnclosedWith",
     ),
     "grouping": (

@@ -61,12 +61,6 @@ class EZRegexMember:
 
         # If it's another chain, compile it
         if isinstance(i, EZRegexMember):
-            # This causes *weird* errors... that make sense in hindsight
-            # self.flags |= i.flags
-            # This works
-            # i.flags |= self.flags
-            # ...but I don't think is necissary, cause we're compiling without flags anyway?
-            # return i._compile(addFlags=False)
             return i._compile(addFlags=addFlags)
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
@@ -156,7 +150,7 @@ class EZRegexMember:
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
-            flags=self.flags | thing.flags if isinstance(thing, EZRegexMember) else self.flags
+            flags=(self.flags | thing.flags) if isinstance(thing, EZRegexMember) else self.flags
         )
 
     def __iadd__(self, thing):
@@ -201,7 +195,7 @@ class EZRegexMember:
         return EZRegexMember(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', sanatize=False)
 
     def __or__(self, thing):
-        print('or called')
+        warn('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
         return EZRegexMember(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', sanatize=False)
 
     def __xor__(self, thing):
@@ -217,9 +211,6 @@ class EZRegexMember:
         # if not isisntance(other, str):
             # raise TypeError(f"Can't search type {type(other)} ")
         return re.search(other, self._compile())
-
-    def __or__(self, other):
-        return
 
     def __hash__(self):
         if len(self.funcList) > 1:
@@ -308,7 +299,6 @@ class EZRegexMember:
         regex = ''
         for func in self.funcList:
             regex = func(cur=regex)
-            # regex = func(regex)
 
         # Add the flags
         _flags = ''
@@ -401,7 +391,7 @@ class EZRegexMember:
             for color, background, part in m['match']['parts']:
                 gt.append(part, style=color if background is None else f'{color} on {background}')
             gt.append('" ')
-            gt.append(f"({m['match']['start']}:{m['match']['end']})", style=f'italic bright_black')
+            gt.append(f"({m['match']['start']}:{m['match']['end']})", style='italic bright_black')
             gt.append('\n')
             if len(m['unnamedGroups']):
                 gt.append('Unnamed Groups:\n')
@@ -409,7 +399,7 @@ class EZRegexMember:
                 gt.append(f'\t{cnt+1}: "')
                 gt.append(group['string'], style=group['color'])
                 gt.append('" ')
-                gt.append(f"({group['start']}:{group['end']})", style=f'italic bright_black')
+                gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
                 gt.append('\n')
             if len(m['namedGroups']):
                 gt.append('Named Groups:\n')
@@ -417,7 +407,7 @@ class EZRegexMember:
                 gt.append(f'\t{name}: "')
                 gt.append(group['string'], style=group['color'])
                 gt.append('" ')
-                gt.append(f"({group['start']}:{group['end']})", style=f'italic bright_black')
+                gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
                 gt.append('\n')
             gt.append('\n')
 
@@ -532,7 +522,6 @@ class EZRegexMember:
                     "color": colors[span],
                 }
             json['matches'].append(match_json)
-
 
         # Don't forget to add any bit at the end that's not part of a match
         html_string += testString[globalCursor:]

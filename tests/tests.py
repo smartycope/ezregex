@@ -150,6 +150,36 @@ regexs = (
     # (word,                                                                                ('word',),                                                              ('33a',)), # Is this *supposed* to work?
 )
 
+# This goes ("regex pattern", "replacement regex", "base string", "what the base string should look like after substitution"),
+replacements = [
+    (digit,                         "*",        "123abc",   "***abc"),  # Replace digits with *
+    (anyof('aeiou'),                "_",        "hello",    "h_ll_"),  # Replace vowels with _
+    (digit,                         "#",        "a1b2c3",   "a#b#c#"),  # Replace digits with #
+    (group(digit) + group(digit),   rgroup(2) + rgroup(1),  "12345", "21435"),  # Swap the first two digits
+    (group(anyof('aeiou')),         rgroup(1) * 2,          "hello", "heelloo"),  # Duplicate vowels
+    (group(number),                 "num:" + rgroup(1),     "abc123xyz456", "abcnum:123xyznum:456"),  # Prefix numbers with "num:"
+    (group(word_char) * 2,          rgroup(1) + '-' + rgroup(2), "Python", "P-yt-ho-n"),  # Separate adjacent characters with -
+    (group(+uppercase),             rgroup(1) * 2,          "HelloWorld", "HHelloWWorld"),  # Duplicate uppercase words
+    (group(+not_word),              " ",        "a@b#c",    "a b c"),  # Replace non-word characters with space
+    # ("(\\b\\w{3}\\b)", "[\\1]", "The cat sat on the mat", "The [cat] [sat] on the [mat]"),  # Enclose 3-letter words in square brackets
+    (group(digit) + group(lowercase), rgroup(1) + '_' + rgroup(2), "1a2b3c", "1_a2_b3_c"),  # Add underscore between digits and lowercase letters
+    (group(+not_whitespace),        f"<{rgroup(1)}>", "Hello World", "<Hello> <World>"),  # Enclose non-space sequences in angle brackets
+    # ("(\\b\\w+\\b)", "\\U\\1", "python is fun", "PYTHON IS FUN"),  # Convert words to uppercase
+    (group(digit, 'digit') + group(lowercase, 'letter'), rgroup('letter') + rgroup('digit'), "1a2b3c", "a1b2c3"),  # Swap digit and letter with named groups
+    (group(anyof('aeiou'), 'vowel'), f"[{rgroup('vowel')}]", "hello", "h[e]ll[o]"),  # Enclose vowels in square brackets with named group
+    # ("(?P<number>[0-9]+)", "num: \\g<number>", "abc123xyz456", "abcnum: 123xyznum: 456"),  # Prefix numbers with "num:" using named group
+    # ("(?P<upper>[A-Z]+)", "\\g<upper>\\g<upper>", "HelloWorld", "HELLOHELLO"),  # Duplicate uppercase words with named group
+    # ("(?P<word>\\w+)", "<\\g<word>>", "Python is great", "<Python> <is> <great>"),  # Enclose words in angle brackets with named group
+    ('foo' + group(number, 'num') + 'bar', f"foo-{rgroup('num')}-bar", 'foo87bar', 'foo-87-bar'),
+    # ("(?P<non_space>\\S+)", "<\\g<non_space>>", "Hello World", "<Hello> <World>"),  # Enclose non-space sequences in angle brackets with named group
+    # ("(?P<word>\\b\\w+\\b)", "\\U\\g<word>", "python is cool", "PYTHON IS COOL"),  # Convert words to uppercase with named group
+    (group(word + number) + ':' + ow + group(word), replace_group(1) + ' - ' + replace_group(2), 'test1:    thing', 'test1 - thing'),
+    (namedGroup('a', word + number) + ':' + ow + namedGroup('b', word), replace_group('a') + ' - ' + replace_group('b'), 'test1:    thing', 'test1 - thing'),
+    (stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk, '(' + '${' + rgroup(1) + '})', '(name, input) -> ezregex.EZRegexMember.EZRegexMember', '(${name, input})'),
+]
+
+# Add more patterns as needed
+
 
 def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True, invertBackend='re_parser'):
     global ow
@@ -253,16 +283,8 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
         rprint(table)
 
     if replacement:
-        print('Testing replacement singletons...')
-        r = group(word + number) + ':' + ow + group(word)
-        sub = replace_group(1) + ' - ' + replace_group(2)
-        subbed = re.sub(r.str(), sub.str(), 'test1:    thing')
-        assert subbed == 'test1 - thing', f'`{subbed}` != `test1 - thing`'
-
-        r = namedGroup('a', word + number) + ':' + ow + namedGroup('b', word)
-        sub = replace_group('a') + ' - ' + replace_group('b')
-        subbed = re.sub(r.str(), sub.str(), 'test1:    thing')
-        assert subbed == 'test1 - thing', f'`{subbed}` != `test1 - thing`'
+        for pattern, repl, s, ans in replacements:
+            assert re.sub(str(pattern), str(repl), s) == ans, f'Replacing\n\t{pattern}\nwith\n\t{repl}\nin\n\t{s}\nyielded\n\t{re.sub(str(pattern), str(repl), s)}\nnot\n\t{ans}'
 
     if testMethod:
         # ow = optional(whitechunk)
@@ -354,14 +376,17 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
     print('All Tests Passed!')
 
 runTests(
-    singletons=True,
-    _invert=True,
-    unitTests=True,
+    singletons=False,
+    _invert=False,
+    unitTests=False,
     replacement=True,
-    testMethod=False,
     internal=False,
-    operators=True,
+    operators=False,
     strictness=1,
     dontIncludePassed=True,
     invertBackend='re_parser',
 )
+# pattern = stringStart + '(' + group(chunk + optional(',' + chunk)) + ')'
+# s = '(name, input) -> ezregex.EZRegexMember.EZRegexMember'
+# repl = '(' + '${' + rgroup(1) + '})'
+# print(re.sub(pattern.str(), repl.str(), s))

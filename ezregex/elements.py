@@ -249,11 +249,11 @@ def anyExcept(input, type='.*') -> EZRegexMember:
 
 
 ## Conditionals
-def ifProceededBy(condition) -> EZRegexMember:
+def ifProcededBy(condition) -> EZRegexMember:
     "Matches the prior pattern if it has `condition` coming after it"
     return EZRegexMember(lambda condition, cur=...: fr'{cur}(?={condition})')(condition)
 
-def ifNotProceededBy(condition) -> EZRegexMember:
+def ifNotProcededBy(condition) -> EZRegexMember:
     "Matches the prior pattern if it does **not** have `condition` coming after it"
     return EZRegexMember(lambda condition, cur=...: fr'{cur}(?!{condition})')(condition)
 
@@ -261,7 +261,7 @@ def ifPrecededBy(condition) -> EZRegexMember:
     "Matches the prior pattern if it has `condition` coming before it"
     return EZRegexMember(lambda condition, cur=...: fr'(?<={condition}){cur}')(condition)
 
-def ifNotPreceededBy(condition) -> EZRegexMember:
+def ifNotPrecededBy(condition) -> EZRegexMember:
     "Matches the prior pattern if it does **not** have `condition` coming before it"
     return EZRegexMember(lambda condition, cur=...: fr'(?<!{condition}){cur}')(condition)
 
@@ -288,7 +288,7 @@ def passiveGroup(input) -> EZRegexMember:
 
 def namedGroup(name, input) -> EZRegexMember:
     "Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs"
-    warn(f'This function is now depricated. Please use the group member with the `name` arguement instead.')
+    warn('This function is now depricated. Please use the group member with the `name` arguement instead.')
     return EZRegexMember(lambda name, input, cur=...: f'{cur}(?P<{name}>{input})')(name, input)
 
 
@@ -297,8 +297,8 @@ def rgroup(num_or_name) -> EZRegexMember:
     """ Puts in its place the group specified, either by group number (for unnamed
         groups) or group name (for named groups). Named groups are also counted by
         number, I'm pretty sure. Groups are numbered starting from 1."""
-    return EZRegexMember(lambda num_or_name, cur=...: fr'\g<{num_or_name}>', replacement=True)(num_or_name)
-replaceEntire = EZRegexMember(lambda cur=...: r'\g<0>', replacement=True)
+    return EZRegexMember(lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>', replacement=True)(num_or_name)
+replaceEntire = EZRegexMember(lambda cur=...: cur + r'\g<0>', replacement=True)
 
 
 ## Misc.
