@@ -5,9 +5,7 @@ add ezregex.org to the homepage link in PyPi
 I don't think punctuation has all of the punctuation chars
 \number -- Matches the contents of the group of the same number. Groups are numbered starting from 1. For example, (.+) \1 matches 'the the' or '55 55', but not 'thethe' (note the space after the group). This special sequence can only be used to match one of the first 99 groups. If the first digit of number is 0, or number is 3 octal digits long, it will not be interpreted as a group match, but as the character with octal value number. Inside the '[' and ']' of a character class, all numeric escapes are treated as characters.
 (?(id/name)yes-pattern|no-pattern) -- Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
-\b -- Matches the empty string, but only at the beginning or end of a word. A word is defined as a sequence of word characters. Note that formally, is defined as the boundary between a \w and a \W character (or vice versa), or between \w and the beginning/end of the string. This means that rfo' matches 'foo', 'foo.', '(foo)', 'bar foo baz' but not 'foobar' or 'foo3'.
 nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
-\B -- Matches the empty string, but only when it is not at the beginning or end of a word. This means that r'py\B' matches 'python', 'py3', 'py2', but not 'py', 'py.', or 'py!'. \B is just the opposite of, so word characters in Unicode patterns are Unicode alphanumerics or the underscore, although this can be changed by using the ASCII flag. Word boundaries are determined by the current locale if the LOCALE flag is used.
 something like a word(letters=n) or something, including \b word{3} \b
 maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
 (?P=name) -- A backreference to a named group; it matches whatever text was matched by the earlier group named name.
@@ -59,6 +57,8 @@ All the todos in tests
 some psuedonymns
 more flags
 handle the deprication warnings
+wordBoundary
+notWordBoundary
 
 ADD DOCS FOR:
 alphas
@@ -71,6 +71,8 @@ anyExcept, but of a specific type (i.e. anything which is a word, but not in arg
 [] operators
 matchAtMost
 ~ operator
+wordBoundary
+notWordBoundary
 remove group, add namedGroup deprication
 add [] operators!
     https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
@@ -83,10 +85,3 @@ add [] operators!
 ADD INVERTS FOR:
 literallyAnything is broken, so I assume either is broken as well
 `word + letter + group(word + ow) + '()'`` doesn't invert
-
-FINISHED:
-start_of_string, and end, start_of_line, and end
-I *think* these all should work now
-('(' + +(anything + optional(group(comma))) + ')').test() -- empty groups print as None
-inverting anyExcept(punctuation) or anyExcept(anyof(punctuation)) causes invert to go into an infinite loop at 134
-ifFollowedBy(word) matching on `literal(hllow) + isExactly('thing')` fails in _matchJSON()

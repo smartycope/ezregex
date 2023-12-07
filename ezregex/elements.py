@@ -16,7 +16,8 @@ stringEndsWith   = EZRegexMember(lambda input='', cur=...: input + r'\Z' + cur)
 # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
 lineStartsWith   = EZRegexMember(lambda input='', cur=...: r'^' + input + cur, flags=RegexFlag.MULTILINE)
 lineEndsWith     = EZRegexMember(lambda input='', cur=...: cur + input + r'$', flags=RegexFlag.MULTILINE)
-
+wordBoundary     = EZRegexMember(r'\b')
+notWordBoundary  = EZRegexMember(r'\B')
 
 ## Literals
 tab            = EZRegexMember(r'\t')

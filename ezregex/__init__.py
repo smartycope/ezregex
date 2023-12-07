@@ -15,6 +15,8 @@ __groups__ = {
         "stringEnd",
         "lineStart",
         "lineEnd",
+        "wordBoundary",
+        "notWordBoundary",
     ),
     "literals": (
         "tab",
@@ -135,6 +137,8 @@ __docs__ = {
     "printable":         "Matches printable ASCII characters",
     "unicode":           "Matches a unicode character by name",
     "replaceEntire":     "Puts in its place the entire match",
+    "wordBoundary":      "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string.",
+    "notWordBoundary":   "The opposite of `wordBoundary`",
     "groups_docs": {
         'positionals': "These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.",
         'replacement': "In the intrest of \"I don't want to think about any syntax at all\", I have included replace members. Do note that they are not interoperable with the other EZRegexMembers, and can only be used with other strings and each other.",
