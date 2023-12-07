@@ -126,6 +126,8 @@ regexs = (
     (stringStart + 7 + anyof('abc'),                                                        ('7a', '7bsdfsd'),                                                      ('ds7asdfsd', '7v', '\n7a', '\n7bsdfsd')),
     (+alpha,                                                                                ('a', 'asd'),                                                           ('89', '._78')),
     (+alphanum,                                                                             ('a', 'asd', '3sd', '88'),                                              ('.+',)),
+    (word_boundary + word_char[...,3] + wordBoundary,                                       ('yes', 'hey', 'sup', 'thi'),                                           ('none', 'no', 'foo3', '333', 'jar_')),
+    # (,                                                                                    (,),                                                                    (,)),
     #TODO: (exactly('foo' + anyExcept('boo') + 'bar'),                                             ('foonotbar', 'foobar'),                                                ('fooboobar', 'boobar', 'fooboo')), # not sure where 'foo boo bar' goes
     #TODO: (exactly('foo' + anyExcept('boo', number) + 'bar'),                                     ('foo999bar', 'foo8bar'),                                               ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar')),
     #TODO: (exactly('foo' + anyExcept('boo', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar', 'foo8bar', 'foo98')),
@@ -151,7 +153,7 @@ regexs = (
 )
 
 # This goes ("regex pattern", "replacement regex", "base string", "what the base string should look like after substitution"),
-replacements = [
+replacements = (
     (digit,                         "*",        "123abc",   "***abc"),  # Replace digits with *
     (anyof('aeiou'),                "_",        "hello",    "h_ll_"),  # Replace vowels with _
     (digit,                         "#",        "a1b2c3",   "a#b#c#"),  # Replace digits with #
@@ -176,12 +178,12 @@ replacements = [
     (group(word + number) + ':' + ow + group(word), replace_group(1) + ' - ' + replace_group(2), 'test1:    thing', 'test1 - thing'),
     (namedGroup('a', word + number) + ':' + ow + namedGroup('b', word), replace_group('a') + ' - ' + replace_group('b'), 'test1:    thing', 'test1 - thing'),
     (stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk, '(' + '${' + rgroup(1) + '})', '(name, input) -> ezregex.EZRegexMember.EZRegexMember', '(${name, input})'),
-]
+)
 
 # Add more patterns as needed
 
 
-def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True, invertBackend='re_parser'):
+def runTests(singletons=True, _invert=False, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True, invertBackend='re_parser'):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -266,11 +268,9 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
         table.add_column("Inverse", justify="left", style="dim green")
         table.add_column("Success", justify="center")
 
-        for cnt, r in enumerate(regexs):
-            regex, match, dontMatch = r
+        for cnt, r in enumerate(regexs + replacements):
+            regex = r[0]
 
-            if match is None:
-                continue
             try:
                 for _ in range(strictness):
                     # -1 means return it even if it's bad
@@ -279,7 +279,7 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
                         table.add_row(str(_regexsLine+cnt), Text(regex.str()), '`' + inv + '`', Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
             except (Exception, AssertionError) as err:
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`')#, inv = `{inv}`')
-                raise err.with_traceback(None)
+                raise err#.with_traceback(None)
         rprint(table)
 
     if replacement:
@@ -377,11 +377,10 @@ def runTests(singletons=True, _invert=False, unitTests=True, replacement=False, 
 
 runTests(
     singletons=False,
-    _invert=False,
-    unitTests=False,
+    _invert=True,
     replacement=True,
     internal=False,
-    operators=False,
+    operators=True,
     strictness=1,
     dontIncludePassed=True,
     invertBackend='re_parser',

@@ -46,6 +46,7 @@ AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any
 | operator isn't working for some reason
 try matchRange(0, 3, digit) matching 8888888, and see how many matches it finds
 invert, when matching upper and lowercase, seem to only choose a or z
+Invert is failing some tests
 
 ADD TESTS FOR:
 Way more tests for replacement
@@ -85,3 +86,7 @@ add [] operators!
 ADD INVERTS FOR:
 literallyAnything is broken, so I assume either is broken as well
 `word + letter + group(word + ow) + '()'`` doesn't invert
+
+TO INVESTIGATE:
+    p = wordChar; s = '5_5';
+        not enough matches presented, and splitting seems off

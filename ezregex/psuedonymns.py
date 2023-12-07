@@ -23,7 +23,7 @@ anyAmt = any_amt = atLeastNone
 any_between = anyBetween
 word_char = wordChar
 hex_digit = hex
-oct_digit = octDigits
+oct_digit = octDigit
 newline = newLine
 space_or_tab = spaceOrTab
 carriage_return = carriageReturn
@@ -60,8 +60,8 @@ unicode = u = UNICODE
 # Useful Combinations
 integer = signed
 literally_anything = literallyAnything
-wordBoundary = word_boundary
-notWordBoundary = not_word_boundary
+word_boundary = wordBoundary
+not_word_boundary = notWordBoundary
 
 replaceGroup = replace_group = rgroup
 replace_all = replaceAll = replace_entire = replaceEntire

@@ -1,5 +1,4 @@
 from random import randint, choice, choices
-# import sre_parse36 as sre
 from re import _parser as sre
 from re import search
 from .invert_old import invertRegex
@@ -38,13 +37,13 @@ def _randNumber(length, random=False):
         return ''.join(map(lambda i: str(i)[-1], range(1, length+1)))
 
 def invert(
-        expr:Union[str, 'EZRegexMember'],
-        words:Literal['lookup', 'random', None]='lookup',
-        randomNumbers=False,
-        alot=6,
-        tries:int=10,
-        backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']='re_parser',
-    ):
+    expr:Union[str, 'EZRegexMember'],
+    words:Literal['lookup', 'random', None]='lookup',
+    randomNumbers=False,
+    alot=6,
+    tries:int=10,
+    backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']='re_parser',
+):
     expr = str(expr)
 
     match backend:
@@ -65,6 +64,12 @@ def invert(
                     match op:
                         case sre.LITERAL:
                             s += chr(args) * amt
+                        case sre.NOT_LITERAL:
+                            almost_everything = list(_everything)
+                            if chr(args) in almost_everything:
+                                almost_everything.remove(chr(args))
+                            # If it's not in there, great!
+                            s += choice(almost_everything) * amt
                         case sre.RANGE:
                             start, end = args
                             s += chr(randint(start, end))
@@ -112,16 +117,17 @@ def invert(
                                     case sre.CATEGORY_WORD | sre.CATEGORY_UNI_WORD | sre.CATEGORY_LOC_WORD:
                                         s += choice(_letters + '_')
                                     case _:
-                                        s += f'\n--- Unknown catagory {args} ---\n'
+                                        raise NotImplementedError(f'Unknown category given: {args}')
                         case sre.IN:
                             # If this is a pattern like [^abc]
                             if args[0][0] is sre.NEGATE:
                                 # Handle all the args except the negate flag and remove it from the options
                                 otherthan = handle(args[1:])
-                                if otherthan in _everything:
-                                    s += choice(list(_everything).remove(otherthan))
-                                else:
-                                    s += choice(_everything)
+                                almost_everything = list(_everything)
+                                for i in otherthan:
+                                    if i in almost_everything:
+                                        almost_everything.remove(i)
+                                s += choice(almost_everything)
                             else:
                                 s += handle([choice(args)], amt)
                         case sre.SUBPATTERN:
@@ -138,6 +144,11 @@ def invert(
                                 s += '\n'
                             elif args is sre.AT_END:
                                 s += '\n'
+                            elif args is sre.AT_BOUNDARY:
+                                if len(s) and s[-1] in _digits + _letters + '_':
+                                    s += choice(_punctuation + _whitespace)
+                                else:
+                                    s += choice(_digits + _letters + '_')
                             else:
                                 raise NotImplementedError(f'Unknown parameter[s] given for AT op: {args}')
                         case sre.BRANCH:
@@ -149,5 +160,5 @@ def invert(
                             raise NotImplementedError(f'Unknown op {op} given with args {args}')
                 return s
             rtn = handle(sre.parse(expr))
-            assert search(expr, rtn), f'Failed to invert pattern {expr}. Likely, bad regex was given. Otherwise, there\'s a bug in the invert function. You can submit a bug report to smartycope@gmail.com, and include the regex you used to get this error.'
+            assert search(expr, rtn), f'Failed to invert pattern `{expr}`. Likely, bad regex was given. Otherwise, there\'s a bug in the invert function. You can submit a bug report to smartycope@gmail.com, and include the regex you used to get this error. (Failed expr was `{rtn}`)'
             return rtn
