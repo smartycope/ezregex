@@ -177,7 +177,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 - atLeast
 	- Match at least `min` sequences of `input` in the string
 - atMost
@@ -188,14 +188,14 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 - atLeastNone
 	-  Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 ### Choices
 - optional
 	-  Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
@@ -203,7 +203,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 - either
 - oneOf
 	-  Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
@@ -213,7 +213,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         split is set to true, it forces the ?(...) regex syntax instead of the [...]
         syntax. It should act the same way, but your output regex will look different.
         By default, it just optimizes it for you.
-
+    
 - anyCharExcept
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
 - anyExcept
@@ -224,23 +224,29 @@ This documentation is for the Python dialect specifically, as it really is the o
     I'm still working out the kinks.
 ### Conditionals
 - ifFollowedBy
-	- Matches the prior pattern if it has `condition` coming after it
+	-  Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
+        as it only applies to the end 
 - ifNotFollowedBy
-	- Matches the prior pattern if it does **not** have `condition` coming after it
+	-  Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
+        a given pattern, as it only applies to the end 
 - ifPrecededBy
-	- Matches the prior pattern if it has `condition` coming before it
+	-  Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
+        as it only applies to the beginning 
 - ifNotPrecededBy
-	- Matches the prior pattern if it does **not** have `condition` coming before it
+	-  Matches the pattern if it does **not** have `input` coming before it. Can only be used once
+        in a given pattern, as it only applies to the beginning 
 - ifEnclosedWith
 	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
         stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
-
+    
 ### Grouping
 - group
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
 - earlierGroup
 	-  Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
-    group which would match `num_or_name`.
+    group which would match `num_or_name`. 
+- ifExists
+	-  Matches `true` if the group `num_or_name` exists, otherwise it matches `false` 
 - passiveGroup
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
 - namedGroup
@@ -291,7 +297,7 @@ This documentation is for the Python dialect specifically, as it really is the o
 - - `+`, `<<`, `>>`
 	- These all do the same thing: combine expressions
 - `*`
-	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`
+	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` is equivalent to `anyAmt(expr)`
 - `+`
 	- A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator
 - `[]`

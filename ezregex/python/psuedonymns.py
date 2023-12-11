@@ -19,7 +19,7 @@ alpha      = letter
 alphanum   = alpha_num = alphaNum
 white      = whitechunk
 
-anyAmt = any_amt = atLeastNone
+anyAmt = any_amt = zeroOrMore = zero_or_more = atLeastNone
 any_between = anyBetween
 word_char = wordChar
 hex_digit = hex

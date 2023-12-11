@@ -11,14 +11,12 @@ maybe a function like line(stuff in a line), which automatically adds line start
 & and `and` operator -- Each
 Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#expression-operators
 DelimitedList - used for matching one or more occurrences of expr, separated by delim.
-^ and `or` operator -- anyof
 ?>	Once-only Subexpression
 add ezregex.org to the homepage link in PyPi
 something like a word(letters=n) or something, including \b word{3} \b
 CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
 caseless_literal -- a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
 nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
-dialects?: http://web.archive.org/web/20080512021636/http://www.erudil.com/preqr.pdf
 QuotedString - supports the definition of custom quoted string formats, in addition to pyparsing’s built-in dbl_quoted_string and sgl_quoted_string. QuotedString allows you to specify the following parameters:
 Keyword - similar to Literal, but must be immediately followed by whitespace, punctuation, or other non-keyword characters; prevents accidental matching of a non-keyword that happens to begin with a defined keyword
 arith_op

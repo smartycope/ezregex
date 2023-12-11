@@ -121,7 +121,7 @@ class EZRegex:
 
     def __mul__(self, amt):
         if amt is Ellipsis:
-            return NotImplemented
+            return EZRegex(f'(?{self})*', sanatize=False)
         rtn = self
         # This isn't optimal, but it's unlikely anyone will use this with large numbers
         for i in range(amt-1):
@@ -159,11 +159,11 @@ class EZRegex:
 
     def __and__(self, thing):
         warn('The & operator is unstable still. Use each() instead.')
-        return fr'(?={self}){thing}'
+        return EZRegex(fr'(?={self}){thing}', sanatize=False)
 
     def __rand__(self, thing):
         warn('The & operator is unstable still. Use each() instead.')
-        return fr'(?={thing}){self}'
+        return EZRegex(fr'(?={thing}){self}', sanatize=False)
 
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):
