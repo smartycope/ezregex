@@ -21,16 +21,16 @@ notWordBoundary  = EZRegexMember(r'\B')
 
 ## Literals
 tab            = EZRegexMember(r'\t')
-# It's a space.
 space          = EZRegexMember(r' ')
 spaceOrTab     = EZRegexMember(r'[ \t]')
 newLine        = EZRegexMember(r'\n')
 carriageReturn = EZRegexMember(r'\r')
-quote          = EZRegexMember(r'(?:\'|")')
+quote          = EZRegexMember(r'(?:\'|"|`)')
 verticalTab    = EZRegexMember(r'\v')
 formFeed       = EZRegexMember(r'\f')
 comma          = EZRegexMember(r'\,')
 period         = EZRegexMember(r'\.')
+underscore     = EZRegexMember(r'_')
 
 
 ## Not Literals
@@ -286,6 +286,14 @@ def group(input, name:str=None) -> EZRegexMember:
 def passiveGroup(input) -> EZRegexMember:
     "As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is"
     return EZRegexMember(lambda input, cur=...: f'{cur}(?:{input})')(input)
+
+def earlierGroup(num_or_name):
+    """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
+    group which would match `num_or_name`. """
+    if isinstance(num_or_name, int) or num_or_name in '0123456789':
+        return EZRegexMember(lambda num_or_name, cur=...: f'{cur}\\{num_or_name}')(num_or_name)
+    else:
+        return EZRegexMember(lambda num_or_name, cur=...: f'{cur}(?P={num_or_name})')(num_or_name)
 
 def namedGroup(name, input) -> EZRegexMember:
     "Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs"

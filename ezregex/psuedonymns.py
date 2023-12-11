@@ -47,6 +47,7 @@ if_proceded_by = ifProcededBy
 if_not_proceded_by = ifNotProcededBy
 passive_group = passiveGroup
 named_group = namedGroup
+sameAs = same_as = earlier_group = sameAsGroup = same_as_group = earlierGroup
 exactly = is_exactly = isExactly
 oneOrNone = one_or_none = opt = optional
 oneOrMore = one_or_more = at_least_one = atLeast1 = at_least_1 = atLeastOne

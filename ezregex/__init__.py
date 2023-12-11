@@ -29,6 +29,7 @@ __groups__ = {
         "formFeed",
         "comma",
         "period",
+        'underscore',
     ),
     "not literals": (
         "notWhitespace",
@@ -75,8 +76,8 @@ __groups__ = {
         "anyExcept",
     ),
     "conditionals": (
-        "ifProcededBy",
-        "ifNotProcededBy",
+        "ifFollowedBy",
+        "ifNotFollowedBy",
         "ifPrecededBy",
         "ifNotPrecededBy",
         "ifEnclosedWith",
