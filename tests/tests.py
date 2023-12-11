@@ -67,14 +67,14 @@ regexs = (
     (raw(r'(?<=stuff)'),                                                                    ['thingstuffs'],                                                        None),
     (raw(r'(?<!stuff)'),                                                                    ['thingstuffs'],                                                        None),
     (raw(r'(a|b|c|thing|st)uff'),                                                           ["auff", "buff", "cuff", "thinguff", "stuff"],                          None),
-    (raw(r"A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}"),              None,                                                                  None),
-    (raw(r"[\d] [^\d] [A-Za-z0-9_]+ . .*"),                                                  None,                                                                  None),
-    (raw(r"AB|CD AB|CD|EF|GH (AB|CD)*"),                                                     None,                                                                  None),
-    (raw(r"(a??) a*? a{3,}? ab{4,7}?"),                                                      None,                                                                  None),
-    (raw(r"(?P<test>ABC*) (?P<a>x)|(?P<b>y)"),                                               None,                                                                  None),
-    (raw(r"[b:]+ (b)|(:+) a|(b)"),                                                           None,                                                                  None),
-    (raw(r"(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?"),                                              None,                                                                  None),
-    (raw(r"(?P<name>[a-zA-Z]+)(?P=name)"),                                                   None,                                                                  None),
+    (raw(r"A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}"),             None,                                                                   None),
+    (raw(r"[\d] [^\d] [A-Za-z0-9_]+ . .*"),                                                 None,                                                                   None),
+    (raw(r"AB|CD AB|CD|EF|GH (AB|CD)*"),                                                    None,                                                                   None),
+    (raw(r"(a??) a*? a{3,}? ab{4,7}?"),                                                     None,                                                                   None),
+    (raw(r"(?P<test>ABC*) (?P<a>x)|(?P<b>y)"),                                              None,                                                                   None),
+    (raw(r"[b:]+ (b)|(:+) a|(b)"),                                                          None,                                                                   None),
+    (raw(r"(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?"),                                             None,                                                                   None),
+    (raw(r"(?P<name>[a-zA-Z]+)(?P=name)"),                                                  None,                                                                   None),
     (group(+letter, name='g') + earlierGroup('g'),                                          ('AA', 'tt'),                                                           ('ABt','t', '9d9', 'tdt')),
     (group(+letter) + ' ' + earlierGroup(1),                                                ('the the', 'at at'),                                                   ('att', 'thethe')),
     (raw(r"[AB\]C] [--A] [ABC\-D] [\^ABC]"),                                                None,                                                                   None),
@@ -126,6 +126,8 @@ regexs = (
     (stringStart + 7 + anyof('abc'),                                                        ('7a', '7bsdfsd'),                                                      ('ds7asdfsd', '7v', '\n7a', '\n7bsdfsd')),
     (+alpha,                                                                                ('a', 'asd'),                                                           ('89', '._78')),
     (+alphanum,                                                                             ('a', 'asd', '3sd', '88'),                                              ('.+',)),
+    (raw(r'(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)'),                                              ('<user@host.com>', 'user@host.com'),                                   ('user@host.com>',)), # https://docs.python.org/3/library/re.html says '<user@host.com' shouldn't match this pattern, but it's wrong...
+    (opt(group('<')) + group(word + '@' + word + +('.' + word)) + ifExists(1, '>', string_end), ('<user@host.com>', 'user@host.com'),                               ('user@host.com>',)), # https://docs.python.org/3/library/re.html says '<user@host.com' shouldn't match this pattern, but it's wrong...
     # (,                                                                                    (,),                                                                    (,)),
     # (word_boundary + word_char[...,3] + wordBoundary,                                       ('yes', 'hey', 'sup', 'thi'),                                           ('none', 'no', 'foo3', '333', 'jar_')), # This does what it's supposed to do, but doesn't search correctly, as far as I understand it
     #TODO ('foo ' + anyExcept('bar') + ' baz',                                               ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
@@ -183,9 +185,6 @@ replacements = (
     (group(word + number, 'a') + ':' + ow + group(word, 'b'), replace_group('a') + ' - ' + replace_group('b'), 'test1:    thing', 'test1 - thing'),
     (stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk, '(' + '${' + rgroup(1) + '})', '(name, input) -> ezregex.EZRegex.EZRegex', '(${name, input})'),
 )
-
-# Add more patterns as needed
-
 
 def runTests(singletons=True, _invert=False, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True, invertBackend='re_parser'):
     global ow
@@ -377,7 +376,7 @@ def runTests(singletons=True, _invert=False, replacement=False, testMethod=False
 
         # no idea why this doesnt work.
         # assert (anything + word) * 3 == '.\w+' * 3, f"'{(anything + word) * 3}' != '{'.\w+'*3}'"
-    # literal()
+
     print('All Tests Passed!')
 
 runTests(

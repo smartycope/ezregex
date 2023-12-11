@@ -11,10 +11,9 @@ TLDR: This is to regular expressions what CMake is to makefiles
 * [Installation](#installation)
 * [Invert](#inverting)
 * [Dialects](#dialects)
-* [Explanation](#explanation-of-how-it-works)
-* [Limitations](#current-limitations)
 * [Documentation](#documentation)
-* [ToDo](#todo)
+* [Explanation](#explanation-of-how-it-works)
+* [Todo](#todo)
 * [License](#license)
 
 ## Usage
@@ -33,8 +32,9 @@ import ezregex as er
 # ow is part of er already as optional whitespace
 params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
 function = er.word + er.ow + '(' + params + ')'
-re.search('some string containing func( param1 , param2)', str(function))
-# or the test() method is helpful for debugging, and color codes groups for you
+# Automatically calls the re.search() function for you
+function % 'some string containing func( param1 , param2)'
+# The test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
 ```markdown
@@ -71,9 +71,7 @@ $ pip install ezregex
 ```
 
 ## Inverting
-There's also an `invert` function (available either as er.invert, or ~(\<expression\>)) that is useful
-for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to
-match the provided expression.
+There's an `invert` function (available either as er.invert, or ~\<expression\> that is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
 
 
 ## Dialects
@@ -98,13 +96,13 @@ If you know a particular flavor of regex and would like to contribute, feel free
 ## Documentation
 ### Notes and Gotchas
 This documentation is for the Python dialect specifically, as it really is the only one currently implemented.
-- When using the re library, functions like search() and sub() don't accept EZRegexs as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
+- When using the re library, functions like search() and sub() don't accept EZRegexs as valid regex patterns. Be sure to call either .str() or .compile(), or cast to a string when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
+- In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group(), with the optional `name` parameter.
+- All EZRegexs (except for `raw`) auto-sanitize strings given to them, so there's no need to escape characters or use r strings. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally (unless you want that, of course). To include already written regex strings, use `raw`
+- Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
 - The `input` parameter can accept strings, other EZRegexs, or entire sequences of EZRegex patterns.
 - A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to [the Python re docs](https://docs.python.org/3/library/re.html) for details.
-- In future versions, conditionals may change to taking in 2 parameters (the current pattern, and their associated condition) instead
-- In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group() or namedGroup().
-- All EZRegexs (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
-- Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
+<!-- Start of generated docs -->
 ### Positionals
 #### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.
 - stringStart
@@ -152,6 +150,7 @@ This documentation is for the Python dialect specifically, as it really is the o
 - hexDigit
 - octDigit
 - punctuation
+	- Matches punctuation. In the Python dialect, there isn't a built-in method of doing this, so I probably forgot a bunch of them.
 - controller
 	- Matches a metadata ASCII characters
 - printable
@@ -206,7 +205,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         see https://docs.python.org/3/library/re.html for more help
 
 - either
-- anyOf
+- oneOf
 	-  Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
         or a single string. Can also accept parameters chars and split. If char is set
         to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -288,20 +287,37 @@ This documentation is for the Python dialect specifically, as it really is the o
 - LOCALE
 - MULTILINE
 - UNICODE
+### Operators
+- - `+`, `<<`, `>>`
+	- These all do the same thing: combine expressions
+- `*`
+	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`
+- `+`
+	- A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator
+- `[]`
+	- expr[2, 3] is equivalent to `match_range(2, 3, expr)`
+	- expr[2, ...] or expr[2,] is equivalent to `at_least(2, expr)`
+	- expr[... , 2] is equivalent to `at_most(2, expr)`
+	- expr[...] or expr[0, ...] is equivelent to `at_least_0(expr)`
+	- expr[1, ...] is equivalent to `at_least_1(expr)`
+- `&`
+	- Coming soon! This will work like the + operator, but they can be out of order. Like an and operation.
+- `|`
+	- Coming soon! This will work like an or operation, which will work just like anyOf()
+<!-- End of generated docs -->
+- `%`
+    - This automatically calls re.search() for you and returns the match object (or None). Use like this: `(digit * 2) % '99 beers on the wall'`
+- `~`
+    - This inverts the expression. This is equivalent to calling the .invert() method
 
 
 ## Explanation of How it Works
 Everything relies on the EZRegex class. In the \_\_init\_\_ file of the package, I have defined a ton of pre-made EZRegexs which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexs take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexs, which auto-compiles them and adds them appropriately.
 
-I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStartsWith/lineEndsWith are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
+I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStart/lineEnd are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
 
-## Current limitations
-- inverse() is not totally functional yet. It's close, but has a couple bugs I haven't yet figured out. It's very useful, but try not to rely on it *too* much
-- I had previously included seperate dialects of the regex syntax, but ultimately decided it was too much effort and complication to maintain, so I did away with it and it only produces Python-style regex now.
-- Not quite all of the regex syntax is implemented yet, though it's close. See the ToDo section
-
-## ToDo
+## Todo
 See [the todo](todo.txt)
 
 ## License
-ezregex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
+EZRegex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)

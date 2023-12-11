@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-from ..EZRegex import EZRegex
+if __name__ == '__main__':
+    from ezregex import EZRegex
+else:
+    from ..EZRegex import EZRegex
 from sys import version_info
 from re import RegexFlag, escape
 from warnings import warn
@@ -96,9 +99,9 @@ def matchRange(min, max, input, greedy=True, possessive=False) -> EZRegex:
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     """
-    def _matchRangeFunc(min, max, input, greedy=True, possessive=False, cur=..., ):
+    def _matchRangeFunc(min, max, input, greedy=True, possessive=False, cur=...):
         assert not ((not greedy) and possessive), 'Match Range can\'t be non-greedy AND possessive at the same time'
-        s = ''
+        s = cur
         if len(input):
             s += r'(?:' + input + r')'
         s += r'{' + str(min) + r',' + str(max) + r'}'
@@ -248,23 +251,40 @@ def anyExcept(input, type='.*') -> EZRegex:
     warn('This is likely to fail')
     return EZRegex(lambda input, type='.*', cur=...: cur + f'(?!{input}){type}')(input, type=type)
 
+def each(*inputs) -> EZRegex:
+    """ Matches if the next part of the string can match all of the given inputs. Like the +
+        operator, but out of order."""
+    def _each(*inputs, cur=...):
+        inputs = list(inputs)
+        last = inputs.pop()
+        s = cur
+        for i in inputs:
+            s += fr'(?={i})'
+        s += last
+        return s
+    return EZRegex(_each)(*inputs)
+
 
 ## Conditionals
-def ifProcededBy(condition) -> EZRegex:
-    "Matches the prior pattern if it has `condition` coming after it"
-    return EZRegex(lambda condition, cur=...: fr'{cur}(?={condition})')(condition)
+def ifProcededBy(input) -> EZRegex:
+    """ Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
+        as it only applies to the end """
+    return EZRegex(lambda input, cur=...: fr'{cur}(?={input})')(input)
 
-def ifNotProcededBy(condition) -> EZRegex:
-    "Matches the prior pattern if it does **not** have `condition` coming after it"
-    return EZRegex(lambda condition, cur=...: fr'{cur}(?!{condition})')(condition)
+def ifNotProcededBy(input) -> EZRegex:
+    """ Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
+        a given pattern, as it only applies to the end """
+    return EZRegex(lambda input, cur=...: fr'{cur}(?!{input})')(input)
 
-def ifPrecededBy(condition) -> EZRegex:
-    "Matches the prior pattern if it has `condition` coming before it"
-    return EZRegex(lambda condition, cur=...: fr'(?<={condition}){cur}')(condition)
+def ifPrecededBy(input) -> EZRegex:
+    """ Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
+        as it only applies to the beginning """
+    return EZRegex(lambda input, cur=...: fr'(?<={input}){cur}')(input)
 
-def ifNotPrecededBy(condition) -> EZRegex:
-    "Matches the prior pattern if it does **not** have `condition` coming before it"
-    return EZRegex(lambda condition, cur=...: fr'(?<!{condition}){cur}')(condition)
+def ifNotPrecededBy(input) -> EZRegex:
+    """ Matches the pattern if it does **not** have `input` coming before it. Can only be used once
+        in a given pattern, as it only applies to the beginning """
+    return EZRegex(lambda input, cur=...: fr'(?<!{input}){cur}')(input)
 
 def ifEnclosedWith(open, stuff, close=None) -> EZRegex:
     """ Matches if the string has `open`, then `stuff`, then `close`, but only \"matches\"
@@ -295,10 +315,15 @@ def earlierGroup(num_or_name):
     else:
         return EZRegex(lambda num_or_name, cur=...: f'{cur}(?P={num_or_name})')(num_or_name)
 
+def ifExists(num_or_name, true, false=None):
+    """ Matches `true` if the group `num_or_name` exists, otherwise it matches `false` """
+    return EZRegex(lambda num_or_name, true, false, cur=...: f'{cur}(?({num_or_name}){true}{"|" + str(false) if false is not None else ""})')(num_or_name, true, false)
+
 def namedGroup(name, input) -> EZRegex:
     "Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs"
     warn('This function is now depricated. Please use the group member with the `name` arguement instead.')
-    return EZRegex(lambda name, input, cur=...: f'{cur}(?P<{name}>{input})')(name, input)
+    # return EZRegex(lambda name, input, cur=...: f'{cur}(?P<{name}>{input})')(name, input)
+    return group(input, name=name)
 
 
 ## Replacement
@@ -345,3 +370,7 @@ IGNORECASE = EZRegex(lambda cur=...: cur, flags=RegexFlag.IGNORECASE)
 LOCALE     = EZRegex(lambda cur=...: cur, flags=RegexFlag.LOCALE)
 MULTILINE  = EZRegex(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
 UNICODE    = EZRegex(lambda cur=...: cur, flags=RegexFlag.UNICODE)
+
+if __name__ == '__main__':
+    # print(each(word, anyOf('this', 'that'), letter[...,4]))
+    print(ifExists(2, 'true'))

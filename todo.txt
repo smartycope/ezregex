@@ -1,5 +1,4 @@
-TODO (these are in order):
-add ezregex.org to the homepage link in PyPi
+TODO (these are very roughly in order):
 I don't think punctuation has all of the punctuation chars
 rethink conditionals: Do I need them? should they be changed? Do they actually work how they're supposed to?
 (?(id/name)yes-pattern|no-pattern) -- Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
@@ -18,6 +17,7 @@ Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
 DelimitedList - used for matching one or more occurrences of expr, separated by delim.
 ^ and `or` operator -- anyof
 ?>	Once-only Subexpression
+add ezregex.org to the homepage link in PyPi
 ?()	Condition [if then]
 ?()|	Condition [if then else]
 CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
@@ -39,6 +39,7 @@ quote_char - string of one or more characters defining the quote delimiting stri
 emoji() member
 \Q	Begin literal sequence
 \E	End literal sequence
+(?#...) comment because why not
 Everything on https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#basic-parserelement-subclasses for compatibility
 (?>...) -- Attempts to match ... as if it was a separate regular expression, and if successful, continues to match the rest of the pattern following it. If the subsequent pattern fails to match, the stack can only be unwound to a point before the (?>...) because once exited, the expression, known as an atomic group, has thrown away all stack points within itself. Thus, (?>.*). would never match anything because first the .* would match all characters possible, then, having nothing left to match, the final . would fail to match. Since there are no stack points saved in the Atomic Group, and there is no stack point before it, the entire expression would thus fail to match.
 more flags listed under https://pypi.org/project/regex/ under "Flags".
@@ -53,43 +54,22 @@ invert, when matching upper and lowercase, seem to only choose a or z
 Invert is failing some tests
 
 ADD TESTS FOR:
-Way more tests for replacement
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
-docs
 punctuation
 All the todos in tests
 <<=, >>=
 some psuedonymns
 more flags
-handle the deprication warnings
 wordBoundary
 notWordBoundary
+matchRange
+atLeastOne
+Go through all the elements and oduble check they all have tests
 
 ADD DOCS FOR:
-alphas
-alphanum
-punctuation
-one_of
-white
-unary + operator
 anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
-[] operators
-matchAtMost
-~ operator
-wordBoundary
-notWordBoundary
-remove group, add namedGroup deprication
-add [] operators!
-    https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html
-    expr[2, 3] is equivalent to expr + expr + Opt(expr)
-    expr[n, ...] or expr[n,] is equivalent to expr*n + ZeroOrMore(expr) (read as “at least n instances of expr”)
-    expr[... ,n] is equivalent to expr*(0, n) (read as “0 to n instances of expr”)
-    expr[...], expr[0, ...] and expr * ... are equivalent to ZeroOrMore(expr)
-    expr[1, ...] is equivalent to OneOrMore(expr)
 
 ADD INVERTS FOR:
-literallyAnything is broken, so I assume either is broken as well
-`word + letter + group(word + ow) + '()'`` doesn't invert
 
 TO INVESTIGATE:
     p = wordChar; s = '5_5';

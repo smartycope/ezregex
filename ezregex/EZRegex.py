@@ -158,6 +158,7 @@ class EZRegex:
         return self + thing
 
     # def __and__(self, thing):
+        # raw(r'Isaac (?=Asimov)(?=\w+)')
         # return self.__add__(self, thing)
 
     # The shift operators just shadow the add operators

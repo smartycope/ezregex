@@ -13,6 +13,7 @@ if __name__ != '__main__':
 with open(Local().source) as f:
     words = json.load(f).keys()
 
+# _letters = sre.ASCIILETTERS
 _digits       = '0123456789'
 _letters      = 'abcdefghijklmnopqrstuvwxyz'
 _letters     += _letters.upper()
@@ -50,7 +51,7 @@ def invert(
 ):
     """ "Inverts" a regular expression by returning an example of something which is guaruanteed to
         match the passed expression.
-        NOTE: This only works on Python valid regular expressions (it will probably mostly work for
+        NOTE: This only works on valid Python regular expressions (it will probably mostly work for
             other dialects, but is not guarenteed.)
         expr: The regular expression to invert. Can be a string, or a EZRegex expression
         words: Controls how works are handled. If `random`, words are made of random letters. If `lookup`,
@@ -59,8 +60,8 @@ def invert(
             just random numbers (again, for readability)
         alot: When given a choice of how many characters to put someone, it inserts a random integer
             between 1 and `alot`.
-        tries: Only applies when `backend` is set to `regex`. Controls how many times to try to invert
-            the expression before giving up.
+        tries: Controls how many times to try to invert the expression before giving up. This is effective,
+            because there is an element of randomness involved in inverting the regex given.
         backend: One of ('re_parser', 'regex', 'xeger', 'sre_yield').
             `re_parser` is the default, it uses the build-in parser in the re package to create an AST
                 of the regex
@@ -206,6 +207,10 @@ def invert(
                                 s += handle(args, amt, opposite=True)
                             case sre.GROUPREF:
                                 s += groups[args]
+                            case sre.GROUPREF_EXISTS:
+                                # TODO: This often requires multiple tries to get right
+                                group, trueSub, falseSub = args
+                                s += handle(trueSub if group in groups else falseSub, amt)
                             case _:
                                 raise NotImplementedError(f'Unknown op {op} given with args {args}')
                     else:
@@ -314,11 +319,21 @@ def invert(
                                 while add == groups[args]:
                                     add = _randWord(randint(1, alot), word=words)
                                 s += add
+                            case sre.GROUPREF_EXISTS:
+                                group, trueSub, falseSub = args
+                                s += handle(trueSub if group in groups else falseSub, amt, opposite=True)
                             case _:
                                 raise NotImplementedError(f'Unknown opposite op {op} given with args {args}')
                 return s
-            rtn = handle(sre.parse(expr))
-            assert search(expr, rtn), f'Failed to invert pattern `{expr}`. Likely, bad regex was given. Otherwise, there\'s a bug in the invert function. You can submit a bug report to smartycope@gmail.com, and include the regex you used to get this error. (Failed expr was `{rtn}`)'
+
+            for _ in range(tries):
+                rtn = handle(sre.parse(expr))
+                if search(expr, rtn):
+                    return rtn
+            raise NotImplementedError(f"Failed to invert pattern `{expr}`. Likely, bad regex was given. "
+                "Otherwise, there\'s a bug in the invert function. You can submit a bug report to "
+                "smartycope@gmail.com, and include the regex you used to get this error. (Failed expr: "
+                f"was `{rtn}`)")
             return rtn
 
 if __name__ == '__main__':

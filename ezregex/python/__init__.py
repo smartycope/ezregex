@@ -67,7 +67,7 @@ __groups__ = {
     "choices": (
         "optional",
         "either",
-        "anyOf",
+        "oneOf",
         "anyCharExcept",
         "anyExcept",
     ),
@@ -81,6 +81,7 @@ __groups__ = {
     "grouping": (
         "group",
         "earlierGroup",
+        "ifExists",
         "passiveGroup",
         "namedGroup",
     ),
@@ -128,6 +129,7 @@ __docs__ = {
     "whitechunk":        "A \"chunk\" of whitespace. Just any amount of whitespace together",
     "number":            "Matches multiple digits next to each other. Does not match negatives or decimals",
     "wordChar":          "Matches just a single \"word character\", defined as any letter, number, or _",
+    "punctuation":       "Matches punctuation. In the Python dialect, there isn't a built-in method of doing this, so I probably forgot a bunch of them.",
     "anything":          "Matches any single character, except a newline. To also match a newline, use literallyAnything",
     "chunk":             "A \"chunk\": Any clump of characters up until the next newline",
     "letter":            "Matches just a letter -- not numbers or _ like wordChar.",
@@ -138,10 +140,11 @@ __docs__ = {
     "wordBoundary":      "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string.",
     "notWordBoundary":   "The opposite of `wordBoundary`",
     "groups_docs": {
-        'positionals': "These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.",
-        'replacement': "In the intrest of \"I don't want to think about any syntax at all\", I have included replace members. Do note that they are not interoperable with the other EZRegexs, and can only be used with other strings and each other.",
+        'positionals':  "These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.",
+        'replacement':  "In the intrest of \"I don't want to think about any syntax at all\", I have included replace members. Do note that they are not interoperable with the other EZRegexs, and can only be used with other strings and each other.",
         'flags':        "These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're provided here for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details",
-        'premade':     "These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in later versions to make them more accurate"
+        'premade':      "These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in later versions to make them more accurate",
+        # "conditionals": "These can only be used once in a given expression. They only match a given expression if the expression is/ins't followed/preceeded by a the given pattern.",
     },
     "operator_docs": {
         "- `+`, `<<`, `>>`": "These all do the same thing: combine expressions",
