@@ -126,6 +126,7 @@ __docs__ = {
     "full_float":        "Will match plain_float as well as things like 1.23e-10 and 1.23e+10",
     "ow":                "\"Optional Whitechunk\"",
     "email":             "Matches an email",
+    "quote":             "Matches ', \", and `",
     "whitechunk":        "A \"chunk\" of whitespace. Just any amount of whitespace together",
     "number":            "Matches multiple digits next to each other. Does not match negatives or decimals",
     "wordChar":          "Matches just a single \"word character\", defined as any letter, number, or _",
