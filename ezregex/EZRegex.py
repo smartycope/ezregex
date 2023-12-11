@@ -114,7 +114,7 @@ class EZRegex:
         return self._compile(addFlags)
 
     def __repr__(self):
-        return 'ezregex("' + self._compile() + '")'
+        return 'EZRegex("' + self._compile() + '")'
 
     def __eq__(self, thing):
         return self._sanitizeInput(thing, addFlags=True) == self._compile()

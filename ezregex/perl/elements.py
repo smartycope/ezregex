@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from .EZRegex import EZRegex
+from ..EZRegex import EZRegex
 from sys import version_info
 from re import RegexFlag, escape
 from warnings import warn
@@ -291,9 +291,9 @@ def earlierGroup(num_or_name):
     """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
     group which would match `num_or_name`. """
     if isinstance(num_or_name, int) or num_or_name in '0123456789':
-        return EZRegex(lambda num_or_name, cur=...: f'{cur}\\{num_or_name}')(num_or_name)
+        return EZRegex(lambda num_or_name, cur=...: rf'{cur}\\{num_or_name}')(num_or_name)
     else:
-        return EZRegex(lambda num_or_name, cur=...: f'{cur}(?P={num_or_name})')(num_or_name)
+        return EZRegex(lambda num_or_name, cur=...: rf'{cur}(\g<{num_or_name}>)')(num_or_name)
 
 def namedGroup(name, input) -> EZRegex:
     "Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs"
@@ -335,7 +335,7 @@ full_float = plain_float + optional('e' + signed)
 int_or_float = optional('-') + number + optional(period + optional(number))
 ow = optional(whitechunk)
 # Source: http://stackoverflow.com/questions/201323/ddg#201378
-email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
+# email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
 
 
 ## Flags

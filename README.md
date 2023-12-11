@@ -10,6 +10,7 @@ TLDR: This is to regular expressions what CMake is to makefiles
 * [Usage](#usage)
 * [Installation](#installation)
 * [Invert](#inverting)
+* [Dialects](#dialects)
 * [Explanation](#explanation-of-how-it-works)
 * [Limitations](#current-limitations)
 * [Documentation](#documentation)
@@ -75,9 +76,29 @@ for debugging. You pass it an expression, and it returns an example of a string 
 match the provided expression.
 
 
+## Dialects
+As of version 1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import a sub-package, and they should work identically (though some languages may have more features than others):
+```python
+>>> import ezregex as er # The python dialect is the defualt dialect
+>>> er.group(digit, 'name') + er.earlierGroup('name')
+EZRegex("(?P<name>\d)(?P=name)")
+>>> import ezregex.perl as er
+>>> er.group(digit, 'name') + er.earlierGroup('name')
+EZRegex("?P<name>\d)(\g<name>")
+```
+The currently implemented dialects are:
+- Python
+    - Well tested, ~98% implemented
+- Perl
+    - Almost identical to the Python dialect because I don't know Perl.
+
+If you know a particular flavor of regex and would like to contribute, feel free to make a pull request! Or you can email me at smartycope@gmail.com
+
+
 ## Documentation
 ### Notes and Gotchas
-- When using the re library, functions like search() and sub() don't accept EZRegexs as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk isEx+ whitespace).str().
+This documentation is for the Python dialect specifically, as it really is the only one currently implemented.
+- When using the re library, functions like search() and sub() don't accept EZRegexs as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
 - The `input` parameter can accept strings, other EZRegexs, or entire sequences of EZRegex patterns.
 - A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to [the Python re docs](https://docs.python.org/3/library/re.html) for details.
 - In future versions, conditionals may change to taking in 2 parameters (the current pattern, and their associated condition) instead
@@ -86,10 +107,14 @@ match the provided expression.
 - Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
 ### Positionals
 #### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.
-- stringStartsWith
-- stringEndsWith
-- lineStartsWith
-- lineEndsWith
+- stringStart
+- stringEnd
+- lineStart
+- lineEnd
+- wordBoundary
+	- Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string.
+- notWordBoundary
+	- The opposite of `wordBoundary`
 ### Literals
 - tab
 - space
@@ -101,6 +126,7 @@ match the provided expression.
 - formFeed
 - comma
 - period
+- underscore
 ### Not Literals
 - notWhitespace
 - notDigit
@@ -198,13 +224,13 @@ match the provided expression.
     "match any word which is not foo". Do note that this function is new, and
     I'm still working out the kinks.
 ### Conditionals
-- ifProceededBy
+- ifFollowedBy
 	- Matches the prior pattern if it has `condition` coming after it
-- ifNotProceededBy
+- ifNotFollowedBy
 	- Matches the prior pattern if it does **not** have `condition` coming after it
 - ifPrecededBy
 	- Matches the prior pattern if it has `condition` coming before it
-- ifNotPreceededBy
+- ifNotPrecededBy
 	- Matches the prior pattern if it does **not** have `condition` coming before it
 - ifEnclosedWith
 	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
@@ -213,6 +239,9 @@ match the provided expression.
 ### Grouping
 - group
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
+- earlierGroup
+	-  Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
+    group which would match `num_or_name`.
 - passiveGroup
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
 - namedGroup
@@ -243,7 +272,6 @@ match the provided expression.
 - email
 	- Matches an email
 ### Misc
-#### These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're provided here for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details
 - literal
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
 - isExactly
@@ -253,6 +281,7 @@ match the provided expression.
         it, this will allow you to include it without sanatizing all the backslaches
         and such, which all the other EZRegexs do automatically.
 ### Flags
+#### These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're provided here for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details
 - ASCII
 - DOTALL
 - IGNORECASE

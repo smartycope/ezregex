@@ -48,6 +48,29 @@ def invert(
     backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']='re_parser',
     _verbose=False,
 ):
+    """ "Inverts" a regular expression by returning an example of something which is guaruanteed to
+        match the passed expression.
+        NOTE: This only works on Python valid regular expressions (it will probably mostly work for
+            other dialects, but is not guarenteed.)
+        expr: The regular expression to invert. Can be a string, or a EZRegex expression
+        words: Controls how works are handled. If `random`, words are made of random letters. If `lookup`,
+            it looks up valid english words and inserts them to make it more readable.
+        randomNumbers: controls whether all numbers are 12345... to a desired length, or if they're
+            just random numbers (again, for readability)
+        alot: When given a choice of how many characters to put someone, it inserts a random integer
+            between 1 and `alot`.
+        tries: Only applies when `backend` is set to `regex`. Controls how many times to try to invert
+            the expression before giving up.
+        backend: One of ('re_parser', 'regex', 'xeger', 'sre_yield').
+            `re_parser` is the default, it uses the build-in parser in the re package to create an AST
+                of the regex
+            `regex` uses regular expressions to parse regular expressions, which is as gross as it sounds.
+                It's slightly buggy, but mostly works.
+            `xeger` imports the `xeger` pacakge and uses it instead. Xeger inverts work, but are less
+                readable. Must have the `xeger` package installed.
+            `sre_yield` imports the `sre_yield` package and uses it instead. I don't think this works
+                right now, and may be significantly slower.
+    """
     expr = str(expr)
 
     match backend:

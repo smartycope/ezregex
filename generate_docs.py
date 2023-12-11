@@ -1,5 +1,5 @@
 # A quick script to generate the docs to be pasted into the README from the docs in the __init__.py file
-from ezregex import __docs__, __groups__
+from ezregex.python import __docs__, __groups__
 from clipboard import copy
 
 s = ''
