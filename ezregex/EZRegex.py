@@ -12,22 +12,22 @@ from .invert import invert
 from functools import partial
 from random import shuffle
 
-class EZRegexMember:
+class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
     def __init__(self, funcs:List[partial], sanatize=True, init=True, replacement=False, flags=0):
         """ The workhorse of the EZRegex library. This represents a regex pattern
-        that can be combined with other EZRegexMembers and strings.
+        that can be combined with other EZRegexs and strings.
         Ideally, this should only be called internally, but it should still
         work from the user's end """
         self.flags = flags
 
         # Parse params
-        # Add flags if it's another EZRegexMember
-        if isinstance(funcs, EZRegexMember):
+        # Add flags if it's another EZRegex
+        if isinstance(funcs, EZRegex):
             self.flags = funcs.flags
 
-        if isinstance(funcs, (str, EZRegexMember)):
+        if isinstance(funcs, (str, EZRegex)):
             funcs = [str(funcs)]
         elif not isinstance(funcs, (list, tuple)):
             funcs = [funcs]
@@ -48,7 +48,7 @@ class EZRegexMember:
                     stringBecauseHatred = deepcopy(self.funcList[i])
                     self.funcList[i] = lambda cur=...: cur + stringBecauseHatred
                 elif not callable(self.funcList[i]) and self.funcList[i] is not None:
-                    raise TypeError(f"Invalid type {type(self.funcList[i])} passed to EZRegexMember constructor")
+                    raise TypeError(f"Invalid type {type(self.funcList[i])} passed to EZRegex constructor")
 
     def _sanitizeInput(self, i, addFlags=False):
         """ Instead of rasising an error if passed a strange datatype, it now
@@ -60,7 +60,7 @@ class EZRegexMember:
             return str(i)
 
         # If it's another chain, compile it
-        if isinstance(i, EZRegexMember):
+        if isinstance(i, EZRegex):
             return i._compile(addFlags=addFlags)
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
@@ -76,7 +76,7 @@ class EZRegexMember:
         else:
             try:
                 s = str(i)
-                msg = f"Type {type(i)} passed to EZRegexMember, auto-casting to a string. Special characters will will not be escaped."
+                msg = f"Type {type(i)} passed to EZRegex, auto-casting to a string. Special characters will will not be escaped."
                 try:
                     from Cope import debug
                 except:
@@ -85,7 +85,7 @@ class EZRegexMember:
                     debug(msg, color=-1, calls=3)
                 return s
             except:
-                raise TypeError(f'Incorrect type {type(i)} given to EZRegexMember parameter: Must be string or another EZRegexMember chain.')
+                raise TypeError(f'Incorrect type {type(i)} given to EZRegex parameter: Must be string or another EZRegex chain.')
 
     def __call__(self, *args, **kwargs):
         """ This should be called by the user to specify the specific parameters
@@ -107,7 +107,7 @@ class EZRegexMember:
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitizeInput(val) if self.sanatize else deepcopy(val)
 
-        return EZRegexMember([partial(self.funcList[0], *args, **_kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
+        return EZRegex([partial(self.funcList[0], *args, **_kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
 
     # Magic Functions
     def __str__(self, addFlags=True):
@@ -138,19 +138,19 @@ class EZRegexMember:
         return self * amt
 
     def __add__(self, thing):
-        return EZRegexMember(self.funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
+        return EZRegex(self.funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
             init=False,
-            sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
-            replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
-            flags=(self.flags | thing.flags) if isinstance(thing, EZRegexMember) else self.flags
+            sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegex) else self.sanatize,
+            replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
+            flags=(self.flags | thing.flags) if isinstance(thing, EZRegex) else self.flags
         )
 
     def __radd__(self, thing):
-        return EZRegexMember([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self.funcList,
+        return EZRegex([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self.funcList,
             init=False,
-            sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegexMember) else self.sanatize,
-            replacement=self.replacement or thing.replacement if isinstance(thing, EZRegexMember) else self.replacement,
-            flags=(self.flags | thing.flags) if isinstance(thing, EZRegexMember) else self.flags
+            sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegex) else self.sanatize,
+            replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
+            flags=(self.flags | thing.flags) if isinstance(thing, EZRegex) else self.flags
         )
 
     def __iadd__(self, thing):
@@ -188,15 +188,15 @@ class EZRegexMember:
 
     def __pos__(self):
         comp = self._compile()
-        return EZRegexMember(('' if not len(comp) else r'(?:' + comp + r')') + r'+', sanatize=False)
+        return EZRegex(('' if not len(comp) else r'(?:' + comp + r')') + r'+', sanatize=False)
 
     def __ror__(self, thing):
         print('ror called')
-        return EZRegexMember(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', sanatize=False)
+        return EZRegex(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', sanatize=False)
 
     def __or__(self, thing):
         warn('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
-        return EZRegexMember(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', sanatize=False)
+        return EZRegex(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', sanatize=False)
 
     def __xor__(self, thing):
         return NotImplemented
@@ -259,31 +259,31 @@ class EZRegexMember:
                 args = args[0]
             if args is None or args is Ellipsis or args == 0:
                 # at_least_0(self)
-                return EZRegexMember(fr'(?:{self._compile()})*', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()})*', sanatize=False)
             elif args == 1:
                 # at_least_1(self)
-                return EZRegexMember(fr'(?:{self._compile()})+', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()})+', sanatize=False)
             else:
                 # match_at_least(args, self)
-                return EZRegexMember(fr'(?:{self._compile()}){{{args},}}', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{{args},}}', sanatize=False)
         else:
             start, end = args
             if start is None or start is Ellipsis:
                 # match_at_most(2, self)
-                return EZRegexMember(fr'(?:{self._compile()}){{0,{end}}}', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{0,{end}}}', sanatize=False)
             elif end is None or end is Ellipsis:
                 if start == 0:
                     # at_least_0(self)
-                    return EZRegexMember(fr'(?:{self._compile()})*', sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()})*', sanatize=False)
                 elif start == 1:
                     # at_least_1(self)
-                    return EZRegexMember(fr'(?:{self._compile()})+', sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()})+', sanatize=False)
                 else:
                     # match_at_least(start, self)
-                    return EZRegexMember(fr'(?:{self._compile()}){{{start},}}', sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()}){{{start},}}', sanatize=False)
             else:
                 # match_range(start, end, self)
-                return EZRegexMember(fr'(?:{self._compile()}){{{start},{end}}}', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{{start},{end}}}', sanatize=False)
 
     def __reversed__(self):
         return self.inverse()

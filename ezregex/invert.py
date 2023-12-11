@@ -40,7 +40,7 @@ def _randNumber(length, random=False):
         return ''.join(map(lambda i: str(i)[-1], range(1, length+1)))
 
 def invert(
-    expr:Union[str, 'EZRegexMember'],
+    expr:Union[str, 'EZRegex'],
     words:Literal['lookup', 'random', None]='lookup',
     randomNumbers=False,
     alot=6,

@@ -32,7 +32,7 @@ empty -- matches an empty string in an expression. useful for something like emp
 expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
 CaselessKeyword - similar to Keyword, but with caseless matching behavior as described in CaselessLiteral.
 ungroup
-referenceGroup = EZRegexMember(lambda cur, name:        f'{cur}(?P={name})')
+referenceGroup = EZRegex(lambda cur, name:        f'{cur}(?P={name})')
 NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
 is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
 quote_char - string of one or more characters defining the quote delimiting string

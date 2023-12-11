@@ -181,7 +181,7 @@ replacements = (
     # ("(?P<word>\\b\\w+\\b)", "\\U\\g<word>", "python is cool", "PYTHON IS COOL"),  # Convert words to uppercase with named group
     (group(word + number) + ':' + ow + group(word), replace_group(1) + ' - ' + replace_group(2), 'test1:    thing', 'test1 - thing'),
     (namedGroup('a', word + number) + ':' + ow + namedGroup('b', word), replace_group('a') + ' - ' + replace_group('b'), 'test1:    thing', 'test1 - thing'),
-    (stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk, '(' + '${' + rgroup(1) + '})', '(name, input) -> ezregex.EZRegexMember.EZRegexMember', '(${name, input})'),
+    (stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk, '(' + '${' + rgroup(1) + '})', '(name, input) -> ezregex.EZRegex.EZRegex', '(${name, input})'),
 )
 
 # Add more patterns as needed
@@ -243,8 +243,8 @@ def runTests(singletons=True, _invert=False, replacement=False, testMethod=False
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
                 raise err.with_traceback(None)
 
-        a = str(EZRegexMember(r'\s+'))
-        b = str(EZRegexMember(raw(r'\s+')))
+        a = str(EZRegex(r'\s+'))
+        b = str(EZRegex(raw(r'\s+')))
         c = r'\s+'
         d = str(raw(r'\s+'))
         # e = str(whitespace + matchMax)
@@ -390,6 +390,6 @@ runTests(
     invertBackend='re_parser',
 )
 # pattern = stringStart + '(' + group(chunk + optional(',' + chunk)) + ')'
-# s = '(name, input) -> ezregex.EZRegexMember.EZRegexMember'
+# s = '(name, input) -> ezregex.EZRegex.EZRegex'
 # repl = '(' + '${' + rgroup(1) + '})'
 # print(re.sub(pattern.str(), repl.str(), s))

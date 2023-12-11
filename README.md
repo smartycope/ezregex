@@ -77,12 +77,12 @@ match the provided expression.
 
 ## Documentation
 ### Notes and Gotchas
-- When using the re library, functions like search() and sub() don't accept EZRegexMembers as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk isEx+ whitespace).str().
-- The `input` parameter can accept strings, other EZRegexMembers, or entire sequences of EZRegex patterns.
+- When using the re library, functions like search() and sub() don't accept EZRegexs as valid regex patterns. Be sure to call either .str() or .compile() when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk isEx+ whitespace).str().
+- The `input` parameter can accept strings, other EZRegexs, or entire sequences of EZRegex patterns.
 - A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to [the Python re docs](https://docs.python.org/3/library/re.html) for details.
 - In future versions, conditionals may change to taking in 2 parameters (the current pattern, and their associated condition) instead
 - In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group() or namedGroup().
-- All EZRegexMembers (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
+- All EZRegexs (except for raw) auto-sanitize strings given to them, so there's no need to escape braces or question marks and the like. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally. To include already written regex strings, use raw
 - Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
 ### Positionals
 #### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.
@@ -218,7 +218,7 @@ match the provided expression.
 - namedGroup
 	- Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs
 ### Replacement
-#### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they are not interoperable with the other EZRegexMembers, and can only be used with other strings and each other.
+#### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they are not interoperable with the other EZRegexs, and can only be used with other strings and each other.
 - rgroup
 	-  Puts in its place the group specified, either by group number (for unnamed
         groups) or group name (for named groups). Named groups are also counted by
@@ -251,7 +251,7 @@ match the provided expression.
 - raw
 	-  If you already have some regular regex written, and you want to incorperate
         it, this will allow you to include it without sanatizing all the backslaches
-        and such, which all the other EZRegexMembers do automatically.
+        and such, which all the other EZRegexs do automatically.
 ### Flags
 - ASCII
 - DOTALL
@@ -262,7 +262,7 @@ match the provided expression.
 
 
 ## Explanation of How it Works
-Everything relies on the EZRegexMember class. In the \_\_init\_\_ file of the package, I have defined a ton of pre-made EZRegexMembers which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexMembers take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexMembers, which auto-compiles them and adds them appropriately.
+Everything relies on the EZRegex class. In the \_\_init\_\_ file of the package, I have defined a ton of pre-made EZRegexs which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or whitechunk). These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All EZRegexs take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexs, which auto-compiles them and adds them appropriately.
 
 I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStartsWith/lineEndsWith are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
 
