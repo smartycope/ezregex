@@ -157,9 +157,13 @@ class EZRegex:
         # return self + self._sanitizeInput(thing)
         return self + thing
 
-    # def __and__(self, thing):
-        # raw(r'Isaac (?=Asimov)(?=\w+)')
-        # return self.__add__(self, thing)
+    def __and__(self, thing):
+        warn('The & operator is unstable still. Use each() instead.')
+        return fr'(?={self}){thing}'
+
+    def __rand__(self, thing):
+        warn('The & operator is unstable still. Use each() instead.')
+        return fr'(?={thing}){self}'
 
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):

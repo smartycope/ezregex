@@ -372,5 +372,6 @@ MULTILINE  = EZRegex(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
 UNICODE    = EZRegex(lambda cur=...: cur, flags=RegexFlag.UNICODE)
 
 if __name__ == '__main__':
-    # print(each(word, anyOf('this', 'that'), letter[...,4]))
-    print(ifExists(2, 'true'))
+    ('foo' + each(chunk + 'here' + chunk, chunk + anyOf('this', 'that') + chunk) + 'bar').test('fooum here there that bar')
+    # print()
+    # print(ifExists(2, 'true'))

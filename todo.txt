@@ -1,16 +1,12 @@
 TODO (these are very roughly in order):
 I don't think punctuation has all of the punctuation chars
-rethink conditionals: Do I need them? should they be changed? Do they actually work how they're supposed to?
-(?(id/name)yes-pattern|no-pattern) -- Will try to match with yes-pattern if the group with given id or name exists, and with no-pattern if it doesn’t. no-pattern is optional and can be omitted. For example, (<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$) is a poor email matching pattern, which will match with '<user@host.com>' as well as 'user@host.com', but not with '<user@host.com' nor 'user@host.com>'.
 nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
-something like a word(letters=n) or something, including \b word{3} \b
 maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
 all the methods which return NotImplemented
+fix anyExcept
 (?:(?:a|b)|c) does not do the same as ((a|b)|c). Why? Is this intentional?
 operators: |, &, ^, ~
-wordStart/wordEnd/wordStartsWith/wordEndsWith (\b and \</\>?)
-\<	Start of word
-\>	End of word
+wordStart/wordEnd/wordStartsWith/wordEndsWith \<	Start of word and \>	End of word
 maybe a function like line(stuff in a line), which automatically adds line start and line end to it
 & and `and` operator -- Each
 Add these https://pyparsing-docs.readthedocs.io/en/latest/HowToUsePyparsing.html#expression-operators
@@ -18,8 +14,7 @@ DelimitedList - used for matching one or more occurrences of expr, separated by 
 ^ and `or` operator -- anyof
 ?>	Once-only Subexpression
 add ezregex.org to the homepage link in PyPi
-?()	Condition [if then]
-?()|	Condition [if then else]
+something like a word(letters=n) or something, including \b word{3} \b
 CaselessLiteral - construct with a string to be matched, but without case checking; results are always returned as the defining literal, NOT as they are found in the input string
 caseless_literal -- a caseless function that makes only the specified chain case-insensitive. Might only work on a few funtions?
 nested groups (i.e. matchMax(group(comma))) will only match the last one. Add some way to fix that?
@@ -32,11 +27,10 @@ empty -- matches an empty string in an expression. useful for something like emp
 expr[...:end_expr] is equivalent to ZeroOrMore(expr, stop_on=end_expr)
 CaselessKeyword - similar to Keyword, but with caseless matching behavior as described in CaselessLiteral.
 ungroup
-referenceGroup = EZRegex(lambda cur, name:        f'{cur}(?P={name})')
 NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
 is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
-quote_char - string of one or more characters defining the quote delimiting string
 emoji() member
+methods like __and__ and __or__ which add regex directly don't take into account dialects
 \Q	Begin literal sequence
 \E	End literal sequence
 (?#...) comment because why not
@@ -57,6 +51,7 @@ ADD TESTS FOR:
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
 punctuation
 All the todos in tests
+more lookahead, lookbehinds
 <<=, >>=
 some psuedonymns
 more flags
