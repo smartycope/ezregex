@@ -315,9 +315,9 @@ def earlierGroup(num_or_name) -> EZRegex:
     else:
         return EZRegex(lambda num_or_name, cur=...: f'{cur}(?P={num_or_name})')(num_or_name)
 
-def ifExists(num_or_name, true, false=None) -> EZRegex:
-    """ Matches `true` if the group `num_or_name` exists, otherwise it matches `false` """
-    return EZRegex(lambda num_or_name, true, false, cur=...: f'{cur}(?({num_or_name}){true}{"|" + str(false) if false is not None else ""})')(num_or_name, true, false)
+def ifExists(num_or_name, does, doesnt=None) -> EZRegex:
+    """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` """
+    return EZRegex(lambda num_or_name, does, doesnt, cur=...: f'{cur}(?({num_or_name}){does}{"|" + str(doesnt) if doesnt is not None else ""})')(num_or_name, does, doesnt)
 
 def namedGroup(name, input) -> EZRegex:
     "Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs"

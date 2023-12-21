@@ -247,8 +247,8 @@ This documentation is for the Python dialect specifically, as it really is the o
 - earlierGroup(num_or_name)
 	-  Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
     group which would match `num_or_name`. 
-- ifExists(num_or_name, true, false=None)
-	-  Matches `true` if the group `num_or_name` exists, otherwise it matches `false` 
+- ifExists(num_or_name, does, doesnt=None)
+	-  Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
 - passiveGroup(input)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
 - namedGroup(name, input)
