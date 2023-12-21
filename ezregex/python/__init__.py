@@ -148,7 +148,7 @@ __docs__ = {
         # "conditionals": "These can only be used once in a given expression. They only match a given expression if the expression is/ins't followed/preceeded by a the given pattern.",
     },
     "operator_docs": {
-        "- `+`, `<<`, `>>`": "These all do the same thing: combine expressions",
+        "`+`, `<<`, `>>`": "These all do the same thing: combine expressions",
         "`*`": "Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` is equivalent to `anyAmt(expr)`",
         "`+`": "A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator",
         "`[]`": "expr[2, 3] is equivalent to `match_range(2, 3, expr)`\n\t- expr[2, ...] or expr[2,] is equivalent to `at_least(2, expr)`\n\t- expr[... , 2] is equivalent to `at_most(2, expr)`\n\t- expr[...] or expr[0, ...] is equivelent to `at_least_0(expr)`\n\t- expr[1, ...] is equivalent to `at_least_1(expr)`",

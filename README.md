@@ -104,7 +104,9 @@ This documentation is for the Python dialect specifically, as it really is the o
 - The `input` parameter can accept strings, other EZRegexs, or entire sequences of EZRegex patterns.
 - A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to [the Python re docs](https://docs.python.org/3/library/re.html) for details.
 <!-- Start of generated docs -->
-### Positionals
+<details>
+	<summary>Positionals</summary>
+
 #### These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start of the string is also the start of a line. These can also be called without parameters to denote the start/end of a string/line without something specific having to be next to it.
 - stringStart
 - stringEnd
@@ -114,7 +116,12 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string.
 - notWordBoundary
 	- The opposite of `wordBoundary`
-### Literals
+
+</details>
+
+<details>
+	<summary>Literals</summary>
+
 - tab
 - space
 - spaceOrTab
@@ -127,11 +134,21 @@ This documentation is for the Python dialect specifically, as it really is the o
 - comma
 - period
 - underscore
-### Not Literals
+
+</details>
+
+<details>
+	<summary>Not Literals</summary>
+
 - notWhitespace
 - notDigit
 - notWord
-### Catagories
+
+</details>
+
+<details>
+	<summary>Catagories</summary>
+
 - whitespace
 - whitechunk
 	- A "chunk" of whitespace. Just any amount of whitespace together
@@ -163,7 +180,12 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- Matches a unicode character by name
 - anyBetween(char, and_char)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
-### Amounts
+
+</details>
+
+<details>
+	<summary>Amounts</summary>
+
 - matchMax(input)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
     If `input` is not provided, it works on the previous regex pattern. That's not recommended for
@@ -198,7 +220,12 @@ This documentation is for the Python dialect specifically, as it really is the o
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     
-### Choices
+
+</details>
+
+<details>
+	<summary>Choices</summary>
+
 - optional(input, greedy=True, possessive=False)
 	-  Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
@@ -224,7 +251,12 @@ This documentation is for the Python dialect specifically, as it really is the o
     which works like this: "Match any `type` other than `input`". For example,
     "match any word which is not foo". Do note that this function is new, and
     I'm still working out the kinks.
-### Conditionals
+
+</details>
+
+<details>
+	<summary>Conditionals</summary>
+
 - ifFollowedBy(input)
 	-  Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
         as it only applies to the end 
@@ -241,7 +273,12 @@ This documentation is for the Python dialect specifically, as it really is the o
 	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
         stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
     
-### Grouping
+
+</details>
+
+<details>
+	<summary>Grouping</summary>
+
 - group(input, name: str = None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
 - earlierGroup(num_or_name)
@@ -253,7 +290,12 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
 - namedGroup(name, input)
 	- Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs
-### Replacement
+
+</details>
+
+<details>
+	<summary>Replacement</summary>
+
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they are not interoperable with the other EZRegexs, and can only be used with other strings and each other.
 - rgroup(num_or_name)
 	-  Puts in its place the group specified, either by group number (for unnamed
@@ -261,7 +303,12 @@ This documentation is for the Python dialect specifically, as it really is the o
         number, I'm pretty sure. Groups are numbered starting from 1.
 - replaceEntire
 	- Puts in its place the entire match
-### Premade
+
+</details>
+
+<details>
+	<summary>Premade</summary>
+
 #### These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in later versions to make them more accurate
 - literallyAnything
 	- *Any* character, include newline
@@ -278,7 +325,12 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- "Optional Whitechunk"
 - email
 	- Matches an email
-### Misc
+
+</details>
+
+<details>
+	<summary>Misc</summary>
+
 - literal(input)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
 - isExactly(input)
@@ -287,7 +339,12 @@ This documentation is for the Python dialect specifically, as it really is the o
 	-  If you already have some regular regex written, and you want to incorperate
         it, this will allow you to include it without sanatizing all the backslaches
         and such, which all the other EZRegexs do automatically.
-### Flags
+
+</details>
+
+<details>
+	<summary>Flags</summary>
+
 #### These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're provided here for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details
 - ASCII
 - DOTALL
@@ -295,8 +352,13 @@ This documentation is for the Python dialect specifically, as it really is the o
 - LOCALE
 - MULTILINE
 - UNICODE
-### Operators
-- - `+`, `<<`, `>>`
+
+</details>
+
+<details>
+	<summary>Operators</summary>
+
+- `+`, `<<`, `>>`
 	- These all do the same thing: combine expressions
 - `*`
 	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` is equivalent to `anyAmt(expr)`
@@ -317,6 +379,8 @@ This documentation is for the Python dialect specifically, as it really is the o
     - This automatically calls re.search() for you and returns the match object (or None). Use like this: `(digit * 2) % '99 beers on the wall'`
 - `~`
     - This inverts the expression. This is equivalent to calling the .invert() method
+</details>
+
 
 
 ## Explanation of How it Works
