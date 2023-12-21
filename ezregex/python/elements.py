@@ -307,7 +307,7 @@ def passiveGroup(input) -> EZRegex:
     "As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is"
     return EZRegex(lambda input, cur=...: f'{cur}(?:{input})')(input)
 
-def earlierGroup(num_or_name):
+def earlierGroup(num_or_name) -> EZRegex:
     """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
     group which would match `num_or_name`. """
     if isinstance(num_or_name, int) or num_or_name in '0123456789':
@@ -315,7 +315,7 @@ def earlierGroup(num_or_name):
     else:
         return EZRegex(lambda num_or_name, cur=...: f'{cur}(?P={num_or_name})')(num_or_name)
 
-def ifExists(num_or_name, true, false=None):
+def ifExists(num_or_name, true, false=None) -> EZRegex:
     """ Matches `true` if the group `num_or_name` exists, otherwise it matches `false` """
     return EZRegex(lambda num_or_name, true, false, cur=...: f'{cur}(?({num_or_name}){true}{"|" + str(false) if false is not None else ""})')(num_or_name, true, false)
 

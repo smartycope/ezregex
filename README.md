@@ -121,6 +121,7 @@ This documentation is for the Python dialect specifically, as it really is the o
 - newline
 - carriageReturn
 - quote
+	- Matches ', ", and `
 - verticalTab
 - formFeed
 - comma
@@ -160,18 +161,18 @@ This documentation is for the Python dialect specifically, as it really is the o
 - alphaNum
 - unicode
 	- Matches a unicode character by name
-- anyBetween
+- anyBetween(char, and_char)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
 ### Amounts
-- matchMax
+- matchMax(input)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
     If `input` is not provided, it works on the previous regex pattern. That's not recommended for
     clarity's sake though
-- amt
+- amt(num, input)
 	- Match `num` amount of `input` in the string
-- moreThan
+- moreThan(min, input)
 	- Match more than `min` sequences of `input` in the string
-- matchRange
+- matchRange(min, max, input, greedy=True, possessive=False)
 	-  Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
         Max can be an empty string to indicate no maximum
         greedy means it will try to match as many repititions as possible
@@ -179,18 +180,18 @@ This documentation is for the Python dialect specifically, as it really is the o
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     
-- atLeast
+- atLeast(min, input)
 	- Match at least `min` sequences of `input` in the string
-- atMost
+- atMost(max, input)
 	- Match at most `max` instances of `input` in the string
-- atLeastOne
+- atLeastOne(input, greedy=True, possessive=False)
 	-  Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     
-- atLeastNone
+- atLeastNone(input, greedy=True, possessive=False)
 	-  Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
@@ -198,15 +199,15 @@ This documentation is for the Python dialect specifically, as it really is the o
         see https://docs.python.org/3/library/re.html for more help
     
 ### Choices
-- optional
+- optional(input, greedy=True, possessive=False)
 	-  Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     
-- either
-- oneOf
+- either(input, or_input)
+- oneOf(*inputs, chars=None, split=None)
 	-  Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
         or a single string. Can also accept parameters chars and split. If char is set
         to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -215,46 +216,46 @@ This documentation is for the Python dialect specifically, as it really is the o
         syntax. It should act the same way, but your output regex will look different.
         By default, it just optimizes it for you.
     
-- anyCharExcept
+- anyCharExcept(*inputs)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- anyExcept
+- anyExcept(input, type='.*')
 	-  Matches anything other than `input`, which must be a single string or
     EZRegex chain, **not** a list. Also optionally accepts the `type` parameter,
     which works like this: "Match any `type` other than `input`". For example,
     "match any word which is not foo". Do note that this function is new, and
     I'm still working out the kinks.
 ### Conditionals
-- ifFollowedBy
+- ifFollowedBy(input)
 	-  Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
         as it only applies to the end 
-- ifNotFollowedBy
+- ifNotFollowedBy(input)
 	-  Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
         a given pattern, as it only applies to the end 
-- ifPrecededBy
+- ifPrecededBy(input)
 	-  Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
         as it only applies to the beginning 
-- ifNotPrecededBy
+- ifNotPrecededBy(input)
 	-  Matches the pattern if it does **not** have `input` coming before it. Can only be used once
         in a given pattern, as it only applies to the beginning 
-- ifEnclosedWith
+- ifEnclosedWith(open, stuff, close=None)
 	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
         stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
     
 ### Grouping
-- group
+- group(input, name: str = None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
-- earlierGroup
+- earlierGroup(num_or_name)
 	-  Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
     group which would match `num_or_name`. 
-- ifExists
+- ifExists(num_or_name, true, false=None)
 	-  Matches `true` if the group `num_or_name` exists, otherwise it matches `false` 
-- passiveGroup
+- passiveGroup(input)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- namedGroup
+- namedGroup(name, input)
 	- Causes `input` to be captured as a named group, with the name `name`. Only useful when replacing regexs
 ### Replacement
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they are not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-- rgroup
+- rgroup(num_or_name)
 	-  Puts in its place the group specified, either by group number (for unnamed
         groups) or group name (for named groups). Named groups are also counted by
         number, I'm pretty sure. Groups are numbered starting from 1.
@@ -278,11 +279,11 @@ This documentation is for the Python dialect specifically, as it really is the o
 - email
 	- Matches an email
 ### Misc
-- literal
+- literal(input)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
-- isExactly
+- isExactly(input)
 	- This matches the string if and only if the entire string is exactly equal to `input`
-- raw
+- raw(regex)
 	-  If you already have some regular regex written, and you want to incorperate
         it, this will allow you to include it without sanatizing all the backslaches
         and such, which all the other EZRegexs do automatically.
