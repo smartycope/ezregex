@@ -37,6 +37,7 @@ function % 'some string containing func( param1 , param2)'
 # The test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
+.test() will print all the matches, color coded to match and group (you can't see the colors here):
 ```markdown
 ╭───────────────────────────── Testing Regex ──────────────────────────────╮
 │ Testing expression:                                                      │
@@ -71,7 +72,7 @@ $ pip install ezregex
 ```
 
 ## Inverting
-There's an `invert` function (available either as er.invert, or ~\<expression\> that is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
+The `invert` function provided (available either as er.invert, or ~\<expression\>) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
 
 
 ## Dialects
