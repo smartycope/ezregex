@@ -38,8 +38,9 @@ anyof = any_of = oneOf = one_of = anyOf
 any_except = anyExcept
 any_char_except = anyCharExcept
 printable_and_space = printableAndSpace
-ifFollowedBy     = ifProcededBy
-ifNotFollowedBy  = ifNotProcededBy
+ifFollowedBy = if_followed_by = ifProcededBy
+if_exists = ifExists
+ifNotFollowedBy = if_not_followed_by = ifNotProcededBy
 if_preceded_by = ifPrecededBy
 if_not_preceded_by = ifNotPrecededBy
 if_enclosed_with = ifEnclosedWith
