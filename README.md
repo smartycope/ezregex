@@ -409,7 +409,8 @@ Everything relies on the EZRegex class. In the \_\_init\_\_ file of the package,
 I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStart/lineEnd are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
 
 ## Todo
-See [the todo](todo.txt)
+See [the todo](todo.txt).
+Eventually, I would like to move the todo to GitHub issues.
 
 ## License
 EZRegex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
