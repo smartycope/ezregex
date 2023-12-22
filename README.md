@@ -52,24 +52,24 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 
 <pre>
 ╭───────────────────────────── Testing Regex ──────────────────────────────╮
-│ Testing expression:                                                       │
-│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)               │
-│ for matches in:                                                           │
-│         this should match<span style="color: teal;">func(</span><span style="background-color: gray; color: teal;">param1,  param2 </span><span style="color: teal;">)</span>, <span style="color: red;">foo()</span>, and <span style="color: orange;">bar(</span><span style="background-color: green; color: orange;"> foo,</span><span style="color: orange;">)</span>    │
-│                                                                           │
-│ Match = "<span style="color: teal;">func(</span><span style="background-color: gray; color: teal;">param1,  param2 </span><span style="color: teal;">)</span>" (18:39)                                  │
-│ Unnamed Groups:                                                           │
-│         1: "<span style="color: gray;">param1,     param2 </span>" (23:38)                                  │
-│                                                                           │
-│ Match = "<span style="color: red;">foo()</span>" (41:46)                                                   │
-│ Unnamed Groups:                                                           │
-│         1: "" (45:45)                                                     │
-│                                                                           │
-│ Match = "<span style="color: orange;">bar(</span><span style="background-color: green; color: orange;"> foo,</span><span style="color: orange;">)</span>" (52:62)                                              │
-│ Unnamed Groups:                                                           │
-│         1: "<span style="color: green;"> foo,</span>" (56:61)                                                │
-│                                                                           │
-│                                                                           │
+│ Testing expression:                                                      │
+│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)              │
+│ for matches in:                                                          │
+│         this should match<span style="color: teal;">func(</span><span style="background-color: gray; color: teal;">param1,  param2 </span><span style="color: teal;">)</span>, <span style="color: red;">foo()</span>, and <span style="color: orange;">bar(</span><span style="background-color: green; color: orange;"> foo,</span><span style="color: orange;">)</span>   │
+│                                                                          │
+│ Match = "<span style="color: teal;">func(</span><span style="background-color: gray; color: teal;">param1,  param2 </span><span style="color: teal;">)</span>" (18:39)                                 │
+│ Unnamed Groups:                                                          │
+│         1: "<span style="color: gray;">param1,     param2 </span>" (23:38)                                 │
+│                                                                          │
+│ Match = "<span style="color: red;">foo()</span>" (41:46)                                                  │
+│ Unnamed Groups:                                                          │
+│         1: "" (45:45)                                                    │
+│                                                                          │
+│ Match = "<span style="color: orange;">bar(</span><span style="background-color: green; color: orange;"> foo,</span><span style="color: orange;">)</span>" (52:62)                                             │
+│ Unnamed Groups:                                                          │
+│         1: "<span style="color: green;"> foo,</span>" (56:61)                                               │
+│                                                                          │
+│                                                                          │
 ╰───────────────────────────────── <span style="color: blue;">Found</span>  ─────────────────────────────────╯
 </pre>
 
