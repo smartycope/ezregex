@@ -32,6 +32,9 @@ jobs:
       run: |
         cd ..
         pwd
+    - name: Get to right directory 
+      run: |
         cd tests/
         pwd
+    - name: actually test it
         python tests.py
