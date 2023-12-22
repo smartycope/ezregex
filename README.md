@@ -74,7 +74,7 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 </pre>
 
 ## Installation
-ezregex is distributed on [PyPI](https://pypi.org) as a universal
+EZRegex is distributed on [PyPI](https://pypi.org) as a universal
 wheel and is available on Linux/macOS and Windows and supports
 Python 3.10+ and PyPy.
 
