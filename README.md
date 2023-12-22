@@ -1,23 +1,14 @@
 <div align="center">
-  <img src="https://ezregex.org/favicon.png"><br>
-<!-- </div> -->
+    <img src="https://ezregex.org/favicon.png"><br>
     <p></p>
 
-<!-- ![EZRegex](https://ezregex.org/favicon.png) -->
-<!-- [![Unit Tests](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml)  -->
-<!-- [![PyPI Latest Release](https://img.shields.io/pypi/v/ezregex.svg)](https://pypi.org/project/ezregex/) -->
-
-
-<!-- <p align="center"> -->
-  <a href="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml">
+<a href="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml">
     <img src="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg" alt="Unit Tests">
-  </a>
-  <a href="https://pypi.org/project/ezregex/">
+</a>
+<a href="https://pypi.org/project/ezregex/">
     <img src="https://img.shields.io/pypi/v/ezregex.svg" alt="PyPI Latest Release">
-  </a>
+</a>
 </div>
-
-
 
 # EZRegex
 A readable and intuitive way to generate Regular Expressions
@@ -57,32 +48,32 @@ function % 'some string containing func( param1 , param2)'
 # The test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
-.test() will print all the matches, color coded to match and group (you can't see the colors here):
-```markdown
+.test() will print all the matches, color coded to match and group:
+
+<pre>
 ╭───────────────────────────── Testing Regex ──────────────────────────────╮
-│ Testing expression:                                                      │
-│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)              │
-│ for matches in:                                                          │
-│         this should match func(param1,  param2 ), foo(), and bar( foo,)  │
-│                                                                          │
-│ Match = "func(param1,   param2 )" (18:39)                                │
-│ Unnamed Groups:                                                          │
-│         1: "param1,     param2 " (23:38)                                 │
-│                                                                          │
-│ Match = "foo()" (41:46)                                                  │
-│ Unnamed Groups:                                                          │
-│         1: "" (45:45)                                                    │
-│                                                                          │
-│ Match = "bar( foo,)" (52:62)                                             │
-│ Unnamed Groups:                                                          │
-│         1: " foo," (56:61)                                               │
-│                                                                          │
-│                                                                          │
-╰───────────────────────────────── Found  ─────────────────────────────────╯
-```
+│ Testing expression:                                                       │
+│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)               │
+│ for matches in:                                                           │
+│         this should match<span style="color: teal;">func(</span><span style="background-color: gray; color: teal;">param1,  param2 </span><span style="color: teal;">)</span>, <span style="color: red;">foo()</span>, and <span style="color: orange;">bar(</span><span style="background-color: green; color: orange;"> foo,</span><span style="color: orange;">)</span>    │
+│                                                                           │
+│ Match = "<span style="color: teal;">func(</span><span style="background-color: gray; color: teal;">param1,  param2 </span><span style="color: teal;">)</span>" (18:39)                                  │
+│ Unnamed Groups:                                                           │
+│         1: "<span style="color: gray;">param1,     param2 </span>" (23:38)                                  │
+│                                                                           │
+│ Match = "<span style="color: red;">foo()</span>" (41:46)                                                   │
+│ Unnamed Groups:                                                           │
+│         1: "" (45:45)                                                     │
+│                                                                           │
+│ Match = "<span style="color: orange;">bar(</span><span style="background-color: green; color: orange;"> foo,</span><span style="color: orange;">)</span>" (52:62)                                              │
+│ Unnamed Groups:                                                           │
+│         1: "<span style="color: green;"> foo,</span>" (56:61)                                                │
+│                                                                           │
+│                                                                           │
+╰───────────────────────────────── <span style="color: blue;">Found</span>  ─────────────────────────────────╯
+</pre>
 
-
-## Installation
+<span style="color: teal;"> foo,</span>## Installation
 ezregex is distributed on [PyPI](https://pypi.org) as a universal
 wheel and is available on Linux/macOS and Windows and supports
 Python 3.10+ and PyPy.
