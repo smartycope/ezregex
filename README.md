@@ -1,4 +1,10 @@
-![EZRegex](https://ezregex.org/favicon.png)
+<div align="center">
+  <img src="https://ezregex.org/favicon.png"><br>
+</div>
+
+<!-- ![EZRegex](https://ezregex.org/favicon.png) -->
+[![CI - Test](https://github.com/smartycope/ezregex/actions/workflows/unit_tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit_tests.yml) [![PyPI Latest Release](https://img.shields.io/pypi/v/pandas.svg)](https://pypi.org/project/ezregex/)
+
 # EZRegex
 A readable and intuitive way to generate Regular Expressions
 
