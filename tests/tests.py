@@ -384,7 +384,7 @@ def runTests(singletons=True, _invert=False, replacement=False, testMethod=False
 
 runTests(
     singletons=True,
-    _invert=True,
+    _invert=False,
     replacement=True,
     internal=False,
     operators=True,
