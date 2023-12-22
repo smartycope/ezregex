@@ -63,6 +63,7 @@ Go through all the elements and oduble check they all have tests
 
 ADD DOCS FOR:
 anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
+Make the .test() example in the readme be colored (probably using HTML)
 
 
 ADD INVERTS FOR:
