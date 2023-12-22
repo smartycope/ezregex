@@ -30,4 +30,8 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run Tests
       run: |
-        python ../tests/tests.py
+        cd ..
+        pwd
+        cd tests/
+        pwd
+        python tests.py
