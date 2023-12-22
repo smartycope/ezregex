@@ -3,7 +3,8 @@
 </div>
 
 <!-- ![EZRegex](https://ezregex.org/favicon.png) -->
-[![CI - Test](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml) [![PyPI Latest Release](https://img.shields.io/pypi/v/pandas.svg)](https://pypi.org/project/ezregex/)
+[![Unit Tests](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml) 
+[![PyPI Latest Release](https://img.shields.io/pypi/v/ezregex.svg)](https://pypi.org/project/ezregex/)
 
 # EZRegex
 A readable and intuitive way to generate Regular Expressions
