@@ -1,9 +1,22 @@
 <div align="center">
   <img src="https://ezregex.org/favicon.png"><br>
-</div>
+<!-- </div> -->
 
 <!-- ![EZRegex](https://ezregex.org/favicon.png) -->
-[![CI - Test](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml) [![PyPI Latest Release](https://img.shields.io/pypi/v/pandas.svg)](https://pypi.org/project/ezregex/)
+<!-- [![Unit Tests](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml)  -->
+<!-- [![PyPI Latest Release](https://img.shields.io/pypi/v/ezregex.svg)](https://pypi.org/project/ezregex/) -->
+
+
+<!-- <p align="center"> -->
+  <a href="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml">
+    <img src="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg" alt="Unit Tests">
+  </a>
+  <a href="https://pypi.org/project/ezregex/">
+    <img src="https://img.shields.io/pypi/v/ezregex.svg" alt="PyPI Latest Release">
+  </a>
+</div>
+
+
 
 # EZRegex
 A readable and intuitive way to generate Regular Expressions
