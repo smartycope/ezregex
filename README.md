@@ -1,6 +1,7 @@
 <div align="center">
   <img src="https://ezregex.org/favicon.png"><br>
 <!-- </div> -->
+    <p></p>
 
 <!-- ![EZRegex](https://ezregex.org/favicon.png) -->
 <!-- [![Unit Tests](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml)  -->
@@ -220,7 +221,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-    
+
 - atLeast(min, input)
 	- Match at least `min` sequences of `input` in the string
 - atMost(max, input)
@@ -231,14 +232,14 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-    
+
 - atLeastNone(input, greedy=True, possessive=False)
 	-  Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-    
+
 
 </details>
 
@@ -251,7 +252,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-    
+
 - either(input, or_input)
 - oneOf(*inputs, chars=None, split=None)
 	-  Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
@@ -261,7 +262,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         split is set to true, it forces the ?(...) regex syntax instead of the [...]
         syntax. It should act the same way, but your output regex will look different.
         By default, it just optimizes it for you.
-    
+
 - anyCharExcept(*inputs)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
 - anyExcept(input, type='.*')
@@ -278,20 +279,20 @@ This documentation is for the Python dialect specifically, as it really is the o
 
 - ifFollowedBy(input)
 	-  Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
-        as it only applies to the end 
+        as it only applies to the end
 - ifNotFollowedBy(input)
 	-  Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
-        a given pattern, as it only applies to the end 
+        a given pattern, as it only applies to the end
 - ifPrecededBy(input)
 	-  Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
-        as it only applies to the beginning 
+        as it only applies to the beginning
 - ifNotPrecededBy(input)
 	-  Matches the pattern if it does **not** have `input` coming before it. Can only be used once
-        in a given pattern, as it only applies to the beginning 
+        in a given pattern, as it only applies to the beginning
 - ifEnclosedWith(open, stuff, close=None)
 	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
         stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
-    
+
 
 </details>
 
@@ -302,9 +303,9 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
 - earlierGroup(num_or_name)
 	-  Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
-    group which would match `num_or_name`. 
+    group which would match `num_or_name`.
 - ifExists(num_or_name, does, doesnt=None)
-	-  Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
+	-  Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 - passiveGroup(input)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
 - namedGroup(name, input)
