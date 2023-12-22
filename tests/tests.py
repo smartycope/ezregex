@@ -11,6 +11,7 @@ from ezregex.invert import *
 
 import random
 
+# TODO: Someday, move all this to a json file instead
 # This goes (regex,                                                                         (things it should match),                                    (things it shouldnt match))
 _regexsLine = getframeinfo(currentframe()).lineno + 2
 regexs = (
@@ -67,8 +68,8 @@ regexs = (
     (raw(r'(?<=stuff)'),                                                                    ['thingstuffs'],                                                        None),
     (raw(r'(?<!stuff)'),                                                                    ['thingstuffs'],                                                        None),
     (raw(r'(a|b|c|thing|st)uff'),                                                           ["auff", "buff", "cuff", "thinguff", "stuff"],                          None),
-    (raw(r"A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}"),             None,                                                                   None),
-    (raw(r"[\d] [^\d] [A-Za-z0-9_]+ . .*"),                                                 None,                                                                   None),
+    (raw(r"A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}"),             None,                                                                   None), # I found these online for testing a different regex suite.
+    (raw(r"[\d] [^\d] [A-Za-z0-9_]+ . .*"),                                                 None,                                                                   None), # Figured they'd make good tests.
     (raw(r"AB|CD AB|CD|EF|GH (AB|CD)*"),                                                    None,                                                                   None),
     (raw(r"(a??) a*? a{3,}? ab{4,7}?"),                                                     None,                                                                   None),
     (raw(r"(?P<test>ABC*) (?P<a>x)|(?P<b>y)"),                                              None,                                                                   None),
@@ -189,7 +190,7 @@ replacements = (
     (stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk, '(' + '${' + rgroup(1) + '})', '(name, input) -> ezregex.EZRegex.EZRegex', '(${name, input})'),
 )
 
-def runTests(singletons=True, _invert=False, replacement=False, testMethod=False, internal=False, operators=False, strictness=20, dontIncludePassed=True, invertBackend='re_parser'):
+def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, internal=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -280,7 +281,7 @@ def runTests(singletons=True, _invert=False, replacement=False, testMethod=False
             try:
                 for _ in range(strictness):
                     # -1 means return it even if it's bad
-                    inv = invert(regex, backend=invertBackend)
+                    inv = invert(regex, backend=invertBackend, tries=invert_tries)
                     if inv not in regex or not dontIncludePassed:
                         table.add_row(str(_regexsLine+cnt), Text(regex.str()), '`' + inv + '`', Text('passed', style='blue') if inv in regex else Text('failed', style='red'))
             except (Exception, AssertionError) as err:
@@ -382,13 +383,19 @@ def runTests(singletons=True, _invert=False, replacement=False, testMethod=False
 
     print('All Tests Passed!')
 
+# From 1-100, 1 is easy, 100 is hard
+difficulty = 1
 runTests(
     singletons=True,
-    _invert=False,
+    _invert=True,
     replacement=True,
-    internal=False,
     operators=True,
-    strictness=1,
+    # These display for you to check that they look correct
+    testMethod=False,
+    internal=False,
+    # Settings
+    strictness=difficulty,
+    invert_tries=101-difficulty,
     dontIncludePassed=True,
     invertBackend='re_parser',
 )

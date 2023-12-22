@@ -45,6 +45,7 @@ try matchRange(0, 3, digit) matching 8888888, and see how many matches it finds
 invert, when matching upper and lowercase, seem to only choose a or z
 Invert is failing some tests
 
+
 ADD TESTS FOR:
 Fix anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
 punctuation
@@ -59,10 +60,14 @@ matchRange
 atLeastOne
 Go through all the elements and oduble check they all have tests
 
+
 ADD DOCS FOR:
 anyExcept, but of a specific type (i.e. anything which is a word, but not in args)
 
+
 ADD INVERTS FOR:
+`(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)` (Failed expr: was `g@zZf.G>`)
+
 
 TO INVESTIGATE:
     p = wordChar; s = '5_5';
