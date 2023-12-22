@@ -1,10 +1,14 @@
 from random import randint, choice, choices
-from re import _parser as sre
 from re import search
 from ezregex import *
 from random_word.services.local import Local
 import json
 from typing import Union, Literal
+from sys import version_info
+if version_info.minor <= 10:
+    from re import sre_parse as sre
+else:
+    from re import _parser as sre
 
 # So I can debug this function directly
 if __name__ != '__main__':
