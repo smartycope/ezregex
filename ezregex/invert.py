@@ -5,6 +5,7 @@ from random_word.services.local import Local
 import json
 from typing import Union, Literal
 from sys import version_info
+import string
 if version_info.minor <= 10:
     from re import sre_parse as sre
 else:
@@ -17,17 +18,14 @@ if __name__ != '__main__':
 with open(Local().source) as f:
     words = json.load(f).keys()
 
-# _letters = sre.ASCIILETTERS
-_digits       = '0123456789'
-_letters      = 'abcdefghijklmnopqrstuvwxyz'
-_letters     += _letters.upper()
-_punctuation  = "./;=-&%$#@~" # only include common punctuation
-_whitespace   = '  '
-_everything   = _digits + _letters + _punctuation + _whitespace + '_'
+# Don't use string.whitespace, because we don't want to use weird difficult to print characters.
+# We want the replacement to be readable.
+_whitespace   = ' '
+_everything   = string.digits + string.ascii_letters + string.punctuation + _whitespace + '_'
 
 def _randWord(length, word='lookup'):
     if word == 'random':
-        return ''.join(choices(_letters + '_', k=length))
+        return ''.join(choices(string.ascii_letters + '_', k=length))
     elif word == 'lookup':
         options = list(filter(lambda i: len(i) == 4, words))
         if not len(options):
@@ -169,17 +167,17 @@ def invert(
                                             case sre.CATEGORY_LINEBREAK | sre.CATEGORY_UNI_LINEBREAK:
                                                 s += '\n'
                                             case sre.CATEGORY_NOT_DIGIT | sre.CATEGORY_UNI_NOT_DIGIT:
-                                                s += choice(_letters + _punctuation + _whitespace)
+                                                s += choice(string.ascii_letters + string.punctuation + _whitespace)
                                             case sre.CATEGORY_NOT_LINEBREAK | sre.CATEGORY_UNI_NOT_LINEBREAK:
                                                 s += choice(_everything)
                                             case sre.CATEGORY_NOT_SPACE | sre.CATEGORY_UNI_NOT_SPACE:
-                                                s += choice(_punctuation + _letters + _digits)
+                                                s += choice(string.punctuation + string.ascii_letters + string.digits)
                                             case sre.CATEGORY_NOT_WORD | sre.CATEGORY_UNI_NOT_WORD | sre.CATEGORY_LOC_NOT_WORD:
-                                                s += choice(_punctuation + _whitespace)
+                                                s += choice(string.punctuation + _whitespace)
                                             case sre.CATEGORY_SPACE | sre.CATEGORY_UNI_SPACE:
                                                 s += ' '
                                             case sre.CATEGORY_WORD | sre.CATEGORY_UNI_WORD | sre.CATEGORY_LOC_WORD:
-                                                s += choice(_letters + '_')
+                                                s += choice(string.ascii_letters + '_')
                                             case _:
                                                 raise NotImplementedError(f'Unknown category given: {args}')
                                 case sre.IN:
@@ -211,10 +209,10 @@ def invert(
                                     elif args is sre.AT_END:
                                         s += '\n'
                                     elif args is sre.AT_BOUNDARY:
-                                        if len(s) and s[-1] in _digits + _letters + '_':
-                                            s += choice(_punctuation + _whitespace)
+                                        if len(s) and s[-1] in string.digits + string.ascii_letters + '_':
+                                            s += choice(string.punctuation + _whitespace)
                                         else:
-                                            s += choice(_digits + _letters + '_')
+                                            s += choice(string.digits + string.ascii_letters + '_')
                                     else:
                                         raise NotImplementedError(f'Unknown parameter[s] given for AT op: {args}')
                                 case sre.BRANCH:
@@ -276,21 +274,21 @@ def invert(
                                     for _ in range(amt):
                                         match args:
                                             case sre.CATEGORY_DIGIT | sre.CATEGORY_UNI_DIGIT:
-                                                s += choice(_letters + _punctuation + _whitespace)
+                                                s += choice(string.ascii_letters + string.punctuation + _whitespace)
                                             case sre.CATEGORY_LINEBREAK | sre.CATEGORY_UNI_LINEBREAK:
                                                 s += choice(_everything)
                                             case sre.CATEGORY_NOT_DIGIT | sre.CATEGORY_UNI_NOT_DIGIT:
-                                                s += choice(_digits)
+                                                s += choice(string.digits)
                                             case sre.CATEGORY_NOT_LINEBREAK | sre.CATEGORY_UNI_NOT_LINEBREAK:
                                                 s += '\n'
                                             case sre.CATEGORY_NOT_SPACE | sre.CATEGORY_UNI_NOT_SPACE:
                                                 s += ' '
                                             case sre.CATEGORY_NOT_WORD | sre.CATEGORY_UNI_NOT_WORD | sre.CATEGORY_LOC_NOT_WORD:
-                                                s += choice(_letters + '_')
+                                                s += choice(string.ascii_letters + '_')
                                             case sre.CATEGORY_SPACE | sre.CATEGORY_UNI_SPACE:
-                                                s += choice(_punctuation + _letters + _digits)
+                                                s += choice(string.punctuation + string.ascii_letters + string.digits)
                                             case sre.CATEGORY_WORD | sre.CATEGORY_UNI_WORD | sre.CATEGORY_LOC_WORD:
-                                                s += choice(_punctuation + _whitespace)
+                                                s += choice(string.punctuation + _whitespace)
                                             case _:
                                                 raise NotImplementedError(f'Unknown category given: {args}')
                                 case sre.IN:
@@ -320,10 +318,10 @@ def invert(
                                     elif args is sre.AT_END:
                                         s += '\n'
                                     elif args is sre.AT_BOUNDARY:
-                                        if len(s) and s[-1] in _digits + _letters + '_':
-                                            s += choice(_punctuation + _whitespace)
+                                        if len(s) and s[-1] in string.digits + string.ascii_letters + '_':
+                                            s += choice(string.punctuation + _whitespace)
                                         else:
-                                            s += choice(_digits + _letters + '_')
+                                            s += choice(string.digits + string.ascii_letters + '_')
                                     else:
                                         raise NotImplementedError(f'Unknown parameter[s] given for AT op: {args}')
                                 case sre.BRANCH:

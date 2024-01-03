@@ -4,6 +4,7 @@ nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method fo
 maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
 all the methods which return NotImplemented
 fix anyExcept
+Look into the __format__() dunder method for auto-calling compile with strings
 (?:(?:a|b)|c) does not do the same as ((a|b)|c). Why? Is this intentional?
 operators: |, &, ^, ~
 wordStart/wordEnd/wordStartsWith/wordEndsWith \<	Start of word and \>	End of word
@@ -28,6 +29,7 @@ ungroup
 NotAny - a negative lookahead expression, prevents matching of named expressions, does not advance the parsing position within the input string; can also be created using the unary ‘~’ operator
 is matchMax(either('a', 'b')) supposed to match 'aba' or just 'aaa' or 'bbb'?
 emoji() member
+look into including the unicodedata built in python library?
 methods like __and__ and __or__ which add regex directly don't take into account dialects
 \Q	Begin literal sequence
 \E	End literal sequence
