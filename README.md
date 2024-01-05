@@ -50,6 +50,30 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
 .test() will print all the matches, color coded to match and group:
 
+```
+╭───────────────────────────── Testing Regex ──────────────────────────────╮
+│ Testing expression:                                                      │
+│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)              │
+│ for matches in:                                                          │
+│         this should match func(param1,  param2 ), foo(), and bar( foo,)  │
+│                                                                          │
+│ Match = "func(param1,  param2 )" (18:39)                                 │
+│ Unnamed Groups:                                                          │
+│         1: "param1, param2 " (23:38)                                     │
+│                                                                          │
+│ Match = "foo()" (41:46)                                                  │
+│ Unnamed Groups:                                                          │
+│         1: "" (45:45)                                                    │
+│                                                                          │
+│ Match = "bar( foo,)" (52:62)                                             │
+│ Unnamed Groups:                                                          │
+│         1: " foo," (56:61)                                               │
+│                                                                          │
+│                                                                          │
+╰───────────────────────────────── Found  ─────────────────────────────────╯
+```
+
+<!-- This is all colored properly, if anything supported it
 <pre>
 ╭───────────────────────────── Testing Regex ──────────────────────────────╮
 │ Testing expression:                                                      │
@@ -72,10 +96,11 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 │                                                                          │
 ╰───────────────────────────────── <span style="color: blue;">Found</span>  ─────────────────────────────────╯
 </pre>
+-->
 
 ## Installation
 EZRegex is distributed on [PyPI](https://pypi.org) as a universal
-wheel and is available on Linux/macOS and Windows and supports
+wheel and is available on Linux, macOS and Windows and supports
 Python 3.10+ and PyPy.
 
 ```bash
@@ -83,7 +108,7 @@ $ pip install ezregex
 ```
 
 ## Inverting
-The `invert` function provided (available either as er.invert, or ~\<expression\>) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
+The `invert` function provided (available as er.invert(), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
 
 
 ## Dialects
@@ -98,11 +123,11 @@ EZRegex("?P<name>\d)(\g<name>")
 ```
 The currently implemented dialects are:
 - Python
-    - Well tested, ~98% implemented
+    - Well tested, ~99% implemented
 - Perl
     - Almost identical to the Python dialect because I don't know Perl.
 
-If you know a particular flavor of regex and would like to contribute, feel free to make a pull request! Or you can email me at smartycope@gmail.com
+If you know a particular flavor of regex and would like to contribute, feel free to make a pull request, or email me at smartycope@gmail.com
 
 
 ## Documentation
@@ -212,7 +237,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 - atLeast(min, input)
 	- Match at least `min` sequences of `input` in the string
 - atMost(max, input)
@@ -223,14 +248,14 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 - atLeastNone(input, greedy=True, possessive=False)
 	-  Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
         greedy means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 
 </details>
 
@@ -243,7 +268,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         non-greedy will try to match as few repititions as possible
         possessive means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
-
+    
 - either(input, or_input)
 - oneOf(*inputs, chars=None, split=None)
 	-  Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
@@ -253,7 +278,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         split is set to true, it forces the ?(...) regex syntax instead of the [...]
         syntax. It should act the same way, but your output regex will look different.
         By default, it just optimizes it for you.
-
+    
 - anyCharExcept(*inputs)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
 - anyExcept(input, type='.*')
@@ -270,20 +295,20 @@ This documentation is for the Python dialect specifically, as it really is the o
 
 - ifFollowedBy(input)
 	-  Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
-        as it only applies to the end
+        as it only applies to the end 
 - ifNotFollowedBy(input)
 	-  Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
-        a given pattern, as it only applies to the end
+        a given pattern, as it only applies to the end 
 - ifPrecededBy(input)
 	-  Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
-        as it only applies to the beginning
+        as it only applies to the beginning 
 - ifNotPrecededBy(input)
 	-  Matches the pattern if it does **not** have `input` coming before it. Can only be used once
-        in a given pattern, as it only applies to the beginning
+        in a given pattern, as it only applies to the beginning 
 - ifEnclosedWith(open, stuff, close=None)
 	-  Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
         stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
-
+    
 
 </details>
 
@@ -294,9 +319,9 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
 - earlierGroup(num_or_name)
 	-  Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
-    group which would match `num_or_name`.
+    group which would match `num_or_name`. 
 - ifExists(num_or_name, does, doesnt=None)
-	-  Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
+	-  Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
 - passiveGroup(input)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
 - namedGroup(name, input)
@@ -336,6 +361,10 @@ This documentation is for the Python dialect specifically, as it really is the o
 	- "Optional Whitechunk"
 - email
 	- Matches an email
+- version
+	- The *official* regex for matching version numbers from https://semver.org/. It includes 5 groups that can be matched/replaced: `major`, `minor`, `patch`, `prerelease`, and `buildmetadata`
+- version_numbered
+	- Same as `version`, but it uses numbered groups for each version number instead of named groups
 
 </details>
 
