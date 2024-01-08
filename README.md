@@ -48,7 +48,7 @@ function % 'some string containing func( param1 , param2)'
 # The test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
-.test() will print all the matches, color coded to match and group:
+.test() will print all the matches, color coded to match and group (not shown here):
 
 ```
 ╭───────────────────────────── Testing Regex ──────────────────────────────╮
