@@ -396,8 +396,6 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
         assert replace("but {group} is and {1} is") == "but " + rgroup('group') + " is and " + rgroup(1) + " is"
         assert replace("{group}{g}") == rgroup('group') + rgroup('g')
 
-
-
         # The replace() function regex was tested manually on ezregex.org using the following string:
         """
         {group}this is am{group}mtest
@@ -418,9 +416,10 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
 # From 1-100, 1 is easy, 100 is hard
 difficulty = 1
 runTests(
-    singletons=False,
-    _invert=False,
-    replacement=False,
+    # These should remain on, for the GitHub automated tests
+    singletons=True,
+    _invert=True,
+    replacement=True,
     operators=True,
     # These display for you to check that they look correct
     testMethod=False,
@@ -431,8 +430,3 @@ runTests(
     dontIncludePassed=True,
     invertBackend='re_parser',
 )
-# pattern = stringStart + '(' + group(chunk + optional(',' + chunk)) + ')'
-# s = '(name, input) -> ezregex.EZRegex.EZRegex'
-# repl = '(' + '${' + rgroup(1) + '})'
-# print(re.sub(pattern.str(), repl.str(), s))
-# print(str(er.group(letter, 'name') + er.earlierGroup('name')))
