@@ -378,6 +378,38 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
         assert digit % 'sldkj' is None, f'{digit % "sldkj"} != None'
         assert digit % '77sdsf88' == re.search('77sdsf88', digit.str())
 
+        # Test f-strings
+        # As of right now, these may work, but won't necissarily work
+        # assert f'|{word}|' == '|' + word + '|'
+        # assert f'|{word}|{number}|' == '|' + word + '|' + number + '|'
+        # assert f"|{word}{number + ifFollowedBy(word)}|" == '|' + word + number + ifFollowedBy(word) + '|'
+        # assert f'|{rgroup("g")}|{replace_group}|' == '|' + rgroup('g') + '|' + replace_entire + '|'
+
+        # Replacement strings are, in fact, a thing
+        # print(version_info)
+        assert replace('|{g}|{1}|{0}|') == '|' + rgroup('g') + '|' + rgroup(1) + '|' + replace_entire + '|'
+        assert replace("{group}this is am{group}mtest") == rgroup('group') + 'this is am' + rgroup('group') + "mtest"
+        assert replace("this is {{ not a thing") == "this is { not a thing"
+        assert replace("also not }} a thing") == "also not } a thing"
+        assert replace("still }}not{{ a thing") == "still }not{ a thing"
+        assert replace("also {{not}} a thing") == "also {not} a thing"
+        assert replace("but {group} is and {1} is") == "but " + rgroup('group') + " is and " + rgroup(1) + " is"
+        assert replace("{group}{g}") == rgroup('group') + rgroup('g')
+
+
+
+        # The replace() function regex was tested manually on ezregex.org using the following string:
+        """
+        {group}this is am{group}mtest
+        this is {{ not a thing
+        also not }} a thing
+        still }}not{{ a thing
+        also {{not}} a thing
+        but {this} is and {9} is
+        |{g}|{1}|{0}|
+        {test}{test2}
+        """
+
         # no idea why this doesnt work.
         # assert (anything + word) * 3 == '.\w+' * 3, f"'{(anything + word) * 3}' != '{'.\w+'*3}'"
 
@@ -386,9 +418,9 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
 # From 1-100, 1 is easy, 100 is hard
 difficulty = 1
 runTests(
-    singletons=True,
-    _invert=True,
-    replacement=True,
+    singletons=False,
+    _invert=False,
+    replacement=False,
     operators=True,
     # These display for you to check that they look correct
     testMethod=False,

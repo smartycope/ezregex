@@ -46,6 +46,7 @@ AnyExcept tests are currently failing == AnyExcept: ^(?!.*county).* (matches any
 try matchRange(0, 3, digit) matching 8888888, and see how many matches it finds
 invert, when matching upper and lowercase, seem to only choose a or z
 Invert is failing some tests
+inverting possesive parameters causes a recursion error (optional(anyCharExcept('{'), possessive=True) + '{' + group(+alphaNum) + '}' + optional(anyCharExcept('}'), greedy=False))
 
 
 ADD TESTS FOR:

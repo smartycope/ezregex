@@ -88,6 +88,7 @@ __groups__ = {
     "replacement": (
         "rgroup",
         "replaceEntire",
+        'replace',
     ),
     "premade": (
         "literallyAnything",

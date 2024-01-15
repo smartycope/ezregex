@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-if __name__ == '__main__':
-    from ezregex import EZRegex
-else:
-    from ..EZRegex import EZRegex
+from ..EZRegex import EZRegex
 from sys import version_info
-from re import RegexFlag, escape
+from re import RegexFlag, escape, sub
 from warnings import warn
+from string import Template
+
 
 # NOTE: A bunch of these have wrapper functions around them. They're just for
 # linting and type hinting in the editor. Do note that passing the parameters
@@ -327,13 +326,46 @@ def namedGroup(name, input) -> EZRegex:
 
 
 ## Replacement
-def rgroup(num_or_name) -> EZRegex:
+def rgroup(num_or_name:str|int) -> EZRegex:
     """ Puts in its place the group specified, either by group number (for unnamed
         groups) or group name (for named groups). Named groups are also counted by
         number, I'm pretty sure. Groups are numbered starting from 1."""
     return EZRegex(lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>', replacement=True)(num_or_name)
 replaceEntire = EZRegex(lambda cur=...: cur + r'\g<0>', replacement=True)
 
+def replace(string:str, rtn_str:bool=True) -> str:
+    """ Generates a valid regex replacement string, using Python f-string like syntax.
+
+        Example:
+            ``` replace("named: {group}, numbered: {1}, entire: {0}") ```
+
+        Like Python f-strings, use {{ and }} to specify { and }
+
+        Set the `rtn_str` parameter to True to have it return an EZRegex type instead of a string
+
+        Note: Remember that index 0 is the entire match
+
+        There's a couple of advantages to using this instead of just the regular regex replacement syntax:
+        - It's consistent between dialects
+        - It's closer to Python f-string syntax, which is cleaner and more familiar
+        - It handles numbered, named, and entire replacement types the same
+    """
+    # Made with ezregex.org
+    # Previous method
+    # '{' + optional(anyCharExcept('{'), greedy=False) + group(+alphaNum) + '}' + optional(anyCharExcept('}'), greedy=False)
+    # Current method
+    # '{' + group(+alphaNum) + '}'
+    r = r'\{((?:[A-Za-z0-9_])+)\}'
+    # Convert them to something unique, then back, so we won't pick up things like {{this}}
+    # {{this}} -> \0(this\0) -> {this}
+    # instead of
+    # {{this}} -> {this} -> \g<this>
+    string = sub('{{', '\0\0(', string)
+    string = sub('}}', '\0\0)', string)
+    string = sub(r, r'\\g<\g<1>>', string)
+    string = sub(r'\0\0\(', '{', string)
+    string = sub(r'\0\0\)', '}', string)
+    return EZRegex(string, sanatize=False, replacement=True)
 
 ## Misc.
 def isExactly(input) -> EZRegex:
@@ -373,8 +405,3 @@ IGNORECASE = EZRegex(lambda cur=...: cur, flags=RegexFlag.IGNORECASE)
 LOCALE     = EZRegex(lambda cur=...: cur, flags=RegexFlag.LOCALE)
 MULTILINE  = EZRegex(lambda cur=...: cur, flags=RegexFlag.MULTILINE)
 UNICODE    = EZRegex(lambda cur=...: cur, flags=RegexFlag.UNICODE)
-
-if __name__ == '__main__':
-    ('foo' + each(chunk + 'here' + chunk, chunk + anyOf('this', 'that') + chunk) + 'bar').test('fooum here there that bar')
-    # print()
-    # print(ifExists(2, 'true'))

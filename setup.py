@@ -29,7 +29,7 @@ kwargs = {
     'author_email': 'smartycope@gmail.com',
     'maintainer': 'Copeland Carter',
     'maintainer_email': 'smartycope@gmail.com',
-    'url': 'https://github.com/smartycope/EasyRegex',
+    'url': 'https://github.com/smartycope/ezregex',
     'license': 'MIT/Apache-2.0',
     'classifiers': [
         'Development Status :: 4 - Beta',

@@ -2,7 +2,7 @@
 author = 'Copeland Carter'
 author_email = 'smartycope@gmail.com'
 license = 'MIT'
-url = 'https://github.com/smartycope/EasyRegex'
+url = 'https://github.com/smartycope/ezregex'
 
 [build-system]
 requires = ["hatchling", 'setuptools', 'wheel']
@@ -16,7 +16,7 @@ prerelease = 'hatch build'
 
 [project]
 name = 'ezregex'
-version = '1.6.1'
+version = '1.6.2'
 description = 'A readable and intuitive way to generate Regular Expressions'
 dependencies = ['rich', 'random_word']
 readme = "README.md"
