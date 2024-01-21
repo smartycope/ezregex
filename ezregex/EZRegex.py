@@ -7,7 +7,7 @@ from warnings import warn
 from rich import print as rprint
 from rich.panel import Panel
 from rich.text import Text
-
+from itertools import cycle
 from .invert import invert
 from functools import partial
 from random import shuffle
@@ -425,16 +425,44 @@ class EZRegex:
         return bool(len(json['matches']))
 
     def _matchJSON(self, testString=None):
+        from traceback_with_variables import activate_by_import
+        def toHtml(r, g, b):
+            return f'#{r:02x}{g:02x}{b:02x}'
+
+        def toRgb(html):
+            return map(lambda n: int(n, 16), html[1::2])
+
+        def complementary(html):
+            r, g, b = map(lambda n: 255 - int(n, 16), html[1::2])
+            return f'#{r:02x}{g:02x}{b:02x}'
+
+        def triadic(html):
+            r, g, b = toRgb(html)
+
+            # Calculate two additional colors by shifting the hue around the color wheel
+            triad1 = (r, (g + 128) % 256, (b + 128) % 256)
+            triad2 = ((r + 128) % 256, g, (b + 128) % 256)
+
+            return toHtml(*triad1), toHtml(*triad2)
+
+        def furthest_colors(html):
+            rtn = []
+            comp = complementary(html)
+            rtn.append(comp)
+            rtn += triadic(html)
+            rtn += triadic(comp)
+            return cycle(rtn)
+
         #           red         green       yellow    blue       orange     purple      teal  greenish teal skin color dark green dark teal pale pink   brown    pale yellow  maroon
         # _colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#d16d2a', '#651fb6', '#39c5c5', '#a8f678', '#fabebe', '#808000', '#008080', '#e6beff', '#9a6324', '#c5c19b', '#800000']
         # _colors = ['#800000', '#9a6324', '#808000', '#d16d2a', '#e6194b', '#fabebe', '#ffe119', '#c5c19b', '#a8f678', '#3cb44b', '#39c5c5', '#008080', '#4363d8', '#e6beff', '#651fb6']
         # Lighter ones, so they show up better on a dark background
-        _matchColors = ["#ffe119", "#a8f678", "#fabebe", "#39c5c5", "#c5c19b", '#44ff00', "#8da0cb", "#df5e3e", "#f08a5d", '#00ffe1', '#ff0000']
-        shuffle(_matchColors)
+        _colors = cycle(("#ffe119", "#a8f678", "#fabebe", "#39c5c5", "#c5c19b", '#44ff00', "#8da0cb", "#df5e3e", "#f08a5d", '#00ffe1', '#ff0000'))
+        # shuffle(_matchColors)
         # darker ones, so they show up better on _matchColors
-        _groupColors = ["#800000", "#d1750b", "#005f00", "#3cb44b", '#6c6c6c', "#4363d8", "#651fb6", '#95624e', '#870000', '#086f95', '#829569']
-        shuffle(_groupColors)
-        _colors = _groupColors + _matchColors
+        # _groupColors = ["#800000", "#d1750b", "#005f00", "#3cb44b", '#6c6c6c', "#4363d8", "#651fb6", '#95624e', '#870000', '#086f95', '#829569']
+        # shuffle(_groupColors)
+        # _colors = _groupColors + _matchColors
 
         # Get an inverse, if nessicary
         if testString is None or not len(testString):
@@ -456,9 +484,9 @@ class EZRegex:
         allMatches = [m.span() for m in matches]
         # Map match spans to unique colors
         # matchColors = dict(zip(allMatches, reversed(_matchColors)))
-        while len(allMatches) > len(_colors):
-            _colors += _colors
-        matchColors = dict(zip(allMatches, reversed(_colors)))
+        # while len(allMatches) > len(_colors):
+            # _colors += _colors
+        matchColors = dict(zip(allMatches, _colors))
 
         for match in matches:
             allGroups = {match.span(i+1) for i in range(len(match.groups()))}
@@ -466,10 +494,11 @@ class EZRegex:
             unnamedGroups = allGroups - set(namedGroups.values())
             # Map group spans to unique colors
             # colors = dict(zip(allGroups, _groupColors))
-            colors = dict(zip(allGroups, _colors))
+            colors = dict(zip(allGroups, furthest_colors(matchColors[match.span()])))
+            # colors = dict(zip(namedGroups))
             # So different matches have different groups of colors
             # _groupColors = _groupColors[len(allGroups):]
-            _colors = _colors[len(allGroups):]
+            # _colors = _colors[len(allGroups):]
             cursor = match.span()[0]
 
             # First, get up until the match
@@ -513,7 +542,7 @@ class EZRegex:
 
             for i in range(len(unnamedGroups)):
                 match_json['unnamedGroups'].append({
-                    'string': match.group(i+1),
+                    'string': match.group(i+1) or '',
                     'end': match.end(i+1),
                     'start': match.start(i+1),
                     "color": colors[match.span(i+1)],
@@ -521,7 +550,7 @@ class EZRegex:
 
             for name, span in namedGroups.items():
                 match_json['namedGroups'][name] = {
-                    'string': match.group(name),
+                    'string': match.group(name) or '',
                     'end': span[1],
                     'start': span[0],
                     "color": colors[span],

@@ -417,12 +417,12 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
 difficulty = 1
 runTests(
     # These should remain on, for the GitHub automated tests
-    singletons=True,
-    _invert=True,
-    replacement=True,
-    operators=True,
+    singletons=False,
+    _invert=False,
+    replacement=False,
+    operators=False,
     # These display for you to check that they look correct
-    testMethod=False,
+    testMethod=True,
     internal=False,
     # Settings
     strictness=difficulty,
