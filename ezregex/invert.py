@@ -1,11 +1,16 @@
-from random import randint, choice, choices
-from re import search
-from ezregex import *
-from random_word.services.local import Local
 import json
-from typing import Union, Literal
-from sys import version_info
 import string
+from random import choice, choices, randint
+from re import search
+import traceback
+from sys import version_info
+from typing import Literal, Union
+
+from random_word.services.local import Local
+from Cope import debug
+
+from ezregex import *
+
 if version_info.minor <= 10:
     from re import sre_parse as sre
 else:
@@ -34,7 +39,7 @@ def _randWord(length, word='lookup'):
     elif word is None:
         return 'word'
     else:
-        raise TypeError(f"invalid parameter given for word {word}. Accepted values are either random, lookup, or None")
+        raise ValueError(f"invalid parameter given for word {word}. Accepted values are either random, lookup, or None")
 
 def _randNumber(length, random=False):
     if random:
@@ -46,7 +51,7 @@ def invert(
     expr:Union[str, 'EZRegex'],
     words:Literal['lookup', 'random', None]='lookup',
     randomNumbers=False,
-    alot=6,
+    alot=8,
     tries:int=10,
     backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']='re_parser',
     _verbose=False,
@@ -126,34 +131,41 @@ def invert(
                                     try:
                                         # If we know we're getting word chars, make a word of it
                                         if type(sub[0][1][0]) is not int and sub[0][1][0][1] in (sre.CATEGORY_WORD, sre.CATEGORY_UNI_WORD, sre.CATEGORY_LOC_WORD):
-                                            s += _randWord(randint(1, alot), word=words)
+                                            if _verbose: print('Getting a random word')
+                                            s += _randWord(randint(2, alot), word=words)
                                         elif type(sub[0][1][0]) is not int and sub[0][1][0][1] in (sre.CATEGORY_DIGIT, sre.CATEGORY_UNI_DIGIT):
+                                            if _verbose: print('Getting whole number')
                                             s += _randNumber(randint(1, alot), random=randomNumbers)
                                         else:
                                             s += handle(sub, randint(min, max) * amt)
-                                    except:
+                                    except Exception as err:
+                                        if _verbose:
+                                            print(err)
+                                            print(traceback.format_exc())
+
+                                        print(err)
                                         s += handle(sub, randint(min, max) * amt)
                                 case sre.ANY:
                                     for _ in range(amt):
                                         s += choice(_everything)
                                 case sre.ASSERT:
-                                    type, sub = args
-                                    if type == 1: # ifProcededBy
+                                    type_, sub = args
+                                    if type_ == 1: # ifProcededBy
                                         s = s + handle(sub, amt)
-                                    elif type == -1: # ifPrecededBy
+                                    elif type_ == -1: # ifPrecededBy
                                         s += handle(sub, amt)
                                     else:
                                         s += handle(sub, amt)
                                 case sre.ASSERT_NOT:
-                                    type, sub = args
-                                    if type == 1: # ifNotProcededBy
+                                    type_, sub = args
+                                    if type_ == 1: # ifNotProcededBy
                                         # almost_everything = list(_everything)
                                         # if chr(args) in almost_everything:
                                         #     almost_everything.remove(chr(args))
                                         # # If it's not in there, great!
                                         # s += choice(almost_everything) * amt
                                         s += handle(sub, amt, opposite=True)
-                                    if type == -1: # ifNotPrecededBy
+                                    if type_ == -1: # ifNotPrecededBy
                                         s = s + handle(sub, amt, opposite=True)
                                     # If it needs to be followed by that sequence, simply add that sequence
                                     else:
@@ -264,10 +276,10 @@ def invert(
                                         s += '\n'
                                 case sre.ASSERT:
                                     # I don't think conditionals are allowed inside a not assert (I think)
-                                    type, sub = args
+                                    type_, sub = args
                                     s += handle(sub, amt, opposite=True)
                                 case sre.ASSERT_NOT:
-                                    type, sub = args
+                                    type_, sub = args
                                     # I *think* this will work?...
                                     s += handle(sub)
                                 case sre.CATEGORY:
@@ -381,6 +393,7 @@ def invert(
         f"was `{rtn}`)")
     return rtn
 
+
 if __name__ == '__main__':
     pass
     # print(invert(r'D(?=AB)C'))  # ASSERT,      1, ifProcededBy
@@ -396,3 +409,5 @@ if __name__ == '__main__':
     # print(invert(r'(?=AB)(?!CD)DC AB(?<=CD) AB(?<!CD)'))
 
     # print(invert(r'[ABC]+(?=D).*$ <.*?>'))
+
+    # print(invert(r'\w+test\d+', _verbose=True))
