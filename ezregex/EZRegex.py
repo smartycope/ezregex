@@ -1,5 +1,9 @@
+import colorsys
 import re
 from copy import deepcopy
+from functools import partial
+from itertools import cycle
+from random import shuffle
 from re import RegexFlag
 from typing import List
 from warnings import warn
@@ -7,10 +11,35 @@ from warnings import warn
 from rich import print as rprint
 from rich.panel import Panel
 from rich.text import Text
-from itertools import cycle
+
 from .invert import invert
-from functools import partial
-from random import shuffle
+
+
+# These functions comprise the color algorithm for _matchJSON()
+def toHtml(r, g, b):
+            return f'#{r:02x}{g:02x}{b:02x}'
+
+def toRgb(html: str) -> tuple:
+    hex_color = html.lstrip('#')
+    rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    return rgb
+
+def generate_colors(amt, s=1, v=1, offset=0):
+    """ Generate `amt` number of colors evenly spaced around the color wheel
+        with a given saturation and value
+    """
+    amt += 1
+    return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
+
+def furthest_colors(html, amt=5, v_bias=0, s_bias=0):
+    """ Gets the `amt` number of colors evenly spaced around the color wheel from the given color
+        `v_bias` and `s_bias` are between 0-1 and offset the colors
+    """
+    amt += 1
+    h, s, v = colorsys.rgb_to_hsv(*map(lambda c: c/255, toRgb(html)))
+
+    return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
+
 
 class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
@@ -425,44 +454,10 @@ class EZRegex:
         return bool(len(json['matches']))
 
     def _matchJSON(self, testString=None):
-        from traceback_with_variables import activate_by_import
-        def toHtml(r, g, b):
-            return f'#{r:02x}{g:02x}{b:02x}'
-
-        def toRgb(html):
-            return map(lambda n: int(n, 16), html[1::2])
-
-        def complementary(html):
-            r, g, b = map(lambda n: 255 - int(n, 16), html[1::2])
-            return f'#{r:02x}{g:02x}{b:02x}'
-
-        def triadic(html):
-            r, g, b = toRgb(html)
-
-            # Calculate two additional colors by shifting the hue around the color wheel
-            triad1 = (r, (g + 128) % 256, (b + 128) % 256)
-            triad2 = ((r + 128) % 256, g, (b + 128) % 256)
-
-            return toHtml(*triad1), toHtml(*triad2)
-
-        def furthest_colors(html):
-            rtn = []
-            comp = complementary(html)
-            rtn.append(comp)
-            rtn += triadic(html)
-            rtn += triadic(comp)
-            return cycle(rtn)
-
-        #           red         green       yellow    blue       orange     purple      teal  greenish teal skin color dark green dark teal pale pink   brown    pale yellow  maroon
-        # _colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#d16d2a', '#651fb6', '#39c5c5', '#a8f678', '#fabebe', '#808000', '#008080', '#e6beff', '#9a6324', '#c5c19b', '#800000']
-        # _colors = ['#800000', '#9a6324', '#808000', '#d16d2a', '#e6194b', '#fabebe', '#ffe119', '#c5c19b', '#a8f678', '#3cb44b', '#39c5c5', '#008080', '#4363d8', '#e6beff', '#651fb6']
-        # Lighter ones, so they show up better on a dark background
-        _colors = cycle(("#ffe119", "#a8f678", "#fabebe", "#39c5c5", "#c5c19b", '#44ff00', "#8da0cb", "#df5e3e", "#f08a5d", '#00ffe1', '#ff0000'))
-        # shuffle(_matchColors)
-        # darker ones, so they show up better on _matchColors
-        # _groupColors = ["#800000", "#d1750b", "#005f00", "#3cb44b", '#6c6c6c', "#4363d8", "#651fb6", '#95624e', '#870000', '#086f95', '#829569']
-        # shuffle(_groupColors)
-        # _colors = _groupColors + _matchColors
+        foreground_s = .75
+        foreground_v = 1
+        background_v_bias = .5
+        background_s_bias = .9
 
         # Get an inverse, if nessicary
         if testString is None or not len(testString):
@@ -483,9 +478,7 @@ class EZRegex:
         globalCursor = 0
         allMatches = [m.span() for m in matches]
         # Map match spans to unique colors
-        # matchColors = dict(zip(allMatches, reversed(_matchColors)))
-        # while len(allMatches) > len(_colors):
-            # _colors += _colors
+        _colors = generate_colors(len(allMatches), s=foreground_s, v=foreground_v)
         matchColors = dict(zip(allMatches, _colors))
 
         for match in matches:
@@ -493,12 +486,14 @@ class EZRegex:
             namedGroups = dict({(i, match.span(i)) for i in match.groupdict().keys()})
             unnamedGroups = allGroups - set(namedGroups.values())
             # Map group spans to unique colors
-            # colors = dict(zip(allGroups, _groupColors))
-            colors = dict(zip(allGroups, furthest_colors(matchColors[match.span()])))
-            # colors = dict(zip(namedGroups))
-            # So different matches have different groups of colors
-            # _groupColors = _groupColors[len(allGroups):]
-            # _colors = _colors[len(allGroups):]
+            # This gets equally spaced colors from the given color, so they're differentiable
+            # and readable on a dark background
+            colors = dict(zip(allGroups, furthest_colors(
+                matchColors[match.span()],
+                amt=len(allGroups),
+                v_bias=background_v_bias,
+                s_bias=background_s_bias
+            )))
             cursor = match.span()[0]
 
             # First, get up until the match

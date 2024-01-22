@@ -60,6 +60,7 @@ more flags
 wordBoundary
 notWordBoundary
 matchRange
+isEnclosedWith
 atLeastOne
 Go through all the elements and oduble check they all have tests
 

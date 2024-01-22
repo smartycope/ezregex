@@ -43,7 +43,7 @@ if_exists = ifExists
 ifNotFollowedBy = if_not_followed_by = ifNotProcededBy
 if_preceded_by = ifPrecededBy
 if_not_preceded_by = ifNotPrecededBy
-if_enclosed_with = ifEnclosedWith
+if_enclosed_with = if_enclosed_by = ifEnclosedBy = ifEnclosedWith
 if_proceded_by = ifProcededBy
 if_not_proceded_by = ifNotProcededBy
 passive_group = passiveGroup

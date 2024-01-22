@@ -11,6 +11,11 @@ from ezregex.invert import *
 
 import random
 
+try:
+    from Cope import debug
+except ImportError:
+    pass
+
 # TODO: Someday, move all this to a json file instead
 # This goes (regex,                                                                         (things it should match),                                    (things it shouldnt match))
 _regexsLine = getframeinfo(currentframe()).lineno + 2
@@ -396,18 +401,6 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
         assert replace("but {group} is and {1} is") == "but " + rgroup('group') + " is and " + rgroup(1) + " is"
         assert replace("{group}{g}") == rgroup('group') + rgroup('g')
 
-        # The replace() function regex was tested manually on ezregex.org using the following string:
-        """
-        {group}this is am{group}mtest
-        this is {{ not a thing
-        also not }} a thing
-        still }}not{{ a thing
-        also {{not}} a thing
-        but {this} is and {9} is
-        |{g}|{1}|{0}|
-        {test}{test2}
-        """
-
         # no idea why this doesnt work.
         # assert (anything + word) * 3 == '.\w+' * 3, f"'{(anything + word) * 3}' != '{'.\w+'*3}'"
 
@@ -417,12 +410,12 @@ def runTests(singletons=True, _invert=True, replacement=True, testMethod=False, 
 difficulty = 1
 runTests(
     # These should remain on, for the GitHub automated tests
-    singletons=False,
-    _invert=False,
-    replacement=False,
-    operators=False,
+    singletons=True,
+    _invert=True,
+    replacement=True,
+    operators=True,
     # These display for you to check that they look correct
-    testMethod=True,
+    testMethod=False,
     internal=False,
     # Settings
     strictness=difficulty,

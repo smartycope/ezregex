@@ -1,13 +1,12 @@
 import json
 import string
+import traceback
 from random import choice, choices, randint
 from re import search
-import traceback
 from sys import version_info
 from typing import Literal, Union
 
 from random_word.services.local import Local
-from Cope import debug
 
 from ezregex import *
 
@@ -143,7 +142,6 @@ def invert(
                                             print(err)
                                             print(traceback.format_exc())
 
-                                        print(err)
                                         s += handle(sub, randint(min, max) * amt)
                                 case sre.ANY:
                                     for _ in range(amt):

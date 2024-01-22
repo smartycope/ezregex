@@ -291,7 +291,7 @@ def ifEnclosedWith(open, stuff, close=None) -> EZRegex:
     """
     if close is None:
         close = open
-    return EZRegex(lambda open, stuff, close, cur=...: fr'((?<={open}){stuff}(?={close}))')(cur, open, close)
+    return EZRegex(lambda open, stuff, close, cur=...: fr'((?<={open}){stuff}(?={close}))')(open, stuff, close)
 
 
 # Grouping
