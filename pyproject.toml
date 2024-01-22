@@ -16,7 +16,7 @@ prerelease = 'hatch build'
 
 [project]
 name = 'ezregex'
-version = '1.6.2'
+version = '1.6.3'
 description = 'A readable and intuitive way to generate Regular Expressions'
 dependencies = ['rich', 'random_word']
 readme = "README.md"
