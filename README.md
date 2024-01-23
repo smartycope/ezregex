@@ -30,6 +30,7 @@ TLDR: This is to regular expressions what CMake is to makefiles
 * [Usage](#usage)
 * [Installation](#installation)
 * [Invert](#inverting)
+* [Generate](#generation)
 * [Dialects](#dialects)
 * [Documentation](#documentation)
 * [Explanation](#explanation-of-how-it-works)
@@ -123,6 +124,10 @@ import ezregex as er
 
 ## Inverting
 The `invert` function provided (available as er.invert(), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
+
+
+## Generation
+In version 1.7.0 we introduced a new function: `generate_regex`. It takes in 2 sets of strings, and returns a regular expression that will match everything in the first set and nothing in the second set. It may be a bit crude, but it can be a good starting point if you don't know where to start. It's also really good at [regex golf](http://regex.alf.nu/).
 
 
 ## Dialects
@@ -353,7 +358,7 @@ This documentation is for the Python dialect specifically, as it really is the o
         number, I'm pretty sure. Groups are numbered starting from 1.
 - replaceEntire
 	- Puts in its place the entire match
-- replace(string: str, r
+- replace(string: str, rtn_str: bool=False)
 	-  Generates a valid regex replacement string, using Python f-string like syntax.
 
         Example:
@@ -365,7 +370,7 @@ This documentation is for the Python dialect specifically, as it really is the o
 
         Note: Remember that index 0 is the entire match
 
-        There's a couple of advantages to using this instead of just the regular regex replacement syntax:
+        There's a few of advantages to using this instead of just the regular regex replacement syntax:
         - It's consistent between dialects
         - It's closer to Python f-string syntax, which is cleaner and more familiar
         - It handles numbered, named, and entire replacement types the same
@@ -451,7 +456,6 @@ This documentation is for the Python dialect specifically, as it really is the o
 - `~`
     - This inverts the expression. This is equivalent to calling the .invert() method
 </details>
-
 
 
 ## Explanation of How it Works

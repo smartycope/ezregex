@@ -345,7 +345,7 @@ def replace(string:str, rtn_str:bool=True) -> str:
 
         Note: Remember that index 0 is the entire match
 
-        There's a couple of advantages to using this instead of just the regular regex replacement syntax:
+        There's a few of advantages to using this instead of just the regular regex replacement syntax:
         - It's consistent between dialects
         - It's closer to Python f-string syntax, which is cleaner and more familiar
         - It handles numbered, named, and entire replacement types the same

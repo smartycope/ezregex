@@ -1,5 +1,5 @@
 TODO (these are very roughly in order):
-I don't think punctuation has all of the punctuation chars
+I read the string docs wrong: instead of using a custom parser, use the builtin string parser for the replace() function
 nested_expr(opener, closer, content=None, ignore_expr=quoted_string) - method for defining nested lists enclosed in opening and closing delimiters.
 maybe change conditionals to taking in 2 parameters (the current pattern, and their associated condition) instead
 all the methods which return NotImplemented
