@@ -20,7 +20,7 @@
 </div>
 
 # EZRegex
-A readable and intuitive way to generate Regular Expressions
+A readable and intuitive way to make Regular Expressions without having to know any of the syntax
 
 Try my new frontend for this library at [ezregex.org](https://ezregex.org/)!
 
