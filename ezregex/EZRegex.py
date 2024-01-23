@@ -13,6 +13,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from .invert import invert
+from .generate import *
 
 
 # These functions comprise the color algorithm for _matchJSON()
