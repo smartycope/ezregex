@@ -123,7 +123,7 @@ import ezregex as er
 ```
 
 ## Inverting
-The `invert` function provided (available as er.invert(), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
+The `invert` function provided (available as er.invert(`expression`), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
 
 
 ## Generation
