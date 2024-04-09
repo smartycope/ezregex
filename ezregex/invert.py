@@ -27,11 +27,11 @@ with open(Local().source) as f:
 _whitespace   = ' '
 _everything   = string.digits + string.ascii_letters + string.punctuation + _whitespace + '_'
 
-def _randWord(length, word='lookup'):
+def _randWord(length=None, word='lookup'):
     if word == 'random':
-        return ''.join(choices(string.ascii_letters + '_', k=length))
+        return ''.join(choices(string.ascii_letters + '_', k=length or randint(3, 9)))
     elif word == 'lookup':
-        options = list(filter(lambda i: len(i) == 4, words))
+        options = list(filter((lambda i: len(i) > 2 and len(i) < 10) if length is None else (lambda i: len(i) == length), words))
         if not len(options):
             _randWord(length, word='random')
         return choice(options)
@@ -40,15 +40,15 @@ def _randWord(length, word='lookup'):
     else:
         raise ValueError(f"invalid parameter given for word {word}. Accepted values are either random, lookup, or None")
 
-def _randNumber(length, random=False):
+def _randNumber(length:int, random=False) -> str:
     if random:
-        return randint(0, 10**length)
+        return str(randint(0, 10**length))
     else:
         return ''.join(map(lambda i: str(i)[-1], range(1, length+1)))
 
 def invert(
     expr:Union[str, 'EZRegex'],
-    words:Literal['lookup', 'random', None]='lookup',
+    words:Literal['lookup', 'random']='lookup',
     randomNumbers=False,
     alot=8,
     tries:int=10,
@@ -131,7 +131,7 @@ def invert(
                                         # If we know we're getting word chars, make a word of it
                                         if type(sub[0][1][0]) is not int and sub[0][1][0][1] in (sre.CATEGORY_WORD, sre.CATEGORY_UNI_WORD, sre.CATEGORY_LOC_WORD):
                                             if _verbose: print('Getting a random word')
-                                            s += _randWord(randint(2, alot), word=words)
+                                            s += _randWord(word=words)
                                         elif type(sub[0][1][0]) is not int and sub[0][1][0][1] in (sre.CATEGORY_DIGIT, sre.CATEGORY_UNI_DIGIT):
                                             if _verbose: print('Getting whole number')
                                             s += _randNumber(randint(1, alot), random=randomNumbers)
@@ -342,7 +342,7 @@ def invert(
                                 case sre.GROUPREF:
                                     add = groups[args]
                                     while add == groups[args]:
-                                        add = _randWord(randint(1, alot), word=words)
+                                        add = _randWord(word=words)
                                     s += add
                                 case sre.GROUPREF_EXISTS:
                                     group, trueSub, falseSub = args
@@ -376,14 +376,14 @@ def invert(
             tryNext = _untried[0]
             if _verbose:
                 print(f'Not found using {backend}, trying {tryNext}')
-            return invert(expr, words, randomNumbers, alot, tried, tryNext, _verbose, _untried)
+            return invert(expr, words, randomNumbers, alot, _tried, tryNext, _verbose, _untried) # type: ignore
         # If we've tried everything, go to the error outside the if statement
     # If we're here, we generated a bad string, but we have more tries
     else:
         if _verbose:
             print(f'Not found using {backend}, retrying')
 
-        return invert(expr, words, randomNumbers, alot, tries, backend, _verbose, _untried, _tried-1)
+        return invert(expr, words, randomNumbers, alot, tries, backend, _verbose, _untried, _tried-1) # type: ignore
 
     raise NotImplementedError(f"Failed to invert pattern `{expr}`. Likely, bad regex was given. "
         "Otherwise, there\'s a bug in the invert function. You can submit a bug report to "
