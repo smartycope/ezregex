@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ A readable and intuitive way to generate Regular Expressions """
-__version__ = '1.7.0'
+__version__ = '1.8.0'
 
 from .invert import invert
 from .EZRegex import EZRegex
