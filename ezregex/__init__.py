@@ -11,3 +11,4 @@ from .python import *
 # We have to import these manually cause they start with __
 from .python import __docs__, __groups__
 from re import RegexFlag, escape
+from .api import api
