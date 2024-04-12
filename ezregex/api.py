@@ -32,7 +32,7 @@ def furthest_colors(html, amt=5, v_bias=0, s_bias=0):
     return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
 
 
-def api(pattern, replacement_pattern=None, test_string=None, /, replacement_count=0, split_count=0):
+def api(pattern, replacement_pattern=None, test_string=None, *, replacement_count=0, split_count=0):
     # Get an inverse, if nessicary
     if test_string is None:
         test_string = pattern.inverse()
