@@ -1,5 +1,6 @@
-from .elements import base
 from ..EZRegex import EZRegex
+from .elements import base
+
 
 def load_base(dialect, exclude=[]) -> dict:
     rtn = {}

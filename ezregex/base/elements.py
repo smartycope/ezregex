@@ -1,7 +1,9 @@
-#!/usr/bin/env python3
-from sys import version_info
+# pyright: reportOperatorIssue = false
 from re import escape
 from string import digits
+from sys import version_info
+
+from ezregex import EZRegex
 
 
 def _match_range_func(min, max, input, greedy=True, possessive=False, cur=...):

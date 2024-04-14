@@ -77,6 +77,7 @@ unicode: EZRegex
 
 def any_between(char:str, and_char:str) -> EZRegex:
     "Match any char between `char` and `and_char`, using the ASCII table for reference"
+    ...
 
 
 "Group: Amounts"
@@ -85,58 +86,66 @@ def match_max(input:InputType) -> EZRegex:
     If `input` is not provided, it works on the previous regex pattern. That's not recommended for
     clarity's sake though
     """
+    ...
 
 def match_num(num: int, input: InputType) -> EZRegex:
     "Match `num` amount of `input` in the string"
+    ...
 
 def match_more_than(min: int, input: InputType) -> EZRegex:
     "Match more than `min` sequences of `input` in the string"
+    ...
 
 def match_at_least(min:int, input:InputType) -> EZRegex:
     "Match at least `min` sequences of `input` in the string"
+    ...
 
 def match_at_most(max:int, input:InputType) -> EZRegex:
     "Match at most `max` instances of `input` in the string"
+    ...
 
 def match_range(min:int, max:int, input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
     """ Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
         Max can be an empty string to indicate no maximum
-        greedy means it will try to match as many repititions as possible
+        `greedy` means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
-        possessive means it won't backtrack to try to find any repitions
+        `possessive` means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     """
+    ...
 
 def at_least_one(input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
     """ Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
-        greedy means it will try to match as many repititions as possible
+        `greedy` means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
-        possessive means it won't backtrack to try to find any repitions
+        `possessive` means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     """
+    ...
 
 def at_least_none(input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
     """ Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
-        greedy means it will try to match as many repititions as possible
+        `greedy` means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
-        possessive means it won't backtrack to try to find any repitions
+        `possessive` means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     """
+    ...
 
 
 "Group: Choices"
 def optional(input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
     """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
-        greedy means it will try to match as many repititions as possible
+        `greedy` means it will try to match as many repititions as possible
         non-greedy will try to match as few repititions as possible
-        possessive means it won't backtrack to try to find any repitions
+        `possessive` means it won't backtrack to try to find any repitions
         see https://docs.python.org/3/library/re.html for more help
     """
+    ...
 
 def either(input:InputType, or_input:InputType) -> EZRegex: ...
 
-# TODO
-def any_of(*inputs, chars=None, split=None) -> EZRegex:
+def any_of(*inputs:str, chars:bool|None=None, split:bool|None=None) -> EZRegex:
     """ Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
         or a single string. Can also accept parameters chars and split. If char is set
         to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -145,21 +154,22 @@ def any_of(*inputs, chars=None, split=None) -> EZRegex:
         syntax. It should act the same way, but your output regex will look different.
         By default, it just optimizes it for you.
     """
+    ...
 
-# TODO
-def any_char_except(*inputs) -> EZRegex:
+def any_char_except(*inputs:str) -> EZRegex:
     "This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split."
+    ...
 
-# TODO
-def any_except(input, type='.*') -> EZRegex:
-    """ Matches anything other than `input`, which must be a single string or
-    EZRegex chain, **not** a list. Also optionally accepts the `type` parameter,
-    which works like this: \"Match any `type` other than `input`\". For example,
-    \"match any word which is not foo\". Do note that this function is new, and
-    I'm still working out the kinks."""
+def any_except(input:InputType, type:InputType='.*') -> EZRegex:
+    """ Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
+    optionally accepts the `type` parameter, which works like this: \"Match any `type` other than `input`\". For example,
+    \"match any word which is not foo\". Do note that this function is new, and I'm still working out the kinks.
+    """
+    ...
 
 def each(*inputs:InputType) -> EZRegex:
-    """ Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order."""
+    "Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order."
+    ...
 
 
 """ Group: Conditionals
@@ -170,41 +180,51 @@ def if_proceded_by(input:InputType) -> EZRegex:
     """ Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
         as it only applies to the end
     """
+    ...
 
 def if_not_proceded_by(input:InputType) -> EZRegex:
     """ Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
         a given pattern, as it only applies to the end
     """
+    ...
 
 def if_preceded_by(input:InputType) -> EZRegex:
     """ Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
         as it only applies to the beginning
     """
+    ...
 
 def if_not_preceded_by(input:InputType) -> EZRegex:
     """ Matches the pattern if it does **not** have `input` coming before it. Can only be used once
         in a given pattern, as it only applies to the beginning
     """
+    ...
 
 def if_enclosed_with(open:str, stuff:InputType, close:str|None=None) -> EZRegex:
     """ Matches if the string has `open`, then `stuff`, then `close`, but only \"matches\"
         stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
     """
+    ...
 
 
 "Group: Grouping"
 def group(input:InputType, name:str|None=None) -> EZRegex:
     "Causes `input` to be captured as an unnamed group. Only useful when replacing regexs"
+    ...
 
 def passive_group(input:InputType) -> EZRegex:
     "As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is"
+    ...
 
 def earlier_group(num_or_name:int|str) -> EZRegex:
     """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
-    group which would match `num_or_name`. """
+    group which would match `num_or_name`
+    """
+    ...
 
 def if_exists(num_or_name:int|str, does:InputType, doesnt:InputType|None=None) -> EZRegex:
     """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` """
+    ...
 
 
 """ Group: Replacement
@@ -216,6 +236,7 @@ def rgroup(num_or_name:str|int) -> EZRegex:
         groups) or group name (for named groups). Named groups are also counted by
         number, I'm pretty sure. Groups are numbered starting from 1
     """
+    ...
 
 replace_entire: EZRegex
 "Puts in its place the entire match"
@@ -237,14 +258,17 @@ def replace(string:str, rtn_str:bool=True) -> str|EZRegex:
         - It's closer to Python f-string syntax, which is cleaner and more familiar
         - It handles numbered, named, and entire replacement types the same
     """
+    ...
 
 
 "Group: Misc"
 def is_exactly(input:InputType) -> EZRegex:
     "This matches the string if and only if the entire string is exactly equal to `input`"
+    ...
 
 def literal(input:InputType) -> EZRegex:
     "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
+    ...
 
 # For adding raw regex statements without sanatizing them
 def raw(regex:str) -> EZRegex:
@@ -252,30 +276,33 @@ def raw(regex:str) -> EZRegex:
         it, this will allow you to include it without sanatizing all the backslaches
         and such, which all the other EZRegexs do automatically
     """
+    ...
 
 
 """ Group: Premade
 These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in
 later versions to make them more accurate
 """
-literally_anything = either(anything, new_line)
+literally_anything: EZRegex
 "*Any* character, include newline"
-signed = optional(either('-', '+')) + number
+signed: EZRegex
 "a signed number, including 123, -123, and +123"
-unsigned = number
+unsigned: EZRegex
 "Same as number. Will not match +123"
-plain_float = signed + period + optional(number)
+plain_float: EZRegex
 "Will match 123.45 and 123."
-full_float = plain_float + optional('e' + signed)
+full_float: EZRegex
 "Will match plain_float as well as things like 1.23e-10 and 1.23e+10"
-int_or_float = optional('-') + number + optional(period + optional(number))
-ow = optional(whitechunk)
+int_or_float: EZRegex
+ow: EZRegex
 "\"Optional Whitechunk\""
-email = raw(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
+email: EZRegex
 "Matches an email"
-version = raw(r"(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?")
-"The *official* regex for matching version numbers from https://semver.org/. It includes 5 groups that can be matched/replaced: `major`, `minor`, `patch`, `prerelease`, and `buildmetadata`"
-version_numbered = raw(r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?")
+version: EZRegex
+"""The *official* regex for matching version numbers from https://semver.org/. It includes 5 groups that can be
+matched/replaced: `major`, `minor`, `patch`, `prerelease`, and `buildmetadata`
+"""
+version_numbered: EZRegex
 "Same as `version`, but it uses numbered groups for each version number instead of named groups"
 
 
@@ -302,5 +329,3 @@ MULTILINE: EZRegex
 " This is automatically inserted when using line_start and line_end, you shouldn't need to add it manually "
 UNICODE: EZRegex
 " Match using the full unicode standard, instead of just ASCII. Enabled by default, and therefore redundant."
-
-def load_base(dialect:str) -> dict: ...
