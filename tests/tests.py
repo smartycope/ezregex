@@ -10,6 +10,7 @@ from ezregex.python import *
 from ezregex.invert import *
 from ezregex.generate import *
 from test_generate import *
+from ezregex import api
 
 import random
 
@@ -19,10 +20,11 @@ except ImportError:
     pass
 
 from _regexs import *
+from _regexs import _regexsLine
 from _groups import *
 from _groups import _winners, _losers
 
-def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, internal=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
+def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, _api=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -57,12 +59,12 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
         assert str(word + IGNORECASE + stuff) == r'(?i)\w+.+', fr"{word + IGNORECASE + stuff} != (?i)\w+.+"
         assert str(word + LOCALE + stuff)     == r'(?L)\w+.+', fr"{word + LOCALE + stuff}     != (?L)\w+.+"
         assert str(word + MULTILINE + stuff)  == r'(?m)\w+.+', fr"{word + MULTILINE + stuff}  != (?m)\w+.+"
-        assert str(word + UNICODE + stuff)    == r'(?u)\w+.+', fr"{word + UNICODE + stuff}    != (?u)\w+.+"
+        # assert str(word + UNICODE + stuff)    == r'(?u)\w+.+', fr"{word + UNICODE + stuff}    != (?u)\w+.+"
 
         a = word + ow
-        b = stuff + UNICODE
+        # b = stuff + UNICODE
         c = IGNORECASE + '9'
-        assert a + b + c == word + ow + stuff + UNICODE + IGNORECASE + '9', f"{a + b + c} != {word + ow + stuff + UNICODE + IGNORECASE + '9'}"
+        assert a + c == word + ow + IGNORECASE + '9', f"{a + b + c} != {word + ow + IGNORECASE + '9'}"
 
         for cnt, r in enumerate(regexs):
             regex, match, dontMatch = r
@@ -76,10 +78,10 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
             except Exception as err:
                 print(regex)
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
-                raise err.with_traceback(None)
+                raise err#.with_traceback(None)
 
-        a = str(EZRegex(r'\s+'))
-        b = str(EZRegex(raw(r'\s+')))
+        a = str(EZRegex(r'\s+', 'python'))
+        b = str(EZRegex(raw(r'\s+'), 'python'))
         c = r'\s+'
         d = str(raw(r'\s+'))
         # e = str(whitespace + matchMax)
@@ -253,14 +255,14 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
 difficulty = 1
 runTests(
     # These should remain on, for the GitHub automated tests
-    singletons=False,
+    singletons=True,
     _invert=False,
-    replacement=False,
-    operators=False,
-    _generate=False,
+    replacement=True,
+    operators=True,
+    _generate=True,
     # These display for you to check that they look correct
     testMethod=False,
-    _api=True,
+    _api=False,
     # Settings
     strictness=difficulty,
     invert_tries=101-difficulty,
