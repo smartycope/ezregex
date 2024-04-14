@@ -1,42 +1,63 @@
+# pyright: reportArgumentType = false
+import colorsys
+import logging
 import re
 from copy import deepcopy
 from functools import partial
-from re import RegexFlag
-from typing import List
+from typing import Callable, List, Literal, LiteralString
 from warnings import warn
 
-from rich import print as rprint
-from rich.panel import Panel
-from rich.text import Text
-
-from .invert import invert
+from .api import api
 from .generate import *
+from .invert import invert
+from ._dialects import dialects
 
+# TODO: consider changing addFlags to "outer" or "end" or something
+# TODO: Seriously consider removing the debug functions
 
 class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
-    def __init__(self, funcs:List[partial], sanatize=True, init=True, replacement=False, flags=0):
-        """ The workhorse of the EZRegex library. This represents a regex pattern
-        that can be combined with other EZRegexs and strings.
-        Ideally, this should only be called internally, but it should still
-        work from the user's end """
-        self.flags = flags
+    def __init__(self,
+                 definition:List[partial[str]]|str|"EZRegex"|partial[str]|list[str],
+                 dialect: str,
+                 sanatize:bool=True,
+                 init:bool=True,
+                 replacement:bool=False,
+                 flags:str='',
+        ):
+        """
+        The workhorse of the EZRegex library. This represents a regex pattern that can be combined
+        with other EZRegexs and strings. Ideally, this should only be called internally, but it should
+        still work from the user's end
+        """
 
+        if dialect not in dialects.keys():
+            raise ValueError(f'Unsupported dialect `{dialect}` given. Supported dialects are: {list(dialects.keys())}')
+
+        self.flags = flags
         # Parse params
         # Add flags if it's another EZRegex
-        if isinstance(funcs, EZRegex):
-            self.flags = funcs.flags
+        if isinstance(definition, EZRegex):
+            self.flags = definition.flags
+            if definition.dialect != dialect:
+                raise ValueError('Cannot mix regex dialects')
 
-        if isinstance(funcs, (str, EZRegex)):
-            funcs = [str(funcs)]
-        elif not isinstance(funcs, (list, tuple)):
-            funcs = [funcs]
+        if isinstance(definition, (str, EZRegex)):
+            definition = [str(definition)]
+        elif not isinstance(definition, (list, tuple)):
+            definition = [definition]
 
         self.sanatize = sanatize
         self.replacement = replacement
-        self.funcList = list(funcs)
+        # This allows strings in the list now, but they get converted later in this function
+        self.funcList: list[str|partial[str]|Callable] = list(definition)
+        # Just some psuedonymns
         self.example = self.invert = self.inverse
+        self.dialect = dialect
+        # The dict that has the values
+        self._dialect = dialects[dialect]
+
 
         # The init parameter is not actually required, but it will make it more
         # efficient, so we don't have to check that the whole chain is callable
@@ -49,11 +70,17 @@ class EZRegex:
                     stringBecauseHatred = deepcopy(self.funcList[i])
                     self.funcList[i] = lambda cur=...: cur + stringBecauseHatred
                 elif not callable(self.funcList[i]) and self.funcList[i] is not None:
-                    raise TypeError(f"Invalid type {type(self.funcList[i])} passed to EZRegex constructor")
+                    raise ValueError(f"Invalid type {type(self.funcList[i])} passed to EZRegex constructor")
+
+
+    def _escape(self, pattern:str):
+        """ This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255 """
+        _special_chars_map = {i: '\\' + chr(i) for i in self._dialect['escape_chars']}
+        return pattern.translate(_special_chars_map)
+
 
     def _sanitizeInput(self, i, addFlags=False):
-        """ Instead of rasising an error if passed a strange datatype, it now
-            trys to cast it to a string """
+        """ Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string """
         i = deepcopy(i)
 
         # Don't sanatize anything if this is a replacement string
@@ -65,8 +92,7 @@ class EZRegex:
             return i._compile(addFlags=addFlags)
         # It's a string (so we need to escape it)
         elif isinstance(i, str):
-            i = re.escape(i)
-            return i
+            return self._escape(i)
         # A couple of singletons use bools and None as kwargs, just ignore them and move on
         elif i is None or isinstance(i, bool):
             return i
@@ -76,22 +102,13 @@ class EZRegex:
         # It's something we don't know, but try to cast it to a string anyway
         else:
             try:
-                s = str(i)
-                msg = f"Type {type(i)} passed to EZRegex, auto-casting to a string. Special characters will will not be escaped."
-                try:
-                    from Cope import debug
-                except:
-                    warn(msg)
-                else:
-                    debug(msg, color=-1, calls=3)
-                return s
+                logging.warning(f"Type {type(i)} passed to EZRegex, auto-casting to a string. Special characters will will not be escaped.")
+                return str(i)
             except:
-                raise TypeError(f'Incorrect type {type(i)} given to EZRegex parameter: Must be string or another EZRegex chain.')
+                raise ValueError(f'Incorrect type {type(i)} given to EZRegex parameter: Must be string or another EZRegex chain.')
 
     def __call__(self, *args, **kwargs):
-        """ This should be called by the user to specify the specific parameters
-            of this instance
-            i.e. anyof('a', 'b') """
+        """ This should be called by the user to specify the specific parameters of this instance i.e. anyof('a', 'b') """
         # If this is being called without parameters, just compile the chain.
         # If it's being called *with* parameters, then it better be a fundemental
         # member, otherwise that doesn't make any sense.
@@ -99,7 +116,7 @@ class EZRegex:
             if not len(args) and not len(kwargs):
                 return self._compile()
             else:
-                raise TypeError("You're trying to pass parameters to a chain of expressions. That doesn't make any sense. Stop that.")
+                raise ValueError("You're trying to pass parameters to a chain of expressions. That doesn't make any sense. Stop that.")
 
         # Sanatize the arguments
         args = list(map(self._sanitizeInput if self.sanatize else deepcopy, args))
@@ -108,7 +125,14 @@ class EZRegex:
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitizeInput(val) if self.sanatize else deepcopy(val)
 
-        return EZRegex([partial(self.funcList[0], *args, **_kwargs)], init=False, sanatize=self.sanatize, replacement=self.replacement, flags=self.flags)
+        return EZRegex(
+            [partial(self.funcList[0], *args, **_kwargs)],
+            dialect=self.dialect,
+            init=False,
+            sanatize=self.sanatize,
+            replacement=self.replacement,
+            flags=self.flags
+        )
 
     # Magic Functions
     def __str__(self, addFlags=True):
@@ -122,7 +146,7 @@ class EZRegex:
 
     def __mul__(self, amt):
         if amt is Ellipsis:
-            return EZRegex(f'(?{self})*', sanatize=False)
+            return EZRegex(f'(?{self})*', self.dialect, sanatize=False)
         rtn = self
         # This isn't optimal, but it's unlikely anyone will use this with large numbers
         for i in range(amt-1):
@@ -140,18 +164,20 @@ class EZRegex:
 
     def __add__(self, thing):
         return EZRegex(self.funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
+            dialect=self.dialect,
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegex) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
-            flags=(self.flags | thing.flags) if isinstance(thing, EZRegex) else self.flags
+            flags=(self.flags + thing.flags) if isinstance(thing, EZRegex) else self.flags
         )
 
     def __radd__(self, thing):
         return EZRegex([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self.funcList,
+            dialect=self.dialect,
             init=False,
             sanatize=self.sanatize or thing.sanatize if isinstance(thing, EZRegex) else self.sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
-            flags=(self.flags | thing.flags) if isinstance(thing, EZRegex) else self.flags
+            flags=(self.flags + thing.flags) if isinstance(thing, EZRegex) else self.flags
         )
 
     def __iadd__(self, thing):
@@ -160,11 +186,11 @@ class EZRegex:
 
     def __and__(self, thing):
         warn('The & operator is unstable still. Use each() instead.')
-        return EZRegex(fr'(?={self}){thing}', sanatize=False)
+        return EZRegex(fr'(?={self}){thing}', self.dialect, sanatize=False)
 
     def __rand__(self, thing):
         warn('The & operator is unstable still. Use each() instead.')
-        return EZRegex(fr'(?={thing}){self}', sanatize=False)
+        return EZRegex(fr'(?={thing}){self}', self.dialect, sanatize=False)
 
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):
@@ -194,15 +220,15 @@ class EZRegex:
 
     def __pos__(self):
         comp = self._compile()
-        return EZRegex(('' if not len(comp) else r'(?:' + comp + r')') + r'+', sanatize=False)
+        return EZRegex(('' if not len(comp) else r'(?:' + comp + r')') + r'+', self.dialect, sanatize=False)
 
     def __ror__(self, thing):
         print('ror called')
-        return EZRegex(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', sanatize=False)
+        return EZRegex(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', self.dialect, sanatize=False)
 
     def __or__(self, thing):
         warn('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
-        return EZRegex(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', sanatize=False)
+        return EZRegex(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', self.dialect, sanatize=False)
 
     def __xor__(self, thing):
         return NotImplemented
@@ -211,8 +237,7 @@ class EZRegex:
         return NotImplemented
 
     def __mod__(self, other):
-        """ I would prefer __rmod__(), but it doesn't work on strings, since
-            __mod__() is already specified for string formmating. """
+        """ I would prefer __rmod__(), but it doesn't work on strings, since __mod__() is already specified for string formmating. """
         # I don't need to check this, re will do it for me
         # if not isisntance(other, str):
             # raise TypeError(f"Can't search type {type(other)} ")
@@ -265,31 +290,31 @@ class EZRegex:
                 args = args[0]
             if args is None or args is Ellipsis or args == 0:
                 # at_least_0(self)
-                return EZRegex(fr'(?:{self._compile()})*', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()})*', self.dialect, sanatize=False)
             elif args == 1:
                 # at_least_1(self)
-                return EZRegex(fr'(?:{self._compile()})+', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()})+', self.dialect, sanatize=False)
             else:
                 # match_at_least(args, self)
-                return EZRegex(fr'(?:{self._compile()}){{{args},}}', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{{args},}}', self.dialect, sanatize=False)
         else:
             start, end = args
             if start is None or start is Ellipsis:
                 # match_at_most(2, self)
-                return EZRegex(fr'(?:{self._compile()}){{0,{end}}}', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{0,{end}}}', self.dialect, sanatize=False)
             elif end is None or end is Ellipsis:
                 if start == 0:
                     # at_least_0(self)
-                    return EZRegex(fr'(?:{self._compile()})*', sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()})*', self.dialect, sanatize=False)
                 elif start == 1:
                     # at_least_1(self)
-                    return EZRegex(fr'(?:{self._compile()})+', sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()})+', self.dialect, sanatize=False)
                 else:
                     # match_at_least(start, self)
-                    return EZRegex(fr'(?:{self._compile()}){{{start},}}', sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()}){{{start},}}', self.dialect, sanatize=False)
             else:
                 # match_range(start, end, self)
-                return EZRegex(fr'(?:{self._compile()}){{{start},{end}}}', sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{{start},{end}}}', self.dialect, sanatize=False)
 
     def __reversed__(self):
         return self.inverse()
@@ -304,31 +329,13 @@ class EZRegex:
     def _compile(self, addFlags=True):
         regex = ''
         for func in self.funcList:
-            regex = func(cur=regex)
+            regex = func(cur=regex) # type: ignore
 
         # Add the flags
-        _flags = ''
         if addFlags:
-            if self.flags & RegexFlag.ASCII:
-                _flags += 'a'
-            if self.flags & RegexFlag.DEBUG:
-                pass
-            if self.flags & RegexFlag.DOTALL:
-                _flags += 's'
-            if self.flags & RegexFlag.IGNORECASE:
-                _flags += 'i'
-            if self.flags & RegexFlag.LOCALE:
-                _flags += 'L'
-            if self.flags & RegexFlag.MULTILINE:
-                _flags += 'm'
-            if self.flags & RegexFlag.TEMPLATE:
-                pass
-            if self.flags & RegexFlag.UNICODE:
-                _flags += 'u'
-            if self.flags & RegexFlag.VERBOSE:
-                _flags += 'x'
-            if len(_flags):
-                regex = fr'(?{_flags})' + regex
+            regex = self._dialect['beginning'] + regex + self._dialect['end']
+            if len(self.flags):
+                regex = self._dialect['flag_func'](regex, self.flags)
         return regex
 
     def compile(self, addFlags=True):
@@ -349,18 +356,24 @@ class EZRegex:
     def debugStr(self):
         return self.debug().str()
 
-    def copy(self):
+    def copy(self, addFlags=True):
         try:
-            from clipboard import copy
-        except ImportError:
-            print('Please install the clipboard module in order to auto copy ezregex expressions (i.e. pip install clipboard)')
+            from clipboard import copy  # type: ignore
+        except ImportError as err:
+            raise ModuleNotFoundError('Please install the clipboard module in order to auto copy '
+                                      'ezregex expressions (i.e. pip install clipboard)') from err
         else:
-            copy(self._compile())
+            copy(self._compile(addFlags=addFlags))
 
     def test(self, testString=None, show=True, context=True) -> bool:
         """ Tests the current regex expression to see if it's in @param testString.
             Returns the match objects (None if there was no match)"""
-        json = self._matchJSON(testString=testString)
+        from rich import print as rprint
+        from rich.panel import Panel
+        from rich.text import Text
+
+        # json = self._matchJSON(testString=testString)
+        json = api(self, test_string=testString)
         if not show:
             return bool(len(json['matches']))
 
@@ -399,17 +412,17 @@ class EZRegex:
             gt.append('" ')
             gt.append(f"({m['match']['start']}:{m['match']['end']})", style='italic bright_black')
             gt.append('\n')
-            if len(m['unnamedGroups']):
+            if len(m['unnamed groups']):
                 gt.append('Unnamed Groups:\n')
-            for cnt, group in enumerate(m['unnamedGroups']):
-                gt.append(f'\t{cnt+1}: "')
-                gt.append(group['string'], style=group['color'])
+            for id, group in m['unnamed groups'].items():
+                gt.append(f'\t{id}: "')
+                gt.append(['string'], style=group['color'])
                 gt.append('" ')
                 gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
                 gt.append('\n')
-            if len(m['namedGroups']):
+            if len(m['named groups']):
                 gt.append('Named Groups:\n')
-            for name, group in m['namedGroups'].items():
+            for name, group in m['named groups'].items():
                 gt.append(f'\t{name}: "')
                 gt.append(group['string'], style=group['color'])
                 gt.append('" ')
@@ -426,7 +439,6 @@ class EZRegex:
         return bool(len(json['matches']))
 
     def inverse(self, amt=1, **kwargs):
-        """ "Inverts" the current Regex expression to give an example of a string
-            it would match.
+        """ "Inverts" the current Regex expression to give an example of a string it would match.
             Useful for debugging purposes. """
         return '\n'.join([invert(self._compile(), **kwargs) for _ in range(amt)])

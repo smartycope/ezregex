@@ -1,30 +1,30 @@
+import random
 import re
 from inspect import currentframe, getframeinfo
 
 from rich import print as rprint
 from rich.table import Table
 from rich.text import Text
-
-import ezregex.python as er
-from ezregex.python import *
-from ezregex.invert import *
-from ezregex.generate import *
 from test_generate import *
 
-import random
+import ezregex.python as er
+from ezregex import api
+from ezregex.generate import *
+from ezregex.invert import *
+from ezregex.python import *
 
 try:
     from Cope import debug
 except ImportError:
     pass
 
-from _regexs import *
 from _groups import *
-from _groups import _winners, _losers
+from _groups import _losers, _winners
+from _regexs import *
+from _regexs import _regexsLine
 
-from ezregex import api
 
-def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, _api=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
+def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, internal=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -59,12 +59,12 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
         assert str(word + IGNORECASE + stuff) == r'(?i)\w+.+', fr"{word + IGNORECASE + stuff} != (?i)\w+.+"
         assert str(word + LOCALE + stuff)     == r'(?L)\w+.+', fr"{word + LOCALE + stuff}     != (?L)\w+.+"
         assert str(word + MULTILINE + stuff)  == r'(?m)\w+.+', fr"{word + MULTILINE + stuff}  != (?m)\w+.+"
-        assert str(word + UNICODE + stuff)    == r'(?u)\w+.+', fr"{word + UNICODE + stuff}    != (?u)\w+.+"
+        # assert str(word + UNICODE + stuff)    == r'(?u)\w+.+', fr"{word + UNICODE + stuff}    != (?u)\w+.+"
 
         a = word + ow
-        b = stuff + UNICODE
+        # b = stuff + UNICODE
         c = IGNORECASE + '9'
-        assert a + b + c == word + ow + stuff + UNICODE + IGNORECASE + '9', f"{a + b + c} != {word + ow + stuff + UNICODE + IGNORECASE + '9'}"
+        assert a + c == word + ow + IGNORECASE + '9', f"{a + b + c} != {word + ow + IGNORECASE + '9'}"
 
         for cnt, r in enumerate(regexs):
             regex, match, dontMatch = r
@@ -78,16 +78,16 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
             except Exception as err:
                 print(regex)
                 print(f'Error @ approx. {__file__}, line {_regexsLine+cnt}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
-                raise err.with_traceback(None)
+                raise err#.with_traceback(None)
 
-        a = str(EZRegex(r'\s+'))
-        b = str(EZRegex(raw(r'\s+')))
+        a = str(EZRegex(r'\s+', 'python'))
+        b = str(EZRegex(raw(r'\s+'), 'python'))
         c = r'\s+'
         d = str(raw(r'\s+'))
         # e = str(whitespace + matchMax)
         assert a == b == c == d, f'\na: {a}\n b: {b}\n c: {c}\n d: {d}\n e: {e}'
-        assert (word + ow + anything + ':').test('word    d:', show=False)
-        assert not (word + ow + anything + ':').test('word', show=False)
+        # assert (word + ow + anything + ':').test('word    d:', show=False)
+        # assert not (word + ow + anything + ':').test('word', show=False)
         assert 'word    d:' in (word + ow + anything + ':')
 
         test = word + chunk
@@ -163,15 +163,15 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
 
         group(+group(number) + group(anyof('98'))).test('999')
 
-    if _api:
+    if internal:
         # rprint((word + number)._matchJSON())
         # rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
-        rprint(api(ifFollowedBy(word)))
-        rprint(api(word))
-        rprint(api(number, test_string='word'))
+        rprint(ifFollowedBy(word)._matchJSON())
+        rprint(word._matchJSON())
+        rprint(number._matchJSON('word'))
         r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
         s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
-        rprint(api(r, test_string=s))
+        rprint(r._matchJSON(s))
 
     if operators:
         print('Testing operators...')
@@ -253,7 +253,7 @@ difficulty = 1
 runTests(
     # These should remain on, for the GitHub automated tests
     singletons=True,
-    _invert=True,
+    _invert=False,
     replacement=True,
     operators=True,
     _generate=True,

@@ -1,19 +1,10 @@
-
-import re
 from inspect import currentframe, getframeinfo
-
-from rich import print as rprint
-from rich.table import Table
-from rich.text import Text
-
-import ezregex.python as er
-from ezregex.python import *
-from ezregex.invert import *
-
-import random
 
 from _regexs import *
 
+import ezregex.python as er
+from ezregex.invert import *
+from ezregex.python import *
 
 # This goes (regex,                                                                         (things it should match),                                    (things it shouldnt match))
 _regexsLine = getframeinfo(currentframe()).lineno + 2
@@ -103,7 +94,7 @@ regexs = (
     (number,                                                                                ('6', '69'),                                                            ('-a', 'A')),
     (punctuation,                                                                           '@#$%^&*()'.split(),                                                    '12345678sdfsdf'.split()),
     (wordChar,                                                                              ('w',),                                                                 ('-',)),
-    (hexDigit,                                                                              ('A', 'a', '0'),                                                        ('g', 'G')),
+    (hex_digit,                                                                              ('A', 'a', '0'),                                                        ('g', 'G')),
     (octDigit,                                                                              ('7',),                                                                 ('9', 'a', 'A', '8')),
     (chunk,                                                                                 ('wordssdf   asdf\n',),                                                 ('\n',)),
     (spaceOrTab,                                                                            (' ', '\t', ' \t  '),                                                   ('\n',)),

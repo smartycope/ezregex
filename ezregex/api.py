@@ -1,8 +1,8 @@
-import re
 import colorsys
+import re
 
 foreground_s = .75
-foreground_v = 1
+foreground_v = 1.
 background_v_bias = .5
 background_s_bias = .9
 
@@ -15,14 +15,14 @@ def toRgb(html: str) -> tuple:
     rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     return rgb
 
-def generate_colors(amt, s=1, v=1, offset=0):
+def generate_colors(amt, s:float=1, v:float=1, offset:int=0):
     """ Generate `amt` number of colors evenly spaced around the color wheel
         with a given saturation and value
     """
     amt += 1
     return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
 
-def furthest_colors(html, amt=5, v_bias=0, s_bias=0):
+def furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
     """ Gets the `amt` number of colors evenly spaced around the color wheel from the given color
         `v_bias` and `s_bias` are between 0-1 and offset the colors
     """
@@ -57,8 +57,18 @@ def api(pattern, replacement_pattern=None, test_string=None, *, replacement_coun
 
     for match in matches:
         allGroups = {match.span(i+1) for i in range(len(match.groups()))}
-        namedGroups = dict({(i, match.span(i)) for i in match.groupdict().keys()})
-        unnamedGroups = allGroups - set(namedGroups.values())
+        namedGroups = {i: match.span(i) for i in match.groupdict().keys()}
+        # TODO: have named groups show their name and number instead of just their name
+        # namedGroups = {
+        #     (cnt+1, ): match.span(cnt+1)
+        #     for cnt, i in enumerate(match.groups())
+        #     if i in match.groupdict().values()
+        # }
+        unnamedGroups = {
+            cnt+1: match.span(cnt+1)
+            for cnt, i in enumerate(match.groups())
+            if i not in match.groupdict().values()
+        }
         # Map group spans to unique colors
         # This gets equally spaced colors from the given color, so they're differentiable
         # and readable on a dark background
@@ -105,17 +115,17 @@ def api(pattern, replacement_pattern=None, test_string=None, *, replacement_coun
                 'start': match.start(),
                 "color": matchColors[match.span()],
             },
-            "unnamed groups":[],
+            "unnamed groups":{},
             "named groups":{},
         }
 
-        for i in range(len(unnamedGroups)):
-            match_json['unnamed groups'].append({
-                'string': match.group(i+1) or '',
-                'end': match.end(i+1),
-                'start': match.start(i+1),
-                "color": colors[match.span(i+1)],
-            })
+        for num, span in unnamedGroups.items():
+            match_json['unnamed groups'][num] = {
+                'string': match.group(num) or '',
+                'end': span[1],
+                'start': span[0],
+                "color": colors[span],
+            }
 
         for name, span in namedGroups.items():
             match_json['named groups'][name] = {
@@ -132,7 +142,9 @@ def api(pattern, replacement_pattern=None, test_string=None, *, replacement_coun
     html_string += '</span></p>'
     json['string HTML'] = html_string
     json['parts'] = parts
-    if replacement_pattern:
+    if replacement_pattern is not None:
         json['replaced'] = re.sub(pattern.str(), replacement_pattern.str(), test_string, replacement_count)
+    else:
+        json['replaced'] = None
     json['split'] = re.split(pattern.str(), test_string, split_count)
     return json

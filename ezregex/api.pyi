@@ -1,4 +1,5 @@
 from typing import TypedDict
+
 from ezregex.EZRegex import EZRegex
 
 Group = TypedDict(
@@ -44,4 +45,10 @@ APIStructure = TypedDict(
     }
 )
 
-def api(pattern:EZRegex, replacement_pattern:EZRegex=None, test_string:str=None, /, replacement_count:int=0, split_count:int=0) -> APIStructure: ...
+def api(
+    pattern:EZRegex,
+    replacement_pattern:EZRegex|str|None=None,
+    test_string:str|None=None, *,
+    replacement_count:int=0,
+    split_count:int=0
+) -> APIStructure: ...
