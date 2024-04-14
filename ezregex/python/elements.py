@@ -1,11 +1,13 @@
-from json import load
+# pyright: reportArgumentType = false
 import re
+from json import load
+
 from ..base import load_base
 from ..EZRegex import EZRegex
 
 globals().update(load_base('python'))
 
-del UNICODE
+del UNICODE # type: ignore
 
 # TODO: Use https://docs.python.org/3/library/string.html#string.Formatter instead
 def replace(string, rtn_str=True):
