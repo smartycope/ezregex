@@ -381,78 +381,80 @@ class EZRegex:
     def copy(self):
         try:
             from clipboard import copy
-        except ImportError:
-            print('Please install the clipboard module in order to auto copy ezregex expressions (i.e. pip install clipboard)')
+        except ImportError as err:
+            raise ModuleNotFoundError('Please install the clipboard module in order to auto copy '
+                                      'ezregex expressions (i.e. pip install clipboard)') from err
         else:
             copy(self._compile())
 
-    def test(self, testString=None, show=True, context=True) -> bool:
-        """ Tests the current regex expression to see if it's in @param testString.
-            Returns the match objects (None if there was no match)"""
-        json = self._matchJSON(testString=testString)
-        if not show:
-            return bool(len(json['matches']))
+    # def test(self, testString=None, show=True, context=True) -> bool:
+    #     """ Tests the current regex expression to see if it's in @param testString.
+    #         Returns the match objects (None if there was no match)"""
+    #     # json = self._matchJSON(testString=testString)
+    #     json = api(self, test_string=testString)
+    #     if not show:
+    #         return bool(len(json['matches']))
 
-        _cope = False
-        if context:
-            # Use the nice context function in the Cope library
-            try:   from Cope import get_context, get_metadata
-            except ImportError: pass
-            else:  _cope = True
+    #     _cope = False
+    #     if context:
+    #         # Use the nice context function in the Cope library
+    #         try:   from Cope import get_context, get_metadata
+    #         except ImportError: pass
+    #         else:  _cope = True
 
-        st = Text()  # String
-        gt = Text()  # Groups (all the group-related text)
-        defaultColor = 'bold'
-        textColor = ''
+    #     st = Text()  # String
+    #     gt = Text()  # Groups (all the group-related text)
+    #     defaultColor = 'bold'
+    #     textColor = ''
 
-        st.append("Testing expression", style=defaultColor)
-        # Add the context line
-        if _cope:
-            st.append(f' (from {get_context(get_metadata(2), False, True, True).strip()})', style=defaultColor)
-        st.append(':\n', style=defaultColor)
+    #     st.append("Testing expression", style=defaultColor)
+    #     # Add the context line
+    #     if _cope:
+    #         st.append(f' (from {get_context(get_metadata(2), False, True, True).strip()})', style=defaultColor)
+    #     st.append(':\n', style=defaultColor)
 
-        # The expression we're testing
-        st.append(f'\t{json["regex"]}\n', style=textColor)
-        st.append("for matches in:\n\t", style=defaultColor)
+    #     # The expression we're testing
+    #     st.append(f'\t{json["regex"]}\n', style=textColor)
+    #     st.append("for matches in:\n\t", style=defaultColor)
 
-        # Add the main string
-        for color, background, part in json['parts']:
-            st.append(part, style=color if background is None else f'{color} on {background}')
-        st.append('\n')
+    #     # Add the main string
+    #     for color, background, part in json['parts']:
+    #         st.append(part, style=color if background is None else f'{color} on {background}')
+    #     st.append('\n')
 
-        # Add all the matches and groups
-        for m in json['matches']:
-            gt.append('Match = "')
-            for color, background, part in m['match']['parts']:
-                gt.append(part, style=color if background is None else f'{color} on {background}')
-            gt.append('" ')
-            gt.append(f"({m['match']['start']}:{m['match']['end']})", style='italic bright_black')
-            gt.append('\n')
-            if len(m['unnamedGroups']):
-                gt.append('Unnamed Groups:\n')
-            for cnt, group in enumerate(m['unnamedGroups']):
-                gt.append(f'\t{cnt+1}: "')
-                gt.append(group['string'], style=group['color'])
-                gt.append('" ')
-                gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
-                gt.append('\n')
-            if len(m['namedGroups']):
-                gt.append('Named Groups:\n')
-            for name, group in m['namedGroups'].items():
-                gt.append(f'\t{name}: "')
-                gt.append(group['string'], style=group['color'])
-                gt.append('" ')
-                gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
-                gt.append('\n')
-            gt.append('\n')
+    #     # Add all the matches and groups
+    #     for m in json['matches']:
+    #         gt.append('Match = "')
+    #         for color, background, part in m['match']['parts']:
+    #             gt.append(part, style=color if background is None else f'{color} on {background}')
+    #         gt.append('" ')
+    #         gt.append(f"({m['match']['start']}:{m['match']['end']})", style='italic bright_black')
+    #         gt.append('\n')
+    #         if len(m['unnamedGroups']):
+    #             gt.append('Unnamed Groups:\n')
+    #         for cnt, group in enumerate(m['unnamedGroups']):
+    #             gt.append(f'\t{cnt+1}: "')
+    #             gt.append(group['string'], style=group['color'])
+    #             gt.append('" ')
+    #             gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
+    #             gt.append('\n')
+    #         if len(m['namedGroups']):
+    #             gt.append('Named Groups:\n')
+    #         for name, group in m['namedGroups'].items():
+    #             gt.append(f'\t{name}: "')
+    #             gt.append(group['string'], style=group['color'])
+    #             gt.append('" ')
+    #             gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
+    #             gt.append('\n')
+    #         gt.append('\n')
 
-        # Assemble everything into a panel
-        rprint(Panel(Text.assemble(*st, '\n', *gt),
-            title='Testing Regex',
-            subtitle=Text('Found\n', style='blue') if len(json['matches'])
-                else Text('Not Found\n', style='red')))  #, border_style='dim green')
+    #     # Assemble everything into a panel
+    #     rprint(Panel(Text.assemble(*st, '\n', *gt),
+    #         title='Testing Regex',
+    #         subtitle=Text('Found\n', style='blue') if len(json['matches'])
+    #             else Text('Not Found\n', style='red')))  #, border_style='dim green')
 
-        return bool(len(json['matches']))
+    #     return bool(len(json['matches']))
 
     def _matchJSON(self, testString=None):
         foreground_s = .75
