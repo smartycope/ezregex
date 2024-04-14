@@ -19,9 +19,9 @@ class DocGenerator(ast.NodeVisitor):
 
     def visit_Expr(self, node: ast.Expr):
         if type(node.value) is ast.Constant:
-            if type(node.value.value) is str and node.value.value.startswith('Group: '):
-                self.group = node.value.value[len('Group: '):]
-                self.docs[self.group] = {}
+            if type(node.value.value) is str and node.value.value.strip().startswith('Group: '):
+                self.group = node.value.value.strip().splitlines()[0].strip()[len('Group: '):]
+                self.docs[self.group] = {'description': '\n'.join(node.value.value.strip().splitlines()[1:]).strip()}
 
             elif self.key:
                 self.docs[self.group][self.key][1] = node.value.value.strip()
@@ -50,3 +50,12 @@ for path in os.walk('.'):
 
 from rich import print
 print(docs)
+
+operator_docs = {
+    "`+`, `<<`, `>>`": "These all do the same thing: combine expressions",
+    "`*`": "Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` is equivalent to `anyAmt(expr)`",
+    "`+`": "A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator",
+    "`[]`": "expr[2, 3] is equivalent to `match_range(2, 3, expr)`\n\t- expr[2, ...] or expr[2,] is equivalent to `at_least(2, expr)`\n\t- expr[... , 2] is equivalent to `at_most(2, expr)`\n\t- expr[...] or expr[0, ...] is equivelent to `at_least_0(expr)`\n\t- expr[1, ...] is equivalent to `at_least_1(expr)`",
+    "`&`": "Coming soon! This will work like the + operator, but they can be out of order. Like an and operation.",
+    "`|`": "Coming soon! This will work like an or operation, which will work just like anyOf()",
+}
