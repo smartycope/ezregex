@@ -24,7 +24,7 @@ from _regexs import *
 from _regexs import _regexsLine
 
 
-def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, _api=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
+def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, internal=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
     global ow
     if singletons:
         print("Testing EZRegex singletons...")
@@ -163,18 +163,15 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
 
         group(+group(number) + group(anyof('98'))).test('999')
 
-    if _api:
-        #// rprint((word + number)._matchJSON())
-        #// rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
-        # rprint(api(ifFollowedBy(word)))
-        # rprint(api(word))
-        # rprint(api(number, test_string='word'))
-        # r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
-        # s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
-        # rprint(api(r, rgroup(1) + 'replaced', test_string=s))
-        pattern = group('pattern', name='i') + optional(er.digit) + match_max(group('')) + 'mhmm'
-        replacement = rgroup('i') + 'test'
-        rprint(api(pattern, replacement, 'pattern1mhmm'))
+    if internal:
+        # rprint((word + number)._matchJSON())
+        # rprint((word + whitechunk + group('func') + ':' + namedGroup('test', anyof('8', '7')))._matchJSON())
+        rprint(ifFollowedBy(word)._matchJSON())
+        rprint(word._matchJSON())
+        rprint(number._matchJSON('word'))
+        r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
+        s = 'random stuff! and then group 1: stuff | group 2: things | named group "foo": bar  \t oh and then more random stuff'
+        rprint(r._matchJSON(s))
 
     if operators:
         print('Testing operators...')
