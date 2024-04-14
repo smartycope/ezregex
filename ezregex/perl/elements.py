@@ -1,19 +1,32 @@
-#!/usr/bin/env python3
+# pyright: reportArgumentType = false
+import re
+from json import load
+
+from ..base import load_base
 from ..EZRegex import EZRegex
-from sys import version_info
-from re import RegexFlag, escape
-from warnings import warn
 
-# This also imports all the psuedonymns from the python submodule as well
-from ..python import *
+globals().update(load_base('perl'))
 
-def earlierGroup(num_or_name):
-    """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
-    group which would match `num_or_name`. """
-    if isinstance(num_or_name, int) or num_or_name in '0123456789':
-        return EZRegex(lambda num_or_name, cur=...: rf'{cur}\\{num_or_name}')(num_or_name)
-    else:
-        return EZRegex(lambda num_or_name, cur=...: rf'{cur}(\g<{num_or_name}>)')(num_or_name)
+del UNICODE # type: ignore
 
-# I'm not sure this will still work under Perl
-del email
+# TODO: Use https://docs.python.org/3/library/string.html#string.Formatter instead
+def replace(string, rtn_str=True):
+    # Made with ezregex.org
+    # Previous method
+    # '{' + optional(anyCharExcept('{'), greedy=False) + group(+alphaNum) + '}' + optional(anyCharExcept('}'), greedy=False)
+    # Current method
+    # '{' + group(+alphaNum) + '}'
+    r = r'\{((?:[A-Za-z0-9_])+)\}'
+    # Convert them to something unique, then back, so we won't pick up things like {{this}}
+    # {{this}} -> \0(this\0) -> {this}
+    # instead of
+    # {{this}} -> {this} -> \g<this>
+    string = re.sub('{{', '\0\0(', string)
+    string = re.sub('}}', '\0\0)', string)
+    string = re.sub(r, r'\\g<\g<1>>', string)
+    string = re.sub(r'\0\0\(', '{', string)
+    string = re.sub(r'\0\0\)', '}', string)
+    return string if rtn_str else EZRegex(string, 'perl', sanatize=False, replacement=True)
+
+rgroup = EZRegex(lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>', 'perl', replacement=True)
+replace_entire = EZRegex(lambda cur=...: cur + r'\g<0>', 'perl', replacement=True)
