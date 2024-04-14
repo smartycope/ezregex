@@ -1,50 +1,25 @@
+# pyright: reportArgumentType = false
 import colorsys
+import logging
 import re
 from copy import deepcopy
 from functools import partial
-from typing import List, Literal, LiteralString
+from typing import Callable, List, Literal, LiteralString
 from warnings import warn
-import logging
 
-from .invert import invert
+from .api import api
 from .generate import *
-
-from .specs import dialects
+from .invert import invert
+from ._dialects import dialects
 
 # TODO: consider changing addFlags to "outer" or "end" or something
 # TODO: Seriously consider removing the debug functions
-
-# These functions comprise the color algorithm for _matchJSON()
-def toHtml(r, g, b):
-            return f'#{r:02x}{g:02x}{b:02x}'
-
-def toRgb(html: str) -> tuple:
-    hex_color = html.lstrip('#')
-    rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-    return rgb
-
-def generate_colors(amt, s=1, v=1, offset=0):
-    """ Generate `amt` number of colors evenly spaced around the color wheel
-        with a given saturation and value
-    """
-    amt += 1
-    return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
-
-def furthest_colors(html, amt=5, v_bias=0, s_bias=0):
-    """ Gets the `amt` number of colors evenly spaced around the color wheel from the given color
-        `v_bias` and `s_bias` are between 0-1 and offset the colors
-    """
-    amt += 1
-    h, s, v = colorsys.rgb_to_hsv(*map(lambda c: c/255, toRgb(html)))
-
-    return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
-
 
 class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
     def __init__(self,
-                 definition:List[partial[str]]|str|"EZRegex"|partial[str],
+                 definition:List[partial[str]]|str|"EZRegex"|partial[str]|list[str],
                  dialect: str,
                  sanatize:bool=True,
                  init:bool=True,
@@ -75,7 +50,8 @@ class EZRegex:
 
         self.sanatize = sanatize
         self.replacement = replacement
-        self.funcList = list(definition)
+        # This allows strings in the list now, but they get converted later in this function
+        self.funcList: list[str|partial[str]|Callable] = list(definition)
         # Just some psuedonymns
         self.example = self.invert = self.inverse
         self.dialect = dialect
@@ -95,6 +71,7 @@ class EZRegex:
                     self.funcList[i] = lambda cur=...: cur + stringBecauseHatred
                 elif not callable(self.funcList[i]) and self.funcList[i] is not None:
                     raise ValueError(f"Invalid type {type(self.funcList[i])} passed to EZRegex constructor")
+
 
     def _escape(self, pattern:str):
         """ This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255 """
@@ -352,7 +329,7 @@ class EZRegex:
     def _compile(self, addFlags=True):
         regex = ''
         for func in self.funcList:
-            regex = func(cur=regex)
+            regex = func(cur=regex) # type: ignore
 
         # Add the flags
         if addFlags:
@@ -381,7 +358,7 @@ class EZRegex:
 
     def copy(self, addFlags=True):
         try:
-            from clipboard import copy
+            from clipboard import copy  # type: ignore
         except ImportError as err:
             raise ModuleNotFoundError('Please install the clipboard module in order to auto copy '
                                       'ezregex expressions (i.e. pip install clipboard)') from err
@@ -435,17 +412,17 @@ class EZRegex:
             gt.append('" ')
             gt.append(f"({m['match']['start']}:{m['match']['end']})", style='italic bright_black')
             gt.append('\n')
-            if len(m['unnamedGroups']):
+            if len(m['unnamed groups']):
                 gt.append('Unnamed Groups:\n')
-            for cnt, group in enumerate(m['unnamedGroups']):
-                gt.append(f'\t{cnt+1}: "')
-                gt.append(group['string'], style=group['color'])
+            for id, group in m['unnamed groups'].items():
+                gt.append(f'\t{id}: "')
+                gt.append(['string'], style=group['color'])
                 gt.append('" ')
                 gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
                 gt.append('\n')
-            if len(m['namedGroups']):
+            if len(m['named groups']):
                 gt.append('Named Groups:\n')
-            for name, group in m['namedGroups'].items():
+            for name, group in m['named groups'].items():
                 gt.append(f'\t{name}: "')
                 gt.append(group['string'], style=group['color'])
                 gt.append('" ')
