@@ -1,28 +1,28 @@
+import random
 import re
 from inspect import currentframe, getframeinfo
 
 from rich import print as rprint
 from rich.table import Table
 from rich.text import Text
+from test_generate import *
 
 import ezregex.python as er
-from ezregex.python import *
-from ezregex.invert import *
-from ezregex.generate import *
-from test_generate import *
 from ezregex import api
-
-import random
+from ezregex.generate import *
+from ezregex.invert import *
+from ezregex.python import *
 
 try:
     from Cope import debug
 except ImportError:
     pass
 
+from _groups import *
+from _groups import _losers, _winners
 from _regexs import *
 from _regexs import _regexsLine
-from _groups import *
-from _groups import _winners, _losers
+
 
 def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, _api=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
     global ow

@@ -1,10 +1,10 @@
 from inspect import currentframe, getframeinfo
 
-import ezregex.python as er
-from ezregex.python import *
-from ezregex.invert import *
-
 from _regexs import *
+
+import ezregex.python as er
+from ezregex.invert import *
+from ezregex.python import *
 
 # This goes (regex,                                                                         (things it should match),                                    (things it shouldnt match))
 _regexsLine = getframeinfo(currentframe()).lineno + 2
