@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from random import choice, choices, randint
 from warnings import warn
 
+
 def unsanitize(string):
     return re.sub(r'\\([' + re.escape(')([]{}+*$^-\\?| ,') + r'])', '\g<1>', string)
 

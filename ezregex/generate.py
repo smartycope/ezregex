@@ -8,10 +8,10 @@ https://nbviewer.jupyter.org/url/norvig.com/ipython/xkcd1313-part2.ipynb
 Credit goes to Peter Norvig and Stefan Pochmann.
 """
 
-from collections import Counter, defaultdict
-import re
 import itertools
 import random
+import re
+from collections import Counter, defaultdict
 
 Set = frozenset # Data will be frozensets, so they can't be mutated.
 
@@ -132,12 +132,12 @@ class BranchBound(object):
         return self.cheapest
 
 # TODO: Reimplement this eventually
-def consider_negative_lookahead(W, L):
-    "Return either SOLUTION[W, L] or negative lookup of SOLUTION[L, W], whichever is shorter."
-    solution = min(SOLUTION[W, L], '^(?!.*(' + SOLUTION[L, W] + '))',
-                   key=len)
-    assert not mistakes(solution, W, L)
-    return solution
+# def consider_negative_lookahead(W, L):
+#     "Return either SOLUTION[W, L] or negative lookup of SOLUTION[L, W], whichever is shorter."
+#     solution = min(SOLUTION[W, L], '^(?!.*(' + SOLUTION[L, W] + '))',
+#                    key=len)
+#     assert not mistakes(solution, W, L)
+#     return solution
 
 class BranchBoundRandomRestart(BranchBound):
     def search(self, covers, partial=None):

@@ -11,9 +11,9 @@ from random_word.services.local import Local
 from ezregex import *
 
 if version_info.minor <= 10:
-    from re import sre_parse as sre
+    from re import sre_parse as sre  # type: ignore
 else:
-    from re import _parser as sre
+    from re import _parser as sre  # type: ignore
 
 # So I can debug this function directly
 if __name__ != '__main__':
@@ -90,7 +90,7 @@ def invert(
     try:
         match backend:
             case 'xeger':
-                from xeger import Xeger
+                from xeger import Xeger  # type: ignore
                 rtn = Xeger().xeger(expr)
             case 'regex':
                 # Tries already gets implemented in this function
@@ -100,7 +100,7 @@ def invert(
                     # Handle the error ourselves
                     rtn = None
             case 'sre_yield':
-                import sre_yield
+                import sre_yield  # type: ignore
                 for i in sre_yield.AllStrings(expr):
                     rtn = i
             case 're_parser':
