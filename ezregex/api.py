@@ -1,8 +1,8 @@
-import re
 import colorsys
+import re
 
 foreground_s = .75
-foreground_v = 1
+foreground_v = 1.
 background_v_bias = .5
 background_s_bias = .9
 
@@ -15,14 +15,14 @@ def toRgb(html: str) -> tuple:
     rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     return rgb
 
-def generate_colors(amt, s=1, v=1, offset=0):
+def generate_colors(amt, s:float=1, v:float=1, offset:int=0):
     """ Generate `amt` number of colors evenly spaced around the color wheel
         with a given saturation and value
     """
     amt += 1
     return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
 
-def furthest_colors(html, amt=5, v_bias=0, s_bias=0):
+def furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
     """ Gets the `amt` number of colors evenly spaced around the color wheel from the given color
         `v_bias` and `s_bias` are between 0-1 and offset the colors
     """
