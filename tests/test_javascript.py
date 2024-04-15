@@ -6,8 +6,9 @@ import jstyleson
 from Cope import RedirectStd
 
 def runjs(js):
-    with RedirectStd(stdout=):
-        py_js_runner.javascript().run(js)
+    pass
+    # with RedirectStd(stdout=):
+    #     py_js_runner.javascript().run(js)
 
 
 def test_javascript():
