@@ -1,4 +1,5 @@
 # pyright: reportArgumentType = false
+# pyright: reportUndefinedVariable = false
 import re
 from json import load
 
@@ -28,3 +29,12 @@ def replace(string, rtn_str=True):
 
 rgroup = EZRegex(lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>', 'javascript', replacement=True)
 replace_entire = EZRegex(lambda cur=...: cur + r'\g<0>', 'javascript', replacement=True)
+
+ctrl_char = EZRegex(lambda char, cur=...: cur + r'\c' + char)
+ascii_char = EZRegex(lambda octal, cur=...: cur + r'\\' + octal)
+
+# TODO: There's probably a way to do this by hand
+del line_starts_with
+del line_ends_with
+# string_starts_with = EZRegex(lambda input='', cur=...: r'\A' + input + cur},
+# string_ends_with = EZRegex(lambda input='', cur=...: input + r'\Z' + cur},
