@@ -5,7 +5,7 @@ from random import choice, choices, randint
 from re import search
 from sys import version_info
 from typing import Literal, Union
-
+from pathlib import Path
 from ezregex import *
 
 if version_info.minor <= 10:
@@ -17,7 +17,7 @@ else:
 if __name__ != '__main__':
     from .invert_old import invertRegex
 
-with open('ezregex/assets/words.json') as f:
+with open(Path(__file__).parent / 'assets' / 'words.json') as f:
     words = json.load(f).keys()
 
 # Don't use string.whitespace, because we don't want to use weird difficult to print characters.
