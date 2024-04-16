@@ -118,7 +118,7 @@ for dialect, spec in docs.items():
                 s += '\t- ' + description + '\n'
         s += '\n</details>\n\n'
 
-    sdocs += f'<details>\n\t<summary><strong><u>{dialect}</u></strong></summary>{s}</details>\n\n'
+    sdocs += f'<details>\n\t<summary><strong><u>{dialect}</u></strong></summary>{s}</details>\n'
 
 # sdocs += '<details>\n\t<summary>Operators</summary>\n\n'
 # for op, desc in operator_docs.items():
