@@ -16,8 +16,8 @@ prerelease = 'hatch build'
 
 [project]
 name = 'ezregex'
-version = '1.9.1'
+version = '1.9.2'
 description = 'A readable and intuitive way to generate Regular Expressions'
-dependencies = ['random_word']
+dependencies = []
 readme = "README.md"
 requires-python = ">=3.10"
