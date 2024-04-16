@@ -30,3 +30,4 @@ def replace(string, rtn_str=True):
 
 rgroup = EZRegex(lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>', 'python', replacement=True)
 replace_entire = EZRegex(lambda cur=...: cur + r'\g<0>', 'python', replacement=True)
+bell = EZRegex('\a')
