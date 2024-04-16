@@ -37,7 +37,7 @@ classifiers = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/smartycope/ezregex#readme"
+Documentation = "https://github.com/smartycope/ezregex?tab=readme-ov-file#documentation"
 Issues = "https://github.com/smartycope/ezregex/issues"
 Source = "https://github.com/smartycope/ezregex"
 "Official Website" = "https://ezregex.org"
