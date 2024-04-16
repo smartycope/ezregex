@@ -17,7 +17,31 @@ prerelease = 'hatch build'
 [project]
 name = 'ezregex'
 version = '1.9.2'
+dynamic = ["version"]
 description = 'A readable and intuitive way to generate Regular Expressions'
 dependencies = []
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Copeland Carter", email = "smartycope@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[project.urls]
+Documentation = "https://github.com/smartycope/ezregex#readme"
+Issues = "https://github.com/smartycope/ezregex/issues"
+Source = "https://github.com/smartycope/ezregex"
+"Official Website" = "https://ezregex.org"
+
+[tool.hatch.version]
+path = "ezregex/__init__.py"
