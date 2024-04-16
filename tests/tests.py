@@ -253,13 +253,13 @@ difficulty = 1
 runTests(
     # These should remain on, for the GitHub automated tests
     singletons=True,
-    _invert=False,
+    _invert=True,
     replacement=True,
     operators=True,
-    _generate=True,
+    _generate=False,
     # These display for you to check that they look correct
     testMethod=False,
-    _api=False,
+    # _api=False,
     # Settings
     strictness=difficulty,
     invert_tries=101-difficulty,
