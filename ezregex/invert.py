@@ -6,8 +6,6 @@ from re import search
 from sys import version_info
 from typing import Literal, Union
 
-from random_word.services.local import Local
-
 from ezregex import *
 
 if version_info.minor <= 10:
@@ -19,7 +17,7 @@ else:
 if __name__ != '__main__':
     from .invert_old import invertRegex
 
-with open(Local().source) as f:
+with open('ezregex/assets/words.json') as f:
     words = json.load(f).keys()
 
 # Don't use string.whitespace, because we don't want to use weird difficult to print characters.
