@@ -135,6 +135,7 @@ base = {
     'quote':              {'definition': r'(?:\'|"|`)'},
     'vertical_tab':       {'definition': r'\v'},
     'form_feed':          {'definition': r'\f'},
+    'null':               {'definition': r'\0'},
     'comma':              {'definition': r'\,'},
     'period':             {'definition': r'\.'},
     'underscore':         {'definition': r'_'},
@@ -159,6 +160,7 @@ base = {
     'letter':             {'definition': r'[A-Za-z]'},
     'hex_digit':          {'definition': r'[0-9a-fA-F]'},
     'oct_digit':          {'definition': r'[0-7]'},
+    # TODO: This should use dialect specific escape, not re.escape
     'punctuation':        {'definition': r'[' + escape('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]') + r']'},
     'controller':         {'definition': r'[\x00-\x1F\x7F]'},
     'printable':          {'definition': r'[\x21-\x7E]'},
