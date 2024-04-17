@@ -1,4 +1,3 @@
-# import jsonc
 from ezregex import python
 import jstyleson
 import ezregex as er
