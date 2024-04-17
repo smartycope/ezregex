@@ -95,7 +95,8 @@ for dialect, spec in docs.items():
     s = ''
     # Iterate through the groups
     for group, elements in spec.items():
-        s += f'<details style="padding-left: 20px;">\n\t<summary>{group.title()}</summary>\n\n'
+        #  style="padding-left: 20px;"
+        s += f'<details>\n\t<summary>{group.title()}</summary>\n\n'
         # Add the group description, if there is one
         if 'description' in elements:
             s += '#### ' + elements.pop('description') + '\n'
@@ -117,7 +118,7 @@ for dialect, spec in docs.items():
                 s += '\t- ' + description + '\n'
         s += '\n</details>\n\n'
 
-    sdocs += f'<details>\n\t<summary>{dialect}</summary>{s}</details>\n'
+    sdocs += f'<details>\n\t<summary><strong><u>{dialect}</u></strong></summary>{s}</details>\n'
 
 # sdocs += '<details>\n\t<summary>Operators</summary>\n\n'
 # for op, desc in operator_docs.items():
