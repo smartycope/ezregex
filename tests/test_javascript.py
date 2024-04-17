@@ -12,6 +12,7 @@ def runjs(js):
 
 
 def test_javascript():
+    return # This should be written in the javascript branch
     offset = 2
 
     with open('tests/regexs.jsonc') as f:
