@@ -1,11 +1,9 @@
 # pyright: reportArgumentType = false
-import colorsys
 import logging
 import re
 from copy import deepcopy
 from functools import partial
 from typing import Callable, List, Literal, LiteralString
-from warnings import warn
 
 from .api import api
 from .generate import *
@@ -15,6 +13,7 @@ from ._dialects import dialects
 # TODO: consider changing addFlags to "outer" or "end" or something
 # TODO: Seriously consider removing the debug functions
 # TODO: in all the magic functions assert that we're not mixing dialects
+# TODO: delete induvidual deepcopy statements and rerun all the tests to see what ones I can remove
 
 class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
@@ -36,12 +35,13 @@ class EZRegex:
         if dialect not in dialects.keys():
             raise ValueError(f'Unsupported dialect `{dialect}` given. Supported dialects are: {list(dialects.keys())}')
 
+        # Set attributes like this so the class can remain "immutable", while still being usable
         self.__setattr__('flags', flags, True)
         # Parse params
         # Add flags if it's another EZRegex
         if isinstance(definition, EZRegex):
             self.__setattr__('flags', definition.flags, True)
-            if definition._dialect != dialect:
+            if definition.dialect != dialect:
                 raise ValueError('Cannot mix regex dialects')
 
         if isinstance(definition, (str, EZRegex)):
@@ -54,9 +54,7 @@ class EZRegex:
         # This allows strings in the list now, but they get converted later in this function
         # self._funcList: list[str|partial[str]|Callable] = list(definition)
         self.__setattr__('_funcList', list(definition), True)
-        # Just some psuedonymns
-        # self.example = self.invert = self.inverse
-        self.__setattr__('_dialect', dialect, True)
+        self.__setattr__('dialect', dialect, True)
         # The dict that has the values
         self.__setattr__('_dialect_attr', dialects[dialect], True)
 
@@ -116,7 +114,7 @@ class EZRegex:
             if not len(args) and not len(kwargs):
                 return self._compile()
             else:
-                raise ValueError("You're trying to pass parameters to a chain of expressions. That doesn't make any sense. Stop that.")
+                raise TypeError("You're trying to pass parameters to a chain of expressions. That doesn't make any sense. Stop that.")
 
         # Sanatize the arguments
         args = list(map(self._sanitizeInput if self._sanatize else deepcopy, args))
@@ -127,7 +125,7 @@ class EZRegex:
 
         return EZRegex(
             [partial(self._funcList[0], *args, **_kwargs)],
-            dialect=self._dialect,
+            dialect=self.dialect,
             init=False,
             sanatize=self._sanatize,
             replacement=self.replacement,
@@ -146,7 +144,7 @@ class EZRegex:
 
     def __mul__(self, amt):
         if amt is Ellipsis:
-            return EZRegex(f'(?{self})*', self._dialect, sanatize=False)
+            return EZRegex(f'(?{self})*', self.dialect, sanatize=False)
         rtn = self
         # This isn't optimal, but it's unlikely anyone will use this with large numbers
         for i in range(amt-1):
@@ -164,7 +162,7 @@ class EZRegex:
 
     def __add__(self, thing):
         return EZRegex(self._funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
-            dialect=self._dialect,
+            dialect=self.dialect,
             init=False,
             sanatize=self._sanatize or thing._sanatize if isinstance(thing, EZRegex) else self._sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
@@ -173,7 +171,7 @@ class EZRegex:
 
     def __radd__(self, thing):
         return EZRegex([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self._funcList,
-            dialect=self._dialect,
+            dialect=self.dialect,
             init=False,
             sanatize=self._sanatize or thing._sanatize if isinstance(thing, EZRegex) else self._sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
@@ -185,12 +183,12 @@ class EZRegex:
         return self + thing
 
     def __and__(self, thing):
-        warn('The & operator is unstable still. Use each() instead.')
-        return EZRegex(fr'(?={self}){thing}', self._dialect, sanatize=False)
+        logging.warning('The & operator is unstable still. Use each() instead.')
+        return EZRegex(fr'(?={self}){thing}', self.dialect, sanatize=False)
 
     def __rand__(self, thing):
-        warn('The & operator is unstable still. Use each() instead.')
-        return EZRegex(fr'(?={thing}){self}', self._dialect, sanatize=False)
+        logging.warning('The & operator is unstable still. Use each() instead.')
+        return EZRegex(fr'(?={thing}){self}', self.dialect, sanatize=False)
 
     # The shift operators just shadow the add operators
     def __lshift__(self, thing):
@@ -220,15 +218,14 @@ class EZRegex:
 
     def __pos__(self):
         comp = self._compile()
-        return EZRegex(('' if not len(comp) else r'(?:' + comp + r')') + r'+', self._dialect, sanatize=False)
+        return EZRegex(('' if not len(comp) else r'(?:' + comp + r')') + r'+', self.dialect, sanatize=False)
 
     def __ror__(self, thing):
-        print('ror called')
-        return EZRegex(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', self._dialect, sanatize=False)
+        return EZRegex(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', self.dialect, sanatize=False)
 
     def __or__(self, thing):
-        warn('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
-        return EZRegex(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', self._dialect, sanatize=False)
+        logging.warning('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
+        return EZRegex(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', self.dialect, sanatize=False)
 
     def __xor__(self, thing):
         return NotImplemented
@@ -290,31 +287,31 @@ class EZRegex:
                 args = args[0]
             if args is None or args is Ellipsis or args == 0:
                 # at_least_0(self)
-                return EZRegex(fr'(?:{self._compile()})*', self._dialect, sanatize=False)
+                return EZRegex(fr'(?:{self._compile()})*', self.dialect, sanatize=False)
             elif args == 1:
                 # at_least_1(self)
-                return EZRegex(fr'(?:{self._compile()})+', self._dialect, sanatize=False)
+                return EZRegex(fr'(?:{self._compile()})+', self.dialect, sanatize=False)
             else:
                 # match_at_least(args, self)
-                return EZRegex(fr'(?:{self._compile()}){{{args},}}', self._dialect, sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{{args},}}', self.dialect, sanatize=False)
         else:
             start, end = args
             if start is None or start is Ellipsis:
                 # match_at_most(2, self)
-                return EZRegex(fr'(?:{self._compile()}){{0,{end}}}', self._dialect, sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{0,{end}}}', self.dialect, sanatize=False)
             elif end is None or end is Ellipsis:
                 if start == 0:
                     # at_least_0(self)
-                    return EZRegex(fr'(?:{self._compile()})*', self._dialect, sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()})*', self.dialect, sanatize=False)
                 elif start == 1:
                     # at_least_1(self)
-                    return EZRegex(fr'(?:{self._compile()})+', self._dialect, sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()})+', self.dialect, sanatize=False)
                 else:
                     # match_at_least(start, self)
-                    return EZRegex(fr'(?:{self._compile()}){{{start},}}', self._dialect, sanatize=False)
+                    return EZRegex(fr'(?:{self._compile()}){{{start},}}', self.dialect, sanatize=False)
             else:
                 # match_range(start, end, self)
-                return EZRegex(fr'(?:{self._compile()}){{{start},{end}}}', self._dialect, sanatize=False)
+                return EZRegex(fr'(?:{self._compile()}){{{start},{end}}}', self.dialect, sanatize=False)
 
     def __reversed__(self):
         return self.inverse()
@@ -324,6 +321,15 @@ class EZRegex:
 
     def __pretty__(self):
         return self._compile()
+
+    def __setattr__(self, name, value, ignore=False):
+        if ignore:
+            self.__dict__[name] = value
+        else:
+            raise TypeError('EZRegex objects are immutable')
+
+    def __delattr__(self, *args):
+        raise TypeError('EZRegex objects are immutable')
 
     # Regular functions
     def _compile(self, addFlags=True):
@@ -445,18 +451,3 @@ class EZRegex:
 
     def invert(self, amt=1, **kwargs):
         return self.inverse(amt, **kwargs)
-
-
-    @property
-    def dialect(self):
-        return self._dialect
-
-    def __setattr__(self, name, value, ignore=False):
-        if ignore:
-            self.__dict__[name] = value
-        else:
-            raise TypeError('EZRegex objects are immutable')
-
-
-    def __delattr__(self, *args):
-        raise TypeError('EZRegex objects are immutable')

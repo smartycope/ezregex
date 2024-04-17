@@ -42,3 +42,23 @@ def test_test_method():
     ('(' + +(anything + optional(group(comma))) + ')').test()# -- empty groups print as None
 
     group(+group(number) + group(anyof('98'))).test('999')
+
+def test_no_parameters_to_chains():
+    # This is sort of conceptually impossible, ish
+    # with pytest.raises(TypeError):
+    #     digit(6)
+    # with pytest.raises(TypeError):
+    #     digit(input=6)
+    with pytest.raises(TypeError):
+        (digit + word)(6)
+    with pytest.raises(TypeError):
+        (digit + word)(input=6)
+    # This is also conceptually impossible without a moderate refactor
+    # with pytest.raises(TypeError):
+    #     match_amt(6, digit)(6)
+    # with pytest.raises(TypeError):
+    #     match_amt(6, digit)(input=6)
+
+    assert match_amt(6, digit)()
+    assert (digit + word)()
+    assert digit()

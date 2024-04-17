@@ -198,7 +198,7 @@ base = {
     'if_exists':          {'definition': lambda num_or_name, does, doesnt, cur=...: f'{cur}(?({num_or_name}){does}{"|" + str(doesnt) if doesnt is not None else ""})'},
 
     # Premade
-    'literally_anything':  {'definition': r'(?:.|\n)'},
+    'literally_anything': {'definition': r'(?:.|\n)'},
     'signed':             {'definition': r'(?:(?:\-|\+))?\d+'},
     'unsigned':           {'definition': r'\d+'},
     'plain_float':        {'definition': r'(?:(?:\-|\+))?\d+\.(?:\d+)?'},

@@ -1,25 +1,25 @@
 [ // This goes ["regex pattern", "replacement regex", "base string", "what the base string should look like after substitution"]
     [
         "'------------------FIRST REPLACEMENT---------------------'",
-        "-",
+        "'-'",
         "asdk",
         "asdk"
     ],
     [ // Replace digits with *
         "digit",
-        "*",
+        "'*'",
         "123abc",
         "***abc"
     ],
     [ // Replace vowels with _
         "anyof('aeiou')",
-        "_",
+        "'_'",
         "hello",
         "h_ll_"
     ],
     [ // Replace digits with #
         "digit",
-        "#",
+        "'#'",
         "a1b2c3",
         "a#b#c#"
     ],
@@ -55,7 +55,7 @@
     ],
     [ // Replace non-word characters with space
         "group(+not_word)",
-        " ",
+        "' '",
         "a@b#c",
         "a b c"
     ],
@@ -79,13 +79,13 @@
     ],
     [ // Enclose vowels in square brackets with named group
         "group(anyof('aeiou'), 'vowel')",
-        "f'[{rgroup('vowel')}]'",
+        "f\"[{rgroup('vowel')}]\"",
         "hello",
         "h[e]ll[o]"
     ],
     [
         "'foo' + group(number, 'num') + 'bar'",
-        "f'foo-{rgroup('num')}-bar'",
+        "f\"foo-{rgroup('num')}-bar\"",
         "foo87bar",
         "foo-87-bar"
     ],
@@ -109,7 +109,7 @@
     ],
     [
         "'------------------LAST REPLACEMENT---------------------'",
-        "-",
+        "'-'",
         "asdk",
         "asdk"
     ],

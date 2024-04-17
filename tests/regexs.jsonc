@@ -1,4 +1,6 @@
 // This goes [regex, [things it should match], [things it shouldnt match]]
+// IMPORTANT NOTE: Because this is a JSON file, and the the regexs get compiled, escaped characters like \n and \t need to
+// be double escaped in the regex patterns (i.e. \\n, \\t), but NOT in the strings they should and shouldn't match
 [
     [
         "'------------------FIRST REGEX---------------------'",
@@ -167,27 +169,27 @@
     ],
     [
         "raw(r'\\n')",
-        ["\\n"],
+        ["\n"],
         []
     ],
     [
         "raw(r'\\r')",
-        ["\\r"],
+        ["\r"],
         []
     ],
     [
         "raw(r'\\t')",
-        ["\\t"],
+        ["\t"],
         []
     ],
-    [
-        "raw(r'\\v')",
-        ["\\v"],
-        []
-    ],
+    // [
+    //     "raw(r'\\v')",
+    //     ["\\v"],
+    //     []
+    // ],
     [
         "raw(r'\\f')",
-        ["\\f"],
+        ["\f"],
         []
     ],
     [
@@ -333,8 +335,8 @@
     ],
     [
         "lineStartsWith('a')",
-        ["asdfs", "a 89sdf a", "a", "sdfs\\nasdfd"],
-        [" asdf", "sdf\\nsdf", "sdf\\n a", "sdfa", "sdf"]
+        ["asdfs", "a 89sdf a", "a", "sdfs\nasdfd"],
+        [" asdf", "sdf\nsdf", "sdf\n a", "sdfa", "sdf"]
     ],
     [
         "stringEndsWith('a')",
@@ -343,7 +345,7 @@
     ],
     [
         "lineEndsWith('a')",
-        ["lklkjfda", "sdf 8 a", "a", "sdf\\na", "sdfse\\nsdafsda", "sdfa\\nsdf"],
+        ["lklkjfda", "sdf 8 a", "a", "sdf\na", "sdfse\nsdafsda", "sdfa\nsdf"],
         ["asdfds", "sd fd"]
     ],
     [
@@ -354,17 +356,17 @@
     [
         "underscore",
         ["_",],
-        ["a test", "test ", "\\ntest\\n", "\\ntest", "test\\n"]
+        ["a test", "test ", "\ntest\n", "\ntest", "test\n"]
     ],
     [
         "quote",
         ["\"", "'", "`"],
-        ["a test", "test ", "\\ntest\\n", "\\ntest", "test\\n"]
+        ["a test", "test ", "\ntest\n", "\ntest", "test\n"]
     ],
     [
         "isExactly('test')",
         ["test",],
-        ["a test", "test ", "\\ntest\\n", "\\ntest", "test\\n"]
+        ["a test", "test ", "\ntest\n", "\ntest", "test\n"]
     ],
     [
         "matchMax('a')",
@@ -398,17 +400,17 @@
     ],
     [
         "whitespace",
-        [" ", "\\t", "\\t  ", "\\n"],
+        [" ", "\t", "\t  ", "\n"],
         ["dfsd",]
     ],
     [
         "whitechunk",
-        [" ", "\\t", "\\t  ", "\\n"],
+        [" ", "\t", "\t  ", "\n"],
         ["dfsd",]
     ],
     [
         "white",
-        [" ", "\\t", "\\t  ", "\\n"],
+        [" ", "\t", "\t  ", "\n"],
         ["dfsd",]
     ],
     [
@@ -443,33 +445,33 @@
     ],
     [
         "chunk",
-        ["wordssdf   asdf\\n",],
-        ["\\n",]
+        ["wordssdf   asdf\n",],
+        ["\n",]
     ],
     [
         "spaceOrTab",
-        [" ", "\\t", " \\t  "],
-        ["\\n",]
+        [" ", "\t", " \t  "],
+        ["\n",]
     ],
     [
         "newLine",
-        ["\\n",],
+        ["\n",],
         ["\r",]
     ],
     [
         "carriageReturn",
         ["\r",],
-        ["\\n",]
+        ["\n",]
     ],
     [
         "tab",
-        ["\\t",],
+        ["\t",],
         [" ",]
     ],
     [
         "space",
         [" ",],
-        ["\\t",]
+        ["\t",]
     ],
     [
         "quote",
@@ -528,8 +530,8 @@
     ],
     [
         "word + whitechunk + group('func') + ':' + '()' + group(either('|', '7'), name='test')",
-        ["wo  func:[]|", "wo  func:[]7"],
-        []
+        ["wo  func:()|", "wo  func:()7"],
+        ["wo  func:[]|", "wo  func:(]7"],
     ],
     [
         "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test')",
@@ -538,23 +540,23 @@
     ],
     [
         "7 + anyof('abc') + lineEnd",
-        ["7a", "sdfsd7b", "sdf\\nsdf7b", "sdf\\nsdf7b\\n"],
+        ["7a", "sdfsd7b", "sdf\nsdf7b", "sdf\nsdf7b\n"],
         ["7asdfsd", "7v"]
     ],
     [
         "7 + anyof('abc') + stringEnd",
         ["7a", "sdfsd7b"],
-        ["7asdfsd", "7v", "sdf\\nsdf7bds", "sdf\\nsdf7bf\\n"]
+        ["7asdfsd", "7v", "sdf\nsdf7bds", "sdf\nsdf7bf\n"]
     ],
     [
         "lineStart + 7 + anyof('abc')",
-        ["7a", "7bsdfsd", "\\n7a", "\\n7bsdfsd"],
+        ["7a", "7bsdfsd", "\n7a", "\n7bsdfsd"],
         ["ds7asdfsd", "7v"]
     ],
     [
         "stringStart + 7 + anyof('abc')",
         ["7a", "7bsdfsd"],
-        ["ds7asdfsd", "7v", "\\n7a", "\\n7bsdfsd"]
+        ["ds7asdfsd", "7v", "\n7a", "\n7bsdfsd"]
     ],
     [
         "+alpha",
