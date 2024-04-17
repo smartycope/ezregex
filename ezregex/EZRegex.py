@@ -386,13 +386,6 @@ class EZRegex:
         if not show:
             return bool(len(json['matches']))
 
-        _cope = False
-        if context:
-            # Use the nice context function in the Cope library
-            try:   from Cope import get_context, get_metadata
-            except ImportError: pass
-            else:  _cope = True
-
         st = Text()  # String
         gt = Text()  # Groups (all the group-related text)
         defaultColor = 'bold'
@@ -400,8 +393,7 @@ class EZRegex:
 
         st.append("Testing expression", style=defaultColor)
         # Add the context line
-        if _cope:
-            st.append(f' (from {get_context(get_metadata(2), False, True, True).strip()})', style=defaultColor)
+        # st.append(f' (from {get_context(get_metadata(2), False, True, True).strip()})', style=defaultColor)
         st.append(':\n', style=defaultColor)
 
         # The expression we're testing
