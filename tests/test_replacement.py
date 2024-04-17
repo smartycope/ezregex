@@ -1,6 +1,5 @@
 import re
 
-from ezregex.invert import *
 from ezregex import python
 from ezregex import *
 
@@ -9,7 +8,7 @@ import jstyleson
 
 def test_replacement():
     offset = 2
-    with open('tests/replacements.jsonc') as f:
+    with open('tests/data/replacements.jsonc') as f:
         replacements = jstyleson.load(f)
 
     for pattern_str, repl_str, s, ans in replacements:

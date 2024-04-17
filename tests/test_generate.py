@@ -1,7 +1,6 @@
 import re
-from groups import *
-from groups import _losers, _winners
-
+from tests.data.groups import *
+from tests.data.groups import _losers, _winners
 
 from ezregex.generate import *
 

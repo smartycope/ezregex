@@ -1,4 +1,3 @@
-from multiprocessing import Value
 from rich import print as rprint
 from rich.table import Table
 import time
@@ -19,10 +18,10 @@ def test_invert():
     offset = 2
 
     # The structure is ["regex pattern", "replacement regex", "base string", "what the base string should look like after substitution"]
-    with open('tests/replacements.jsonc') as f:
+    with open('tests/data/replacements.jsonc') as f:
         replacements = jstyleson.load(f)
 
-    with open('tests/regexs.jsonc') as f:
+    with open('tests/data/regexs.jsonc') as f:
         regexs = jstyleson.load(f)
 
     # with open('deleteme.txt', 'w') as f:

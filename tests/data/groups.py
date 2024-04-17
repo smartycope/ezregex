@@ -1,7 +1,5 @@
 import random
 
-# from builtins import __builtin__
-
 Set = frozenset # Data will be frozensets, so they can't be mutated.
 
 def words(text):

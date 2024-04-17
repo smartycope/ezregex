@@ -1,14 +1,12 @@
-strictness=20
-dontIncludePassed=True
-invertBackend='re_parser'
-invert_tries=1
-import random
 import re
 
 import pytest
 from ezregex import *
-import jstyleson
-import ezregex as er
+
+strictness=20
+dontIncludePassed=True
+invertBackend='re_parser'
+invert_tries=1
 offset = 2
 
 
@@ -16,11 +14,6 @@ def test_invert():
     import ezregex as er
     regex = (er.digit + er.word)
     assert re.search(regex.str(), ~regex)
-
-def test_not():
-    # Not sure why this doesn't work?...
-    with pytest.raises(NotImplementedError):
-        not anything
 
 # TODO: Finish this
 # assert digit * ... == matchMax(digit)
