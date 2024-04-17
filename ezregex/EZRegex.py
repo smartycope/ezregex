@@ -443,6 +443,10 @@ class EZRegex:
             Useful for debugging purposes. """
         return '\n'.join([invert(self._compile(), **kwargs) for _ in range(amt)])
 
+    def invert(self, amt=1, **kwargs):
+        return self.inverse(amt, **kwargs)
+
+
     @property
     def dialect(self):
         return self._dialect

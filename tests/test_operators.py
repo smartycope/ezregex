@@ -2,12 +2,40 @@ strictness=20
 dontIncludePassed=True
 invertBackend='re_parser'
 invert_tries=1
+import random
+import re
+from ezregex import *
+import jstyleson
+import ezregex as er
+offset = 2
+
 
 def test_invert():
     # The ~ operator
-    for r in random.choices(regexs, k=strictness):
-        regex, match, dontMatch = r
-        assert re.search(regex.str(), ~regex), f"Invertting with ~ failed to find {regex} in {~regex}"
+    # for r in random.choices(regexs, k=strictness):
+        # regex, match, dontMatch = r
+
+
+    with open('tests/regexs.jsonc') as f:
+        regexs = jstyleson.load(f)
+
+    for cnt, r in enumerate(regexs):
+        regex_str, match, dontMatch = r
+        regex = eval(regex_str, python.__dict__)
+        inverse = ~regex
+        try:
+            assert re.search(regex.str(), inverse), f"Invertting with ~ failed to find {regex} in {inverse}"
+        #     if match:
+        #         for m in match:
+        #             assert m in regex, f"{regex} does not match '{m}' (approx. {__file__}, line {offset+(cnt*4)})"
+        #     if dontMatch:
+        #         for m in dontMatch:
+        #             assert m not in regex, f"{regex} DOES match '{m}' (approx. {__file__}, line {offset+(cnt*4)})"
+        except Exception as err:
+            print(regex)
+            print(f'Error @ approx. {__file__}, line {offset+(cnt*4)}: \nregex = `{regex}`, inverse = `{~inverse}`')
+            raise err#.with_traceback(None)
+
 
     # Not sure why this doesn't work?...
     # try:

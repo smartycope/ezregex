@@ -1,4 +1,4 @@
-import jsonc
+# import jsonc
 from ezregex import javascript
 # import js2py
 import py_js_runner

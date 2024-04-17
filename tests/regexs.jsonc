@@ -512,7 +512,7 @@
         ["", "b"]
     ],
     [
-        "atLeast[]('a')",
+        "atLeast(0, 'a')",
         ["", "a", "aaaaaaaaaa", "b"],
         []
     ],
@@ -576,6 +576,16 @@
         ["<user@host.com>", "user@host.com"],
         ["user@host.com>"]
     ],
+    [
+        "match_range(1, 5, word + ' ')",
+        [],
+        []
+    ],
+    [
+        "(match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ')",
+        [],
+        []
+    ]
     // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk)) + 'bar',  ('fooum here there that bar', 'foo that there here bar'),               None),
     // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk) & (chunk + 'the' + chunk)) + 'bar',  ('fooum the here there that bar', 'foo that there thehere bar'), ('fooum here there that bar', 'foo that there here bar')),
     // (,                                                                                    (,),                                                                    (,)),

@@ -1,13 +1,19 @@
 import re
 
 from ezregex.invert import *
-from ezregex.python import *
+from ezregex import python
 
-import jsonc
+# import jsonc
+import jstyleson
 
 
 def test_replacement():
+    offset = 2
+    with open('tests/replacements.jsonc') as f:
+        replacements = jstyleson.load(f)
+
     for pattern, repl, s, ans in replacements:
+        pattern = eval(pattern, python.__dict__)
         assert re.sub(str(pattern), str(repl), s) == ans, \
             f'Replacing\n\t{pattern}\nwith\n\t{repl}\nin\n\t{s}\nyielded\n\t{re.sub(str(pattern), str(repl), s)}\nnot\n\t{ans}'
 

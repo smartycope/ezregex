@@ -1,4 +1,4 @@
-import jsonc
+# import jsonc
 from ezregex import python
 import jstyleson
 
