@@ -3,7 +3,7 @@ import logging
 import re
 from copy import deepcopy
 from functools import partial
-from typing import Callable, List, Literal, LiteralString
+from typing import Callable, List, Literal
 
 from .api import api
 from .generate import *

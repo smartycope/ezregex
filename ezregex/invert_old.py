@@ -6,7 +6,7 @@ from warnings import warn
 
 
 def unsanitize(string):
-    return re.sub(r'\\([' + re.escape(')([]{}+*$^-\\?| ,') + r'])', '\g<1>', string)
+    return re.sub(r'\\([' + re.escape(')([]{}+*$^-\\?| ,') + r'])', r'\g<1>', string)
 
 def randbool():
     return bool(randint(0, 1))
