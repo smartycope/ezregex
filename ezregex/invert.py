@@ -17,7 +17,7 @@ else:
 if __name__ != '__main__':
     from .invert_old import invertRegex
 
-with open(Path(__file__).parent / 'assets' / 'words.json') as f:
+with open(Path(__file__).parent / 'assets' / 'sorted_words.json') as f:
     words = json.load(f).keys()
 
 # Don't use string.whitespace, because we don't want to use weird difficult to print characters.
@@ -26,15 +26,21 @@ _whitespace   = ' '
 _everything   = string.digits + string.ascii_letters + string.punctuation + _whitespace + '_'
 
 def _randWord(length=None, word='lookup'):
+    if length is None:
+        length = randint(3, 9)
+
     if word == 'random':
-        return ''.join(choices(string.ascii_letters + '_', k=length or randint(3, 9)))
+        return ''.join(choices(string.ascii_letters, k=length))
+
     elif word == 'lookup':
-        options = list(filter((lambda i: len(i) > 2 and len(i) < 10) if length is None else (lambda i: len(i) == length), words))
-        if not len(options):
-            _randWord(length, word='random')
-        return choice(options)
+        try:
+            return choice(words[length])
+        except KeyError:
+            return _randWord(length, word='random')
+
     elif word is None:
         return 'word'
+
     else:
         raise ValueError(f"invalid parameter given for word {word}. Accepted values are either random, lookup, or None")
 
