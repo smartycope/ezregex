@@ -20,10 +20,10 @@
     <img src="https://img.shields.io/badge/dependencies-0-blue">
 </div>
 <div align="center">
-    Supported Dialects:
-    <img src="https://img.shields.io/badge/Python%20dialect-100%25-blue">
-    <img src="https://img.shields.io/badge/JavaScript%20dialect-50%25-yellow">
-    <img src="https://img.shields.io/badge/Perl%20dialect-20%25-red">
+    <img src="https://img.shields.io/badge/Supported%20Dialects-3-green">
+    <img src="https://img.shields.io/badge/Python%20Dialect-100%25-blue">
+    <img src="https://img.shields.io/badge/JavaScript%20Dialect-50%25-yellow">
+    <img src="https://img.shields.io/badge/Perl%20Dialect-20%25-red">
 </div>
 
 
