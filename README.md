@@ -1033,6 +1033,16 @@ The updated method of doing this is to define all the EZRegex elements of a dial
 ### Dialects
 Because most regex dialects *are* 90% identical, a hidden "base" dialect is implemented, but it works a bit differently. It has an `elements.py` file, but it defines all the elements as a dict in the form of {"element_name": {"keyword": "arguements"}}. It then has a `load_dialect()` function, which is the only thing importable from it. The reason it's done this way is because `dialect` is a required parameter of the EZRegex constructor, so `load_dialect()` takes a `dialect` parameter, and constructs the base elements from it's dict and returns a new dict of initialized elements to be dumped into the global scope of the dialect. The `elements.py` file of a specific dialect can then remove any elements that it doesn't support (using the `del` keyword) and add/overwrite any it does support.
 
+There's also a _dialects.py file that has a dict for each dialect to describe the dialect-specific behavior of the EZRegex class, for example, in the JavaScript dialect, /'s are added to the beginning and end of the pattern, and flags are handled differently in each dialect. This has to be implemented directly into the EZRegex class. The dicts *would* be in the dialect folders themselves, but that causes all sorts of circular dependancies, so they're all just in the _dialects.py file.
+
+There's 4 parts to the dicts in the _dialects.py file:
+- `beginning` and `end`
+    - Plain strings which describe what to tack onto the beginning and end of the compiled pattern (but *before* flags are added)
+- `flag_func`
+    - A function that gets called with `final`, which is the final compiled pattern *with* `beginning` and `end` attached, and `flags`, which is a string of all the flags applied to the pattern. Internally, the flags are single digits, because flags usually are. They get passed to this function as a single string, which can be parsed and modified if necissary (it usually isn't)
+- `escape_chars`
+    - The characters that need to be escaped. Should be a byte string (i.e. b'...')
+
 ### Inverting
 There's actually 2 algorithms implemented for "inverting" regexs. The old algorithm regexs the regexs in a specific order to replace parts one at a time. This is just as nasty and horrifying as it sounds. Dispite it being a terrible, *terrible* solution, I actually got it to work decently well.
 
