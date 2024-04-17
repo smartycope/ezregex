@@ -2,8 +2,8 @@ import re
 
 from ezregex.invert import *
 from ezregex import python
+from ezregex import *
 
-# import jsonc
 import jstyleson
 
 

@@ -1,4 +1,10 @@
 [ // This goes ["regex pattern", "replacement regex", "base string", "what the base string should look like after substitution"]
+    [
+        "'------------------FIRST REPLACEMENT---------------------'",
+        "-",
+        "asdk",
+        "asdk"
+    ],
     [ // Replace digits with *
         "digit",
         "*",
@@ -100,7 +106,13 @@
         "'(' + '${' + rgroup(1) + '})'",
         "(name, input) -> ezregex.EZRegex.EZRegex",
         "(${name, input})"
-    ]
+    ],
+    [
+        "'------------------LAST REPLACEMENT---------------------'",
+        "-",
+        "asdk",
+        "asdk"
+    ],
 ]
 
 // ("(\\b\\w{3}\\b)", "[\\1]", "The cat sat on the mat", "The [cat] [sat] on the [mat]"),  // Enclose 3-letter words in square brackets

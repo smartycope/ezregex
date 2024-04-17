@@ -12,14 +12,12 @@ def test_python():
     for cnt, r in enumerate(regexs):
         regex_str, match, dontMatch = r
         regex = eval(regex_str, python.__dict__)
-        try:
-            if match:
-                for m in match:
-                    assert m in regex, f"{regex} does not match '{m}' (approx. {__file__}, line {offset+(cnt*4)})"
-            if dontMatch:
-                for m in dontMatch:
-                    assert m not in regex, f"{regex} DOES match '{m}' (approx. {__file__}, line {offset+(cnt*4)})"
-        except Exception as err:
-            print(regex)
-            print(f'Error @ approx. {__file__}, line {offset+(cnt*4)}: \nregex = `{regex}`, match = `{match}`, dontMatch = `{dontMatch}`')
-            raise err#.with_traceback(None)
+        # try:
+        if match:
+            for m in match:
+                assert m in regex, f"{r[0]} does not match '{m}'"
+        if dontMatch:
+            for m in dontMatch:
+                assert m not in regex, f"{r[0]} DOES match '{m}'"
+        # except Exception as err:
+            # raise ValueError(f'pattern = `{r[0]}`, match = `{match}`, dontMatch = `{dontMatch}`') from err

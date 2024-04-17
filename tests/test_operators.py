@@ -4,6 +4,8 @@ invertBackend='re_parser'
 invert_tries=1
 import random
 import re
+
+import pytest
 from ezregex import *
 import jstyleson
 import ezregex as er
@@ -11,50 +13,22 @@ offset = 2
 
 
 def test_invert():
-    # The ~ operator
-    # for r in random.choices(regexs, k=strictness):
-        # regex, match, dontMatch = r
+    import ezregex as er
+    regex = (er.digit + er.word)
+    assert re.search(regex.str(), ~regex)
 
-
-    with open('tests/regexs.jsonc') as f:
-        regexs = jstyleson.load(f)
-
-    for cnt, r in enumerate(regexs):
-        regex_str, match, dontMatch = r
-        regex = eval(regex_str, python.__dict__)
-        inverse = ~regex
-        try:
-            assert re.search(regex.str(), inverse), f"Invertting with ~ failed to find {regex} in {inverse}"
-        #     if match:
-        #         for m in match:
-        #             assert m in regex, f"{regex} does not match '{m}' (approx. {__file__}, line {offset+(cnt*4)})"
-        #     if dontMatch:
-        #         for m in dontMatch:
-        #             assert m not in regex, f"{regex} DOES match '{m}' (approx. {__file__}, line {offset+(cnt*4)})"
-        except Exception as err:
-            print(regex)
-            print(f'Error @ approx. {__file__}, line {offset+(cnt*4)}: \nregex = `{regex}`, inverse = `{~inverse}`')
-            raise err#.with_traceback(None)
-
-
+def test_not():
     # Not sure why this doesn't work?...
-    # try:
-    #     not anything
-    # except NotImplementedError:
-    #     pass
-    # else:
-    #     assert False
+    with pytest.raises(NotImplementedError):
+        not anything
 
-    # This is weird...
-    digit = er.digit
+# TODO: Finish this
+# assert digit * ... == matchMax(digit)
 
-    # TODO: Finish this
-    # assert digit * ... == matchMax(digit)
-
-    # TODO: Debug this
-    # assert digit | word == anyof(digit, word), f"{digit | word} != {anyof(digit, word)}"
-    # assert 7 | digit == anyof(7, digit), f"{7 | digit} != {anyof(digit, 7)}"
-    # assert re.search(str(digit | word | '1'), '1') == re.search(anyof(digit, word, 1).str(), '1')
+# TODO: Debug this
+# assert digit | word == anyof(digit, word), f"{digit | word} != {anyof(digit, word)}"
+# assert 7 | digit == anyof(7, digit), f"{7 | digit} != {anyof(digit, 7)}"
+# assert re.search(str(digit | word | '1'), '1') == re.search(anyof(digit, word, 1).str(), '1')
 
 def test_unary_plus():
     assert +digit == matchMax(digit)

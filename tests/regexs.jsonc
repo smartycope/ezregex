@@ -1,6 +1,11 @@
 // This goes [regex, [things it should match], [things it shouldnt match]]
 [
     [
+        "'------------------FIRST REGEX---------------------'",
+        ["------------------FIRST REGEX---------------------"],
+        ["asdk"]
+    ],
+    [
         "'stuff' + ' ' + optional(comma) + space + ifFollowedBy('*')",
         ["stuff , *", "stuff  *"],
         []
@@ -585,7 +590,7 @@
         "(match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ')",
         [],
         []
-    ]
+    ],
     // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk)) + 'bar',  ('fooum here there that bar', 'foo that there here bar'),               None),
     // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk) & (chunk + 'the' + chunk)) + 'bar',  ('fooum the here there that bar', 'foo that there thehere bar'), ('fooum here there that bar', 'foo that there here bar')),
     // (,                                                                                    (,),                                                                    (,)),
@@ -616,4 +621,9 @@
     // anyBetween,                                                                           ('',),                                                                  ('',),
     // (unicode,                                                                             ('',),                                                                  ('',),
     // (word,                                                                                ('word',),                                                              ('33a',)), // Is this *supposed* to work?
+    [
+        "'------------------LAST REGEX---------------------'",
+        ["------------------LAST REGEX---------------------"],
+        ["asdk"]
+    ],
 ]

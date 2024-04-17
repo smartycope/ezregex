@@ -4,7 +4,6 @@ from rich.table import Table
 import time
 import threading
 from rich.text import Text
-import jstyleson as jsonc
 from ezregex import invert
 from ezregex.python import literal
 from ezregex import python
@@ -14,9 +13,6 @@ dontIncludePassed=True
 invertBackend='re_parser'
 invert_tries=5
 import jstyleson
-# from jsonc_parser.parser import JsoncParser
-
-#! This works
 
 
 def test_invert():
@@ -29,9 +25,8 @@ def test_invert():
     with open('tests/regexs.jsonc') as f:
         regexs = jstyleson.load(f)
 
-    # replacements = JsoncParser.parse_file('tests/replacements.jsonc')
-    # regexs = JsoncParser.parse_file('tests/regexs.jsonc')
-
+    # with open('deleteme.txt', 'w') as f:
+    #     rprint(regexs + replacements, file=f)
 
     table = Table(title="invert tests", expand=False)
     table.add_column("Line", justify="center", style="grey37")#, max_width=2)
@@ -41,6 +36,8 @@ def test_invert():
 
     for cnt, r in enumerate(regexs + replacements):
         def do_test():
+            # with open('log.txt', 'a') as f:
+            #     rprint(f'testing {r[0]}', file=f)
             try:
                 regex = eval(r[0], python.__dict__)
 
@@ -63,8 +60,6 @@ def test_invert():
         with open('summary.txt', 'w') as f:
             rprint(table, file=f)
     assert not len(table.rows)
-
-
 
 
 def test_function():
