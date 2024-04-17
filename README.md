@@ -1,27 +1,29 @@
 <div align="center">
-    <img src="https://ezregex.org/favicon.png"><br>
-    <p></p>
-
-<a href="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml">
-    <img src="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg" alt="Unit Tests">
-</a>
-<a href="https://pypi.org/project/ezregex/">
-    <img src="https://img.shields.io/pypi/v/ezregex.svg" alt="PyPI Latest Release">
-</a>
-<a href="https://choosealicense.com/licenses/mit/">
-    <img src="https://img.shields.io/github/license/smartycope/ezregex">
-</a>
-<!-- <a href="https://www.python.org/">
-    <img src="https://img.shields.io/pypi/implementation/ezregex">
-</a> -->
-<!-- <a href="https://pypi.org/project/ezregex/#files">
-    <img src="https://img.shields.io/pypi/format/ezregex">
-</a> -->
-<img src="https://img.shields.io/badge/dependencies-0-blue">
-<img src="https://img.shields.io/badge/Python%20dialect-100%25-blue">
-<img src="https://img.shields.io/badge/JavaScript%20dialect-50%25-yellow">
-<img src="https://img.shields.io/badge/Perl%20dialect-20%25-red">
+    <img src="https://ezregex.org/favicon.png">
+    <br>
+    <br>
+    <a href="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml">
+        <img src="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg" alt="Unit Tests">
+    </a>
+    <a href="https://pypi.org/project/ezregex/">
+        <img src="https://img.shields.io/pypi/v/ezregex.svg" alt="PyPI Latest Release">
+    </a>
+    <a href="https://choosealicense.com/licenses/mit/">
+        <img src="https://img.shields.io/github/license/smartycope/ezregex">
+    </a>
+    <!-- <a href="https://www.python.org/">
+        <img src="https://img.shields.io/pypi/implementation/ezregex">
+    </a> -->
+    <!-- <a href="https://pypi.org/project/ezregex/#files">
+        <img src="https://img.shields.io/pypi/format/ezregex">
+    </a> -->
+    <img src="https://img.shields.io/badge/dependencies-0-blue">
 </div>
+<div align="center">
+    Supported Dialects:
+    <img src="https://img.shields.io/badge/Python%20dialect-100%25-blue">
+    <img src="https://img.shields.io/badge/JavaScript%20dialect-50%25-yellow">
+    <img src="https://img.shields.io/badge/Perl%20dialect-20%25-red">
 </div>
 
 
