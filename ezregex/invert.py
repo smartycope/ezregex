@@ -18,7 +18,7 @@ if __name__ != '__main__':
     from .invert_old import invertRegex
 
 with open(Path(__file__).parent / 'assets' / 'sorted_words.json') as f:
-    words = json.load(f).keys()
+    words = json.load(f)
 
 # Don't use string.whitespace, because we don't want to use weird difficult to print characters.
 # We want the replacement to be readable.
@@ -34,7 +34,8 @@ def _randWord(length=None, word='lookup'):
 
     elif word == 'lookup':
         try:
-            return choice(words[length])
+            # The keys are strings, not ints, and I don't feel like fixing it
+            return choice(words[str(length)])
         except KeyError:
             return _randWord(length, word='random')
 
