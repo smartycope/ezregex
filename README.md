@@ -11,29 +11,35 @@
 <a href="https://choosealicense.com/licenses/mit/">
     <img src="https://img.shields.io/github/license/smartycope/ezregex">
 </a>
-<a href="https://www.python.org/">
+<!-- <a href="https://www.python.org/">
     <img src="https://img.shields.io/pypi/implementation/ezregex">
-</a>
-<a href="https://pypi.org/project/ezregex/#files">
+</a> -->
+<!-- <a href="https://pypi.org/project/ezregex/#files">
     <img src="https://img.shields.io/pypi/format/ezregex">
-</a>
+</a> -->
+<img src="https://img.shields.io/badge/dependencies-0-blue">
+<img src="https://img.shields.io/badge/Python%20dialect-100%25-blue">
+<img src="https://img.shields.io/badge/JavaScript%20dialect-50%25-yellow">
+<img src="https://img.shields.io/badge/Perl%20dialect-20%25-red">
 </div>
+</div>
+
 
 # EZRegex
 A readable and intuitive way to make Regular Expressions without having to know any of the syntax
 
-Try my new frontend for this library at [ezregex.org](https://ezregex.org/)!
+Try the frontend for this library at [ezregex.org](https://ezregex.org/)!
 
 TLDR: This is to regular expressions what CMake is to makefiles
 
-**Table of Contents**
+### **Table of Contents**
 * [Usage](#usage)
-* [Installation](#installation)
 * [Invert](#inverting)
 * [Generate](#generation)
 * [Dialects](#dialects)
 * [Documentation](#documentation)
-* [Explanation](#explanation-of-how-it-works)
+* [Developer Docs](#developer-documentation)
+* [Installation](#installation)
 * [Todo](#todo)
 * [License](#license)
 
@@ -50,15 +56,19 @@ from ezregex import *
 Importing as a named package is recommended
 ```python
 import ezregex as er
+
 # ow is part of er already as optional whitespace
 params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
+# Seperate parts as variables for cleaner patterns
 function = er.word + er.ow + '(' + params + ')'
+
 # Automatically calls the re.search() function for you
 function % 'some string containing func( param1 , param2)'
+
 # The test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 ```
-.test() will print all the matches, color coded to match and group (not shown here):
+.test() will print all the matches, color coded to match and group (colors not shown here):
 
 ```
 ╭───────────────────────────── Testing Regex ──────────────────────────────╮
@@ -108,22 +118,9 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 </pre>
 -->
 
-## Installation
-EZRegex is distributed on [PyPI](https://pypi.org) as a universal
-wheel and is available on Linux, macOS and Windows and supports
-Python 3.10+ and PyPy.
-
-```bash
-$ pip install ezregex
-```
-
-The import name is the same as the package name:
-```python
-import ezregex as er
-```
 
 ## Inverting
-The `invert` function provided (available as er.invert(`expression`), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
+The `invert` function (available as er.invert(`expression`), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
 
 
 ## Generation
@@ -131,32 +128,36 @@ In version 1.7.0 we introduced a new function: `generate_regex`. It takes in 2 s
 
 
 ## Dialects
-As of version 1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import a sub-package, and they should work identically (though some languages may have more features than others):
+As of version 1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import all the elements as a sub-package, and they should work identically, although some languages may not have the same features as others.
 ```python
 >>> import ezregex as er # The python dialect is the defualt dialect
->>> er.group(digit, 'name') + er.earlierGroup('name')
+>>> er.group(digit, 'name') + er.earlier_group('name')
 EZRegex("(?P<name>\d)(?P=name)")
 >>> import ezregex.perl as er
->>> er.group(digit, 'name') + er.earlierGroup('name')
+>>> er.group(digit, 'name') + er.earlier_group('name')
 EZRegex("?P<name>\d)(\g<name>")
 ```
+
 The currently implemented dialects are:
 - Python
     - Well tested, ~99% implemented
+- JavaScript
+    - Under active development, the basics *should* work, though tests aren't in place yet
 - Perl
-    - Almost identical to the Python dialect because I don't know Perl.
+    - Next on the roadmap, technically importable, but not implemented yet
 
-If you know a particular flavor of regex and would like to contribute, feel free to make a pull request, or email me at smartycope@gmail.com
-
+If you know a particular flavor of regex and would like to contribute, feel free to read the [developer documentation](#developer-documentation) and make a pull request! If you would like one that's not implemented yet, you can also add a [github issue](https://github.com/smartycope/ezregex/issues).
 
 ## Documentation
 ### Notes and Gotchas
-- When using the re library, functions like search() and sub() don't accept EZRegexs as valid regex patterns. Be sure to call either .str() or .compile(), or cast to a string when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
-- In regular Regex, a lot of random things capture groups for no reason. I find this annoying. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group(), with the optional `name` parameter.
+- The different Regular Expression dialects don't all have the same features, and those features don't all work the same way. I've tried to standardize these as best I can and use reasonable names for all the elements. If you're confused by something not working as expected, be sure to understand how your language specifically handles regular expressions.
+- When using the Python `re` library, functions like re.search() and re.sub() don't accept EZRegex patterns as valid regex. Be sure to either call .str() (or cast it to a string) or .compile() (to compile to an re.Pattern) when passing to those. Also, be careful to call the function on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
+- In regular regex, a lot of random things capture groups for no apparent reason. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group(), with the optional `name` parameter.
 - All EZRegexs (except for `raw`) auto-sanitize strings given to them, so there's no need to escape characters or use r strings. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally (unless you want that, of course). To include already written regex strings, use `raw`
 - Note that I have camelCase and snake_case versions of each of the functions, because I waver back and forth between which I like better. Both versions function identically.
-- The `input` parameter can accept strings, other EZRegexs, or entire sequences of EZRegex patterns.
-- A few of these have `greedy` and `possessive` optional parameters. They can be useful, but can get complicated. Refer to [the Python re docs](https://docs.python.org/3/library/re.html) for details.
+- The `InputType` can accept strings, other EZRegexs, or entire sequences of EZRegex patterns. It can also accept things that can be cast to a string, but it will warn you when it does, so it's better to cast to a string yourself.
+- The `invert` function can accept any regular expression, not just EZRegex expressions, if you want to use it independently of the rest of the library.
+
 <!-- Start of generated docs -->
 <details>
 	<summary><strong><u>perl</u></strong></summary><details>
@@ -997,7 +998,7 @@ and such, which all the other EZRegexs do automatically
 - `+`, `<<`, `>>`
 	- These all do the same thing: combine expressions
 - `*`
-	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` is equivalent to `anyAmt(expr)`
+	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` is equivalent to `any_amt(expr)`
 - `+`
 	- A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator
 - `[]`
@@ -1009,21 +1010,52 @@ and such, which all the other EZRegexs do automatically
 - `&`
 	- Coming soon! This will work like the + operator, but they can be out of order. Like an and operation.
 - `|`
-	- Coming soon! This will work like an or operation, which will work just like anyOf()
+	- Coming soon! This will work like an or operation, which will work just like any_of()
 - `%`
     - This automatically calls re.search() for you and returns the match object (or None). Use like this: `(digit * 2) % '99 beers on the wall'`
 - `~`
-    - This inverts the expression. This is equivalent to calling the .invert() method
+    - This inverts the expression, equivalent to calling the .invert() method
 </details>
 
-## Explanation of How it Works
-Everything relies on the EZRegex class. In the elements.py file of each dialect, I have defined a ton of pre-made EZRegexs which mimic all (or at least as many as I can) fundamental parts of the regex syntax, plus a few others which are common combinations (like chunk or optional(whitechunk)). Any of them which have parameters are wrapped in functions to provide proper typing & linting. They all are either EZRegexs or are functions which return EZRegexs. These have operators overloaded so you can combine them in intuitive ways and call them by intuitive names. All the functions passed to EZRegex take a function parameter (or a string which gets converted to a function for convenience), which gets called with the current regex expression and any parameters passed along when the instance gets called with the () operator. That way you can add things to the front or back of an expression for example, and you can change what exactly gets added to the current expression based on other parameters. You can also chain strings together, and pass them as parameters to other EZRegexs, which auto-compiles them and adds them appropriately.
+## Developer Documentation
+### The EZRegex class
+Everything relies on the EZRegex class. EZRegex shouldn't be instantiated by the user, as each dialect defines their own EZRegex elements specific to that dialect (more on that later). Each element represents a fundamental part of the Regular Expression syntax for that language, as well as less-fundemental common combinations for convenience (like email and float).
 
-I also have everything which could capture a group capture it passively, except for actual group operators, and always have the (?m) (multiline) flag automatically asserted whenever lineStart/lineEnd are used so as to differentiate between capturing at the beginning/end of a string and the beginning/end of a line.
+EZRegex can accept a string or a function to define how it's supposed to interact with the current "chain" of elements. If it's a string, it just adds it to the end. If it's a function, it can accept any positional or named parameters, but has to accept `cur=...` as the last parameter (it's complicated). The `cur` parameter is the current regular expression chain, as a string. What's returned becomes the new `cur` parameter of the next element, or, if there is no next element, the final regex. That way you can add to the front or back of an expression, and you can change what exactly gets added to the current expression based on other parameters.
+
+The EZRegex class has operators overloaded so you can combine them in intuitive ways and call them by intuitive names.
+
+### Typing & Linting
+The updated method of doing this is to define all the EZRegex elements of a dialect in `elements.py`, and then add type hints and doc strings in the `elements.pyi` file. EZRegex elements that accept parameters are typed as functions (even though they're not), for both convenience for the user when using linter, and to give documentation in an easier way. EZRegex elements that don't accept parameters should be typed as EZRegex, and given documentation as a string on the line below it. This is *slightly* non-standard, but linters support it, as well as my documentation generator script, which parses the .pyi files. The elements can also be seperated into groups in the .pyi files by using `"Group: \<group name\>\n\<group description\>"`, which also gets parsed by the documentation script. The groups aren't used in the actual library, but are helpful in seperating the documentation, as well as used in [ezregex.org](http://ezregex.org)
+
+### Dialects
+Because most regex dialects *are* 90% identical, a hidden "base" dialect is implemented, but it works a bit differently. It has an `elements.py` file, but it defines all the elements as a dict in the form of {"element_name": {"keyword": "arguements"}}. It then has a `load_dialect()` function, which is the only thing importable from it. The reason it's done this way is because `dialect` is a required parameter of the EZRegex constructor, so `load_dialect()` takes a `dialect` parameter, and constructs the base elements from it's dict and returns a new dict of initialized elements to be dumped into the global scope of the dialect. The `elements.py` file of a specific dialect can then remove any elements that it doesn't support (using the `del` keyword) and add/overwrite any it does support.
+
+### Inverting
+There's actually 2 algorithms implemented for "inverting" regexs. The old algorithm regexs the regexs in a specific order to replace parts one at a time. This is just as nasty and horrifying as it sounds. Dispite it being a terrible, *terrible* solution, I actually got it to work decently well.
+
+Later, when I was reading up on abstract syntax trees, and scrolling around on PyPi, I realized that Python has one built in, and that it's available to use. I reimplemented the whole algorithm to instead parse the AST given by the built-in re lexer, and wrote my own parser on top of it, which works *much* better.
+
+Along the way, I also discovered, deep in the corners of the internet, 2 other Python libraries which do almost the same thing: `xeger` (regex backwards), and `sre_yield`. `xeger` technically works, however it tends to include unprintable characters, so it's output isn't very readable. `sre_yeild` is better, but it can be very slow, and is not quite the use case I'm going for. My invert algorithm is meant to be a debugging tool (though it doubles well for a testing tool), so it does things like detecting words (as opposed to seperate word characters) and inserts actual words, and doing the same for numbers and inserting `12345...`, as well as a couple other enhancements.
+
+### Tests
+Tests for a while now have just been in a single `tests.py` file, which was a giant pile of all the tests. I'm currently moving to use pytest. There's a `regexs.json` file (and a `replacements.json` file) that have a bunch of regexs, along with things they're supposed to match, and things they're not supposed to match, for testing.
+
+## Installation
+EZRegex is distributed on [PyPI](https://pypi.org) as a universal wheel and is available on Linux, macOS and Windows and supports Python 3.10+ and PyPy.
+
+```bash
+pip install ezregex
+```
+
+The import name is the same as the package name:
+```python
+import ezregex as er
+```
 
 ## Todo
-See [the todo](todo.txt).
-Eventually, I would like to move the todo to GitHub issues.
+See [the todo](todo.txt). I'm slowly moving these to [GitHub issues](https://github.com/smartycope/ezregex/issues), but for now, they're mostly still there
+
 
 ## License
 EZRegex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
