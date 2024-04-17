@@ -18,10 +18,10 @@ try:
 except ImportError:
     pass
 
-from _groups import *
-from _groups import _losers, _winners
-from _regexs import *
-from _regexs import _regexsLine
+# from tests.groups import *
+# from tests.groups import _losers, _winners
+# from _regexs import *
+# from _regexs import _regexsLine
 
 
 def runTests(singletons=True, _invert=True, replacement=True, _generate=True, testMethod=False, internal=False, operators=True, strictness=20, dontIncludePassed=True, invertBackend='re_parser', invert_tries=1):
@@ -250,19 +250,19 @@ def runTests(singletons=True, _invert=True, replacement=True, _generate=True, te
 
 # From 1-100, 1 is easy, 100 is hard
 difficulty = 1
-runTests(
-    # These should remain on, for the GitHub automated tests
-    singletons=True,
-    _invert=True,
-    replacement=True,
-    operators=True,
-    _generate=False,
-    # These display for you to check that they look correct
-    testMethod=False,
-    # _api=False,
-    # Settings
-    strictness=difficulty,
-    invert_tries=101-difficulty,
-    dontIncludePassed=True,
-    invertBackend='re_parser',
-)
+# runTests(
+#     # These should remain on, for the GitHub automated tests
+#     singletons=True,
+#     _invert=False,
+#     replacement=True,
+#     operators=True,
+#     _generate=True,
+#     # These display for you to check that they look correct
+#     testMethod=False,
+#     _api=False,
+#     # Settings
+#     strictness=difficulty,
+#     invert_tries=101-difficulty,
+#     dontIncludePassed=True,
+#     invertBackend='re_parser',
+# )

@@ -1,0 +1,629 @@
+// This goes [regex, [things it should match], [things it shouldnt match]]
+[
+    [
+        "'------------------FIRST REGEX---------------------'",
+        ["------------------FIRST REGEX---------------------"],
+        ["asdk"]
+    ],
+    [
+        "'stuff' + ' ' + optional(comma) + space + ifFollowedBy('*')",
+        ["stuff , *", "stuff  *"],
+        []
+    ],
+    [
+        "'stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*')",
+        ["stuffa , *", "stuffb  *"],
+        []
+    ],
+    [
+        "anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*')",
+        ["a , *", "b  *"],
+        []
+    ],
+    [
+        "'stuff' + anyof('a', 'b', 'c')",
+        ["stuffa", "stuffb"],
+        []
+    ],
+    [
+        "anyof('a', 'b', 'c')",
+        ["a", "b", "c"],
+        []
+    ],
+    [
+        "one_of('a', 'b', 'c')",
+        ["a", "b", "c"],
+        []
+    ],
+    [
+        "'a' + ifFollowedBy('*')",
+        ["a*"],
+        []
+    ],
+    [
+        "optional(comma) + space",
+        [", ", " "],
+        []
+    ],
+    [
+        "optional(word + ow + ',' + ow) + group(word) + optional(',') + ow",
+        ["word\t ,word2, ", "word", "worddsfs    ", "word,   "],
+        ["", "  "]
+    ],
+    [
+        "optional(whitechunk + 'as' + word)",
+        [" asword"],
+        []
+    ],
+    [
+        "group(optional(matchMax(literal('.') + word)))",
+        ["..........word", ""],
+        []
+    ],
+    [
+        "matchNum(3, either(\"'\", '\"'))",
+        ["\"\"\""],
+        []
+    ],
+    [
+        "matchNum(2, '0')",
+        ["00"],
+        []
+    ],
+    [
+        "matchNum(1, raw('6'))",
+        ["6"],
+        []
+    ],
+    [
+        "raw(r'\\A')",
+        [""],
+        []
+    ],
+    [
+        "raw(r'\\Z')",
+        [""],
+        []
+    ],
+    [
+        "exactly('test')",
+        ["test"],
+        []
+    ],
+    [
+        "raw(r'(test)+')",
+        ["test", "testt", "testtt", "testttt"],
+        []
+    ],
+    [
+        "raw(r'test+')",
+        ["testtesttest"],
+        []
+    ],
+    [
+        "raw(r'(test){3}')",
+        ["testtesttest"],
+        []
+    ],
+    [
+        "raw(r'test{3}')",
+        ["testttt"],
+        []
+    ],
+    [
+        "raw(r'(test){3,5}')",
+        ["testtesttest", "testtesttesttesttest"],
+        []
+    ],
+    [
+        "raw(r\"(test){3, 5}\")",
+        [],
+        []
+    ],
+    [
+        "raw(r\"test{3, 5}\")",
+        [],
+        []
+    ],
+    [
+        "raw(r'test{3,5}')",
+        ["testttt", "testttttt"],
+        []
+    ],
+    [
+        "raw(r'(test){3,}')",
+        ["testtesttest", "testtesttesttest", "testtesttesttesttest"],
+        []
+    ],
+    [
+        "raw(r'test{3,}')",
+        ["testttt", "testtttt", "testttttt"],
+        []
+    ],
+    [
+        "raw(r'\\d')",
+        ["0", "1", "2"],
+        []
+    ],
+    [
+        "raw(r'\\s')",
+        [" ", "\t", "\n"],
+        []
+    ],
+    [
+        "raw(r'\\w')",
+        ["a", "Z", "5", "_"],
+        []
+    ],
+    [
+        "raw(r'\\w+')",
+        ["abc", "123", "test_"],
+        []
+    ],
+    [
+        "raw(r'.')",
+        ["s", "a", "h", "r", "d", "h", "c", "f", "G", "S", "G", "D", "8", "7", "w", "3", "u", "e", "8", "4", "1", "2", "5", "a", "s", "d", "_", ";", ".", ",", "?", ".", "1", "3", "4", "*", "&", "^", "`"],
+        []
+    ],
+    [
+        "raw(r'\\n')",
+        ["\\n"],
+        []
+    ],
+    [
+        "raw(r'\\r')",
+        ["\\r"],
+        []
+    ],
+    [
+        "raw(r'\\t')",
+        ["\\t"],
+        []
+    ],
+    [
+        "raw(r'\\v')",
+        ["\\v"],
+        []
+    ],
+    [
+        "raw(r'\\f')",
+        ["\\f"],
+        []
+    ],
+    [
+        "raw(r'\\S')",
+        ["s", "d", "g", "S", "G", "H", "R", "5", "1", "2", "2", "$", "%", "^", "&", "*", "Z", "`"],
+        []
+    ],
+    [
+        "raw(r'\\D')",
+        ["s", "d", "f", "G", "S", "D", "G", ";", "(", "[", "]"],
+        []
+    ],
+    [
+        "raw(r'\\W')",
+        ["/", "*", "-", "#", "^", "&", "*", "`", "?", ">", "<"],
+        []
+    ],
+    [
+        "raw(r'(stuff)?')",
+        ["stuff", ""],
+        []
+    ],
+    [
+        "raw(r'(stuff)*')",
+        ["", "stuff", "stuffstuff", "stuffstuffstuff"],
+        []
+    ],
+    [
+        "raw(r'(stuff|things)')",
+        ["stuff", "things"],
+        []
+    ],
+    [
+        "raw(r'[s,t]')",
+        ["s", "t"],
+        []
+    ],
+    [
+        "raw(r'[^s,t]')",
+        ["q", "w", "r", "u", "i", "o", "p", "a", "h", "j", "k", "B", "N", "M", "3", "4", "#", "$"],
+        []
+    ],
+    [
+        "raw(r'(?=stuff)')",
+        ["stuff"],
+        []
+    ],
+    [
+        "raw(r'(?!stuff)')",
+        ["stuff"],
+        []
+    ],
+    [
+        "raw(r'(stuff)')",
+        ["stuff"],
+        []
+    ],
+    [
+        "raw(r'(stuff)?')",
+        ["stuff", ""],
+        []
+    ],
+    [
+        "raw(r'(?P<name>stuff)')",
+        ["stuff"],
+        []
+    ],
+    [
+        "raw(r'(?<=stuff)')",
+        ["thingstuffs"],
+        []
+    ],
+    [
+        "raw(r'(?<!stuff)')",
+        ["thingstuffs"],
+        []
+    ],
+    [
+        "raw(r'(a|b|c|thing|st)uff')",
+        ["auff", "buff", "cuff", "thinguff", "stuff"],
+        []
+    ],
+    // I found these online for testing a different regex suite
+    [
+        "raw(r'A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}')",
+        [],
+        []
+    ],
+    [
+        "raw(r'[\\d] [^\\d] [A-Za-z0-9_]+ . .*')",
+        [],
+        []
+    ],
+    [
+        "raw(r'AB|CD AB|CD|EF|GH (AB|CD)*')",
+        [],
+        []
+    ],
+    [
+        "raw(r'(a??) a*? a{3,}? ab{4,7}?')",
+        [],
+        []
+    ],
+    [
+        "raw(r'(?P<test>ABC*) (?P<a>x)|(?P<b>y)')",
+        [],
+        []
+    ],
+    [
+        "raw(r'[b:]+ (b)|(:+) a|(b)')",
+        [],
+        []
+    ],
+    [
+        "raw(r'(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?')",
+        [],
+        []
+    ],
+    [
+        "raw(r'(?P<name>[a-zA-Z]+)(?P=name)')",
+        [],
+        []
+    ],
+    [
+        "group(+letter, name='g') + earlierGroup('g')",
+        ["AA", "tt"],
+        ["ABt","t", "9d9", "tdt"]
+    ],
+    [
+        "group(+letter) + ' ' + earlierGroup(1)",
+        ["the the", "at at"],
+        ["att", "thethe"]
+    ],
+    [
+        "raw(r'[AB\\]C] [--A] [ABC\\-D] [\\^ABC]')",
+        [],
+        []
+    ],
+    [
+        "stringStartsWith('a')",
+        ["asdfs", "a 89sdf a", "a"],
+        [" asdf", "sdfa", "sdf"]
+    ],
+    [
+        "lineStartsWith('a')",
+        ["asdfs", "a 89sdf a", "a", "sdfs\\nasdfd"],
+        [" asdf", "sdf\\nsdf", "sdf\\n a", "sdfa", "sdf"]
+    ],
+    [
+        "stringEndsWith('a')",
+        ["lklkjfda", "sdf 8 a", "a"],
+        ["asdfds", "sd fd"]
+    ],
+    [
+        "lineEndsWith('a')",
+        ["lklkjfda", "sdf 8 a", "a", "sdf\\na", "sdfse\\nsdafsda", "sdfa\\nsdf"],
+        ["asdfds", "sd fd"]
+    ],
+    [
+        "literal('test')",
+        ["test", " sdfstestsdfs",],
+        ["te st",]
+    ],
+    [
+        "underscore",
+        ["_",],
+        ["a test", "test ", "\\ntest\\n", "\\ntest", "test\\n"]
+    ],
+    [
+        "quote",
+        ["\"", "'", "`"],
+        ["a test", "test ", "\\ntest\\n", "\\ntest", "test\\n"]
+    ],
+    [
+        "isExactly('test')",
+        ["test",],
+        ["a test", "test ", "\\ntest\\n", "\\ntest", "test\\n"]
+    ],
+    [
+        "matchMax('a')",
+        ["aaa", "a"],
+        ["b",]
+    ],
+    [
+        "matchMoreThan(3, 'a')",
+        ["aaaa", "tesaaaaaat"],
+        ["aaa"," aa"]
+    ],
+    [
+        "matchAtLeast(3, 'a')",
+        ["aaa", "aaaa"],
+        ["aa",]
+    ],
+    [
+        "optional('a')",
+        ["", "a", "aa"],
+        []
+    ],
+    [
+        "either('a', 'b')",
+        ["a", "b"],
+        ["c",]
+    ],
+    [
+        "either('aa', 'ba')",
+        ["aa", "ba",],
+        ["bb", "a"]
+    ],
+    [
+        "whitespace",
+        [" ", "\\t", "\\t  ", "\\n"],
+        ["dfsd",]
+    ],
+    [
+        "whitechunk",
+        [" ", "\\t", "\\t  ", "\\n"],
+        ["dfsd",]
+    ],
+    [
+        "white",
+        [" ", "\\t", "\\t  ", "\\n"],
+        ["dfsd",]
+    ],
+    [
+        "digit",
+        ["6",],
+        ["_", "-", "a"]
+    ],
+    [
+        "number",
+        ["6", "69"],
+        ["-a", "A"]
+    ],
+    [
+        "punctuation",
+        ["@", "#", "$", "%", "^", "&", "*", "(", ")"],
+        ["1", "2", "3", "4", "5", "6", "7", "8", "s", "d", "f", "s", "d", "f"]
+    ],
+    [
+        "wordChar",
+        ["w",],
+        ["-",]
+    ],
+    [
+        "hex_digit",
+         ["A", "a", "0"],
+         ["g", "G"]
+    ],
+    [
+        "octDigit",
+        ["7",],
+        ["9", "a", "A", "8"]
+    ],
+    [
+        "chunk",
+        ["wordssdf   asdf\\n",],
+        ["\\n",]
+    ],
+    [
+        "spaceOrTab",
+        [" ", "\\t", " \\t  "],
+        ["\\n",]
+    ],
+    [
+        "newLine",
+        ["\\n",],
+        ["\r",]
+    ],
+    [
+        "carriageReturn",
+        ["\r",],
+        ["\\n",]
+    ],
+    [
+        "tab",
+        ["\\t",],
+        [" ",]
+    ],
+    [
+        "space",
+        [" ",],
+        ["\\t",]
+    ],
+    [
+        "quote",
+        ["'", "\""],
+        ["wer",]
+    ],
+    [
+        "comma",
+        [",",],
+        [".", "`"]
+    ],
+    [
+        "period",
+        [".",],
+        [",",]
+    ],
+    [
+        "matchRange(3, 5, 'a')",
+        ["aaa", "aaaa", "aaaaa", "aaaaaa"],
+        ["aa",]
+    ],
+    [
+        "matchRange(3, 5, 'a', greedy=False)+'aa'",
+        ["aaaaa", "aaaaaa"],
+        ["aa",]
+    ],
+    [
+        "optional('a') + 'b'",
+        ["b", "ab","cb"],
+        ["","c"]
+    ],
+    [
+        "optional('a', greedy=False) + 'b'",
+        ["b", "ab","cb"],
+        ["","c"]
+    ],
+    [
+        "atLeastOne('a')",
+        ["a","aa", "aaaaaaaaaa"],
+        ["", "b"]
+    ],
+    [
+        "atLeastOne('a', greedy=False)",
+        ["a","aa", "aaaaaaaaaaaaaaaaaaaaa"],
+        ["", "b"]
+    ],
+    [
+        "atLeast(0, 'a')",
+        ["", "a", "aaaaaaaaaa", "b"],
+        []
+    ],
+    [
+        "(optional('a') + 'b') * 3",
+        ["abbb", "bbb", "ababab", "bbab"],
+        ["", "aaa", "aa", "a"]
+    ],
+    [
+        "word + whitechunk + group('func') + ':' + '()' + group(either('|', '7'), name='test')",
+        ["wo  func:[]|", "wo  func:[]7"],
+        []
+    ],
+    [
+        "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test')",
+        ["wo  func:8", "wo  func:7"],
+        []
+    ],
+    [
+        "7 + anyof('abc') + lineEnd",
+        ["7a", "sdfsd7b", "sdf\\nsdf7b", "sdf\\nsdf7b\\n"],
+        ["7asdfsd", "7v"]
+    ],
+    [
+        "7 + anyof('abc') + stringEnd",
+        ["7a", "sdfsd7b"],
+        ["7asdfsd", "7v", "sdf\\nsdf7bds", "sdf\\nsdf7bf\\n"]
+    ],
+    [
+        "lineStart + 7 + anyof('abc')",
+        ["7a", "7bsdfsd", "\\n7a", "\\n7bsdfsd"],
+        ["ds7asdfsd", "7v"]
+    ],
+    [
+        "stringStart + 7 + anyof('abc')",
+        ["7a", "7bsdfsd"],
+        ["ds7asdfsd", "7v", "\\n7a", "\\n7bsdfsd"]
+    ],
+    [
+        "+alpha",
+        ["a", "asd"],
+        ["89", "._78"]
+    ],
+    [
+        "+alphanum",
+        ["a", "asd", "3sd", "88"],
+        [".+",]
+    ],
+    [ // https://docs.python.org/3/library/re.html says '<user@host.com' shouldn't match this pattern, but it's wrong.
+        "raw(r'(<)?(\\w+@\\w+(?:\\.\\w+)+)(?(1)>|$)')",
+        ["<user@host.com>", "user@host.com"],
+        ["user@host.com>"]
+    ],
+    [
+        "'foo' + each(chunk + 'here' + chunk, chunk + anyOf('this', 'that') + chunk) + 'bar'",
+        ["fooum here there that bar", "foo that there here bar"],
+        []
+    ],
+    [ // https://docs.python.org/3/library/re.html says '<user@host.com' shouldn't match this pattern, but it's wrong...
+        "opt(group('<')) + group(word + '@' + word + +('.' + word)) + ifExists(1, '>', string_end)",
+        ["<user@host.com>", "user@host.com"],
+        ["user@host.com>"]
+    ],
+    [
+        "match_range(1, 5, word + ' ')",
+        [],
+        []
+    ],
+    [
+        "(match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ')",
+        [],
+        []
+    ],
+    // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk)) + 'bar',  ('fooum here there that bar', 'foo that there here bar'),               None),
+    // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk) & (chunk + 'the' + chunk)) + 'bar',  ('fooum the here there that bar', 'foo that there thehere bar'), ('fooum here there that bar', 'foo that there here bar')),
+    // (,                                                                                    (,),                                                                    (,)),
+    // (word_boundary + word_char[...,3] + wordBoundary,                                       ('yes', 'hey', 'sup', 'thi'),                                           ('none', 'no', 'foo3', '333', 'jar_')), // This does what it's supposed to do, but doesn't search correctly, as far as I understand it
+    //TODO ('foo ' + anyExcept('bar') + ' baz',                                               ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
+    //TODO: (exactly('foo' + anyExcept('boo') + 'bar'),                                             ('foonotbar', 'foobar'),                                                ('fooboobar', 'boobar', 'fooboo')), // not sure where 'foo boo bar' goes
+    //TODO: (exactly('foo' + anyExcept('boo', number) + 'bar'),                                     ('foo999bar', 'foo8bar'),                                               ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar')),
+    //TODO: (exactly('foo' + anyExcept('boo', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar', 'foo8bar', 'foo98')),
+    //TODO: (exactly(matchAtMost(3, digit)),                                                        ('444', '33', '1'),                                                     ('9999','9830')),
+    //TODO: (exactly('foo' + anyExcept('888', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'foo888bar', 'boobar', 'foo8bar', 'foo98')),
+    //TODO: (exactly('foo' + anyExcept('boo', word) + 'bar'),                                       ('foonotbar',),                                                         ('fooboobar', 'foo99bar', 'fooboo', 'boobar', 'foobar')),
+    // TODO: punctuation
+    // TODO: anyExcept(punctuation)
+    // TODO: anyExcept(anyof(punctuation))
+    // (,                                                                                    (,),                                                                    (,)),
+    // TODO:
+    // (raw(r"[ABC]+(?=D).*$ <.*?>"),                                                          None,                                                                   None),
+    // (raw(r"(?:Q)(Q) ^A*$"),                                                                  None,                                                                   None), // I'm not actually sure what this is supposed to do
+    // (raw(r"(?=AB)C (?!CD)DC AB(?<=CD) AB(?<!CD)"),                                           None,                                                                   None), // also not sure how this is actually supposed to work
+    // (matchRange(3, 5, 'a', possessive=True) + 'aa',                                       ('a'*7,),                                                               ('a'*6,)),
+    // (optional('a', possessive=True) + 'b',                                                ('',),                                                                  ('',)),
+    // (atLeastOne(possessive=True),                                                         ('',),                                                                  ('',)),
+    // (atLeastNone(possessive=True),                                                        ('',),                                                                  ('',)),
+    // verticalTab,                                                                          ('',),                                                                  ('',),
+    // formFeed,                                                                             ('',),                                                                  ('',),
+    // either('a', 'b'),                                                                     ('a', 'b'),                                                             None),
+    // multiOptional,                                                                        ('',),                                                                  ('',),
+    // anyBetween,                                                                           ('',),                                                                  ('',),
+    // (unicode,                                                                             ('',),                                                                  ('',),
+    // (word,                                                                                ('word',),                                                              ('33a',)), // Is this *supposed* to work?
+    [
+        "'------------------LAST REGEX---------------------'",
+        ["------------------LAST REGEX---------------------"],
+        ["asdk"]
+    ],
+]
