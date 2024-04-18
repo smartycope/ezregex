@@ -593,6 +593,16 @@
         [],
         []
     ],
+    [
+        "group('pattern', name='i') + optional(digit) + match_max(group('me')) + amt(2, 'mhmm')",
+        [],
+        []
+    ],
+    [
+        "group('', name='i') + optional(digit) + match_max(group('')) + amt(2, '')",
+        [],
+        []
+    ],
     // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk)) + 'bar',  ('fooum here there that bar', 'foo that there here bar'),               None),
     // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk) & (chunk + 'the' + chunk)) + 'bar',  ('fooum the here there that bar', 'foo that there thehere bar'), ('fooum here there that bar', 'foo that there here bar')),
     // (,                                                                                    (,),                                                                    (,)),
@@ -627,5 +637,5 @@
         "'------------------LAST REGEX---------------------'",
         ["------------------LAST REGEX---------------------"],
         ["asdk"]
-    ],
+    ]
 ]

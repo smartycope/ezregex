@@ -17,7 +17,7 @@ else:
 if __name__ != '__main__':
     from .invert_old import invertRegex
 
-with open(Path(__file__).parent / 'assets' / 'sorted_words.json') as f:
+with open(Path(__file__).parent / 'assets' / 'common_sorted_words.json') as f:
     words = json.load(f)
 
 # Don't use string.whitespace, because we don't want to use weird difficult to print characters.
