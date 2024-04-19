@@ -1,9 +1,9 @@
-# pyright: reportArgumentType = false
 import logging
 import re
 from copy import deepcopy
 from functools import partial
 from typing import Callable, List, Literal
+# from mypy_extensions import DefaultNamedArg, VarArg
 
 from .api import api
 from .generate import *
@@ -19,12 +19,14 @@ class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
     def __init__(self,
-                 definition:List[partial[str]]|str|"EZRegex"|partial[str]|list[str],
-                 dialect: str,
-                 sanatize:bool=True,
-                 init:bool=True,
-                 replacement:bool=False,
-                 flags:str='',
+            # This line is more accurate, but I don't want any dependancies, including mypy_extensions
+            #  definition:str|"EZRegex"|Callable[[VarArg, DefaultNamedArg[str, "cur"]], str],
+            definition:str|Callable[..., str]|"EZRegex",
+            dialect: str,
+            sanatize:bool=True,
+            init:bool=True,
+            replacement:bool=False,
+            flags:str='',
         ):
         """
         The workhorse of the EZRegex library. This represents a regex pattern that can be combined
@@ -356,7 +358,7 @@ class EZRegex:
     def debug(self):
         try:
             from Cope import debug
-        except ModuleNotFoundError:
+        except ImportError:
             print(f"Compiled ezregex string = {self}")
         else:
             debug(self, name='Compiled ezregex string', calls=2)
@@ -369,17 +371,22 @@ class EZRegex:
         try:
             from clipboard import copy  # type: ignore
         except ImportError as err:
-            raise ModuleNotFoundError('Please install the clipboard module in order to auto copy '
-                                      'ezregex expressions (i.e. pip install clipboard)') from err
+            raise ImportError(
+                'Please install the clipboard module in order to auto copy ezregex expressions (i.e. pip install clipboard)'
+            ) from err
         else:
             copy(self._compile(addFlags=addFlags))
 
     def test(self, testString=None, show=True, context=True) -> bool:
         """ Tests the current regex expression to see if it's in @param testString.
-            Returns the match objects (None if there was no match)"""
-        from rich import print as rprint
-        from rich.panel import Panel
-        from rich.text import Text
+            Returns the match objects (None if there was no match)
+        """
+        try:
+            from rich import print as rprint
+            from rich.panel import Panel
+            from rich.text import Text
+        except ImportError:
+            raise ImportError("The rich library is required to use the EZRegex.test() method. Try running `pip install rich`")
 
         # json = self._matchJSON(testString=testString)
         json = api(self, test_string=testString)
