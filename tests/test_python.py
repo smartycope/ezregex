@@ -21,7 +21,7 @@ def test_python():
                 for m in dontMatch:
                     assert m not in regex, f"{r[0]} DOES match '{m}'"
     except Exception as err:
-        raise AssertionError(f'pattern = `{r[0]}`, match = `{match}`, dontMatch = `{dontMatch}`') from err
+        raise AssertionError(f'pattern = `{regex_str}`, match = `{match}`, dontMatch = `{dontMatch}`') from err
 
 
 def test_no_empty_strings():
