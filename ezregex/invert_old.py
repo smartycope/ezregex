@@ -96,7 +96,7 @@ def invertRegex(regex:str, tries=10) -> str:
         If tries is positive, it's guarenteed to return an expression that
         correctly matches the given expression, or raise an Error
     """
-    warn('This backend only works most of the time. The default backend is prefered.')
+    # warn('This backend only works most of the time. The default backend is prefered.')
     # So we can compare later and make sure it works
     original = copy(regex)
 
