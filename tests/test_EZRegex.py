@@ -1,4 +1,5 @@
 import pytest
+import re
 from ezregex import *
 
 
@@ -62,3 +63,21 @@ def test_no_parameters_to_chains():
     assert match_amt(6, digit)()
     assert (digit + word)()
     assert digit()
+
+def test_re_shadow_funcs():
+    s = r'\d(\w+)'
+    string = 'timmy is 6years old'
+    repl = replace('number {1}')
+
+    def eq(a, b):
+        if not ((a is None) == (b is None)) and a.span() == b.span() and a.groups() == b.groups():
+            raise AssertionError(f'{a} != {b}')
+
+    eq((digit + group(word)).search(string),      re.compile(s).search(string))
+    eq((digit + group(word)).match(string),       re.compile(s).match(string))
+    eq((digit + group(word)).fullmatch(string),   re.compile(s).fullmatch(string))
+    eq((digit + group(word)).split(string),       re.compile(s).split(string))
+    eq((digit + group(word)).findall(string),     re.compile(s).findall(string))
+    eq((digit + group(word)).finditer(string),    re.compile(s).finditer(string))
+    eq((digit + group(word)).sub(repl, string),   re.compile(s).sub(repl, string))
+    eq((digit + group(word)).subn(repl, string),  re.compile(s).subn(repl, string))

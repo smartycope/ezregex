@@ -2,6 +2,7 @@ import logging
 import re
 from copy import deepcopy
 from functools import partial
+import sys
 from typing import Callable, List, Literal
 
 from .api import api
@@ -9,6 +10,7 @@ from .generate import *
 from .invert import invert
 from ._dialects import dialects
 
+# TODO: Seperate EZRegex into a "bytes" mode vs "string" mode
 # TODO: consider changing addFlags to "outer" or "end" or something
 # TODO: Seriously consider removing the debug functions
 # TODO: in all the magic functions assert that we're not mixing dialects
@@ -221,6 +223,31 @@ class EZRegex:
 
     def invert(self, amt=1, **kwargs):
         return self.inverse(amt, **kwargs)
+
+    # Shadowing the re functions
+    def search(self, string, pos=0, endpos=sys.maxsize):
+        return self.compile().search(string, pos, endpos)
+
+    def match(self, string, pos=0, endpos=sys.maxsize):
+        return self.compile().match(string, pos, endpos)
+
+    def fullmatch(self, string, pos=0, endpos=sys.maxsize):
+        return self.compile().fullmatch(string, pos, endpos)
+
+    def split(self, string, maxsplit=0):
+        return self.compile().split(string, maxsplit)
+
+    def findall(self, string, pos=0, endpos=sys.maxsize):
+        return self.compile().findall(string, pos, endpos)
+
+    def finditer(self, string, pos=0, endpos=sys.maxsize):
+        return self.compile().finditer(string, pos, endpos)
+
+    def sub(self, repl, string, count=0):
+        return self.compile().sub(repl, string, count)
+
+    def subn(self, repl, string, count=0):
+        return self.compile().subn(repl, string, count)
 
     # Magic Functions
     def __call__(self, *args, **kwargs):
