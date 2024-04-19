@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ A readable and intuitive way to generate Regular Expressions """
-__version__ = '1.9.5'
+__version__ = '1.10.0'
 
 # Import this as a submodule
 from . import generate
