@@ -1,8 +1,11 @@
 import json
 from logging import warning
-from typing import TypedDict, reveal_type
+from sys import version_info
+if version_info < (3, 12):
+    from typing_extensions import TypedDict
+else:
+    from typing import TypedDict
 from warnings import warn
-import pytest
 from ezregex import *
 from ezregex import api
 # from ezregex.api import APIStructure
