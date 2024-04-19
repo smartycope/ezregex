@@ -185,8 +185,10 @@ def if_not_preceded_by(input, cur=...):
     not_empty(input, 'if_not_preceded_by')
     return fr'(?<!{input}){cur}'
 
-def if_enclosed_with(open, stuff, close, cur=...):
+def if_enclosed_with(open, stuff, close=..., cur=...):
     not_empty(input, 'if_enclosed_with')
+    if close is Ellipsis:
+        close = open
     return fr'((?<={open}){stuff}(?={open if close is None else close}))'
 
 def group(input, name=None, cur=...):
