@@ -9,7 +9,7 @@ from ezregex import python
 
 strictness=20
 dontIncludePassed=True
-invertBackend='re_parser'
+invertBackend=...
 invert_tries=5
 import jstyleson
 
@@ -51,7 +51,7 @@ def test_invert():
                 raise ValueError(f'Error @ approx. {__file__}, line {offset+(cnt*4)}: \nregex = `{r[0]}`') #from err#, inv = `{inv}`')
         thread = threading.Thread(target=do_test)
         thread.start()
-        limit = 15
+        limit = 5
         thread.join(timeout=limit)
         assert not thread.is_alive(), f"Invert took too long (>{limit} seconds): `{r[0]}`'"
 
@@ -59,13 +59,3 @@ def test_invert():
         with open('summary.txt', 'w') as f:
             rprint(table, file=f)
     assert not len(table.rows)
-
-
-def test_function():
-    start_time = time.time()
-    for i in range(10):  # Change 10 to whatever your loop range is
-        if time.time() - start_time > 5:
-            raise AssertionError("Iteration took too long!")
-        # Your loop code here
-
-test_function()

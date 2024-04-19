@@ -1,3 +1,4 @@
+import pytest
 from ezregex import python
 import jstyleson
 import ezregex as er
@@ -5,23 +6,36 @@ from ezregex import EZRegex
 from ezregex import *
 
 def test_python():
-    offset = 2
+    try:
+        with open('tests/data/regexs.jsonc') as f:
+            regexs = jstyleson.load(f)
 
-    with open('tests/data/regexs.jsonc') as f:
-        regexs = jstyleson.load(f)
+        for cnt, r in enumerate(regexs):
+            regex_str, match, dontMatch = r
+            regex = eval(regex_str, python.__dict__)
+            # try:
+            if match:
+                for m in match:
+                    assert m in regex, f"{r[0]} does not match '{m}'"
+            if dontMatch:
+                for m in dontMatch:
+                    assert m not in regex, f"{r[0]} DOES match '{m}'"
+    except Exception as err:
+        raise AssertionError(f'pattern = `{r[0]}`, match = `{match}`, dontMatch = `{dontMatch}`') from err
 
-    for cnt, r in enumerate(regexs):
-        regex_str, match, dontMatch = r
-        regex = eval(regex_str, python.__dict__)
-        # try:
-        if match:
-            for m in match:
-                assert m in regex, f"{r[0]} does not match '{m}'"
-        if dontMatch:
-            for m in dontMatch:
-                assert m not in regex, f"{r[0]} DOES match '{m}'"
-        # except Exception as err:
-            # raise ValueError(f'pattern = `{r[0]}`, match = `{match}`, dontMatch = `{dontMatch}`') from err
+
+def test_no_empty_strings():
+    with pytest.raises(ValueError):
+        str(group('', name='i') + optional(digit))
+
+    with pytest.raises(ValueError):
+        str(match_max(group('')))
+
+    with pytest.raises(ValueError):
+        str(amt(2, ''))
+
+    with pytest.raises(ValueError):
+        str(group('abc', name=''))
 
 
 def test_any_of():

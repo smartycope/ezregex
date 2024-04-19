@@ -350,7 +350,7 @@
     ],
     [
         "literal('test')",
-        ["test", " sdfstestsdfs",],
+        ["test", " sdfstestsdfs"],
         ["te st",]
     ],
     [
@@ -595,11 +595,6 @@
     ],
     [
         "group('pattern', name='i') + optional(digit) + match_max(group('me')) + amt(2, 'mhmm')",
-        [],
-        []
-    ],
-    [
-        "group('', name='i') + optional(digit) + match_max(group('')) + amt(2, '')",
         [],
         []
     ],
