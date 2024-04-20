@@ -1,7 +1,7 @@
 from ..EZRegex import EZRegex
 
 
-class PythonEZRegex(EZRegex):
+class PerlEZRegex(EZRegex):
     _escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f'
     _end = ''
     _beginning = ''
