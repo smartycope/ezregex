@@ -966,6 +966,11 @@
         [],
         []
     ],
+    [
+        "group('pattern', name='i') + optional(digit) + 'test'",
+        [],
+        []
+    ],
     // TODO: This is for bytes only programs or something?...
     // [
     //     "digit + LOCALE",

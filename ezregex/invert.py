@@ -160,7 +160,11 @@ class Inverter:
                         case sre.RANGE:
                             start, end = args
                             s += chr(randint(start, end))
-                        case sre.MAX_REPEAT | sre.MIN_REPEAT:
+                        case sre.MIN_REPEAT: # optional, I believe
+                            min, max, sub = args
+                            if randint(0, 1) == 1:
+                                s += handle(sub, amt)
+                        case sre.MAX_REPEAT:
                             min, max, sub = args
                             if max is None or max is sre.MAXREPEAT:
                                 max = randint(min, self.alot)
