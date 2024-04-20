@@ -1,8 +1,8 @@
 import re
-from tests.data.groups import *
-from tests.data.groups import _losers, _winners
 
 from ezregex.generate import *
+from tests.data.groups import *
+from tests.data.groups import _losers, _winners
 
 
 def words(text):

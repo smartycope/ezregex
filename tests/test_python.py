@@ -1,9 +1,10 @@
-import pytest
-from ezregex import python
 import jstyleson
+import pytest
+
 import ezregex as er
-from ezregex import EZRegex
 from ezregex import *
+from ezregex import EZRegex, python
+
 
 def test_python():
     try:
@@ -91,14 +92,15 @@ def test_misc():
     a = word + ow
     # b = stuff + UNICODE
     c = IGNORECASE + '9'
-    assert a + c == word + ow + IGNORECASE + '9', f"{a + b + c} != {word + ow + IGNORECASE + '9'}"
+    assert a + c == word + ow + IGNORECASE + '9', f"{a + c} != {word + ow + IGNORECASE + '9'}"
 
-    a = str(EZRegex(r'\s+', 'python'))
-    b = str(EZRegex(raw(r'\s+'), 'python'))
+    a = str(PythonEZRegex(r'\s+'))
+    with pytest.raises(TypeError):
+        b = str(PythonEZRegex(raw(r'\s+')))
     c = r'\s+'
     d = str(raw(r'\s+'))
     # e = str(whitespace + matchMax)
-    assert a == b == c == d, f'\na: {a}\n b: {b}\n c: {c}\n d: {d}\n e: {e}'
+    assert a == c == d, f'\na: {a}\n c: {c}\n d: {d}\n e: {e}'
     # assert (word + ow + anything + ':').test('word    d:', show=False)
     # assert not (word + ow + anything + ':').test('word', show=False)
     assert 'word    d:' in (word + ow + anything + ':')
@@ -108,7 +110,7 @@ def test_misc():
     assert str(test) == str(word + chunk + word), f"{str(test)} != {str(word + chunk + word)}"
     assert test == word + chunk + word
     assert either('(' + word + ')', '.') == either(er.literal('(') + word() + er.literal(')'), '.'), f"{either('(' + word + ')', '.')} != {either(er.literal('(') + word() + er.literal(')'), '.')}"
-    assert str(ifFollowedBy(word)) == r'(?=\w+)'
+    assert str(er.ifFollowedBy(word)) == r'(?=\w+)'
 
     #TODO: assert (word + ow + anything + ':') in 'word    d:'
     #TODO: assert (word + ow + anything + ':') not in 'word'

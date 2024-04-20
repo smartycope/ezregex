@@ -1,32 +1,31 @@
 import re
 import sys
+from functools import partial
 from typing import Any, Callable, Iterator
+
 from mypy_extensions import DefaultNamedArg, VarArg
+
 from .base.interface import InputType
+
+type EZRegexDefinition = str|Callable[[VarArg, DefaultNamedArg[str, "cur"]], str]|list[partial[str]]
 
 class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
-    def __init__(self,
-            definition:str|"EZRegex"|Callable[[VarArg, DefaultNamedArg[str, "cur"]], str],
-            dialect: str,
-            sanatize:bool=True,
-            init:bool=True,
-            replacement:bool=False,
-            flags:str='',
-        ) -> None:
-        """
-        The workhorse of the EZRegex library. This represents a regex pattern that can be combined
-        with other EZRegexs and strings. Ideally, this should only be called internally, but it should
-        still work from the user's end
+    def __init__(self, definition:EZRegexDefinition, *, sanatize:bool=True, replacement:bool=False, flags:str='') -> None:
+        """ The workhorse of the EZRegex library. This represents a regex pattern that can be combined
+            with other EZRegexs and strings. Ideally, this should only be called internally, but it should
+            still work from the user's end
         """
 
     # Private functions
+    def _flag_func(self, final:str) -> str: ...
     def _escape(self, pattern:str) -> str:
         """ This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255 """
     def _sanitizeInput(self, i:InputType, addFlags:bool=False) -> str:
         """ Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string """
     def _compile(self, addFlags=True) -> str: ...
+    def _copy(self, definition:EZRegexDefinition=..., sanatize:bool=..., replacement:bool=..., flags:str=...): ...
 
     # Regular functions
     def compile(self, addFlags=True) -> re.Pattern: ...
@@ -41,16 +40,6 @@ class EZRegex:
     def inverse(self, amt=1, **kwargs) -> str:
         """ "Inverts" the current Regex expression to give an example of a string it would match.
             Useful for debugging purposes. """
-
-    # Shadowing the re functions
-    def search(self, string, pos:int=0, endpos:int=sys.maxsize) -> re.Match|None: ...
-    def match(self, string, pos:int=0, endpos:int=sys.maxsize) -> re.Match|None: ...
-    def fullmatch(self, string, pos:int=0, endpos:int=sys.maxsize) -> re.Match|None: ...
-    def split(self, string, maxsplit:int=0) -> list: ...
-    def findall(self, string, pos: int = 0, endpos: int = sys.maxsize) -> list: ...
-    def finditer(self, string, pos: int = 0, endpos: int = sys.maxsize) -> Iterator[re.Match]: ...
-    def sub(self, repl: Any | Callable[[re.Match], Any], string, count: int = 0): ...
-    def subn(self, repl: Any | Callable[[re.Match], Any], string, count: int = 0): ...
 
     # Magic Functions
     def __call__(self, *args, **kwargs) -> EZRegex | str:
