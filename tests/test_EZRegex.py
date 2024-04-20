@@ -1,14 +1,24 @@
-import pytest
 import re
+
+import pytest
+
+import ezregex as er
 from ezregex import *
 
 
-def test_access_dialect():
-    assert literal('thing').dialect == 'python'
+def test_basic():
+    assert literal('test') == 'test'
 
-def test_no_change_dialect():
-    with pytest.raises(TypeError):
-        digit.dialect = 'asdf'
+def test_basic_concat():
+    assert str(literal('test') + digit) == r'test\d'
+    assert str('test' + digit) == r'test\d'
+
+def test_access_dialect():
+    assert type(literal('thing')) is PythonEZRegex
+
+def test_psuedonyms():
+    assert er.matchMax(digit) == er.match_max(digit)
+    assert matchMax(digit) == match_max(digit)
 
 
 def test_immutability():

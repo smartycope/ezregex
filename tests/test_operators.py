@@ -1,6 +1,7 @@
 import re
 
 import pytest
+
 from ezregex import *
 
 strictness=20

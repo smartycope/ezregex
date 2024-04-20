@@ -1,18 +1,20 @@
 import json
 from logging import warning
 from sys import version_info
+
 if version_info < (3, 12):
     from typing_extensions import TypedDict
 else:
     from typing import TypedDict
-from warnings import warn
-from ezregex import *
-from ezregex import api
-# from ezregex.api import APIStructure
-from ezregex import python
-import jstyleson
 
+from warnings import warn
+
+import jstyleson
 from pydantic import TypeAdapter, ValidationError
+
+# from ezregex.api import APIStructure
+from ezregex import *
+from ezregex import api, python
 
 # from typing_extensions import TypedDict # Required by pydantic for python < 3.12
 # import importlib, sys

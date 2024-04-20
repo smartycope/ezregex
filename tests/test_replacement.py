@@ -1,9 +1,9 @@
 import re
 
-from ezregex import python
-from ezregex import *
-
 import jstyleson
+
+from ezregex import *
+from ezregex import python
 
 
 def test_replacement():

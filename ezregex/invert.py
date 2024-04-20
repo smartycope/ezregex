@@ -1,11 +1,12 @@
 import json
 import string
 import traceback
+from pathlib import Path
 from random import choice, choices, randint
 from re import search
 from sys import version_info
 from typing import Literal, Union
-from pathlib import Path
+
 from ezregex import *
 
 if version_info.minor <= 10:
@@ -400,14 +401,14 @@ class Inverter:
         self._attempts['xeger'] += 1
         self._log(f'xeger attempt #{self._attempts["xeger"]}', end='... ')
         if self._xeger:
-            from xeger import Xeger # type: ignore
+            from xeger import Xeger  # type: ignore
             return Xeger().xeger(self.expr)
 
     def invert_sre_yield(self) -> str | None:
         self._attempts['sre_yield'] += 1
         self._log(f'sre_yield attempt #{self._attempts["sre_yield"]}', end='... ')
         if self._sre_yield:
-            import sre_yield # type: ignore
+            import sre_yield  # type: ignore
             for i in sre_yield.AllStrings(self.expr):
                 return i
 

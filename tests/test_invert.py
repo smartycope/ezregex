@@ -1,11 +1,12 @@
+import threading
+import time
+
 from rich import print as rprint
 from rich.table import Table
-import time
-import threading
 from rich.text import Text
-from ezregex import invert
+
+from ezregex import invert, python
 from ezregex.python import literal
-from ezregex import python
 
 strictness=20
 dontIncludePassed=True

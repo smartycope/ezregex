@@ -2,8 +2,9 @@
 # pyright: reportUndefinedVariable = false
 from ..base import load_base
 from ..EZRegex import EZRegex
+from .PythonEZRegex import PythonEZRegex
 
-globals().update(load_base('python', lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>'))
+globals().update(load_base(PythonEZRegex, lambda num_or_name, cur=...: fr'{cur}\g<{num_or_name}>'))
 
 del UNICODE
 
