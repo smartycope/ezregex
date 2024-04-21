@@ -7,6 +7,8 @@ from .api import api
 from .generate import *
 from .invert import invert
 
+from .base import base, psuedonymns
+
 # TODO: Seperate EZRegex into a "bytes" mode vs "string" mode
 # TODO: consider changing add_flags to "outer" or "end" or something
 # TODO: Seriously consider removing the debug functions
@@ -23,7 +25,7 @@ class EZRegex(ABC):
         still work from the user's end
         """
         # Set attributes like this so the class can remain "immutable", while still being usable
-        self.__setattr__('flags', flags, True)
+        self.__setattr__('_flags', flags, True)
         self.__setattr__('_sanatize', sanatize, True)
         self.__setattr__('replacement', replacement, True)
 
@@ -78,7 +80,7 @@ class EZRegex(ABC):
         if add_flags:
             regex = self._beginning + regex + self._end
 
-            if len(self.flags):
+            if len(self._flags):
                 regex = self._flag_func(regex)
         return regex
 
@@ -90,10 +92,13 @@ class EZRegex(ABC):
         if replacement is Ellipsis:
             replacement = self.replacement
         if flags is Ellipsis:
-            flags = self.flags
+            flags = self._flags
 
         return type(self)(definition, sanatize=sanatize, replacement=replacement, flags=flags)
 
+    def _base(self, element, /, *args, **kwargs):
+        """ Constructs the base element specified, and returns it passed with any additional arguements """
+        return type(self)(**base[element])(*args, **kwargs)
 
     # Regular functions
     def str(self):
@@ -195,6 +200,118 @@ class EZRegex(ABC):
     def invert(self, amt=1, **kwargs):
         return self.inverse(amt, **kwargs)
 
+    # Elemental functions
+    def group(self, name=None):
+        return self._base('group', self, name=name)
+
+    def named(self, name):
+        return self.group(name)
+
+    @property
+    def unnamed(self):
+        return self.group()
+
+    def not_preceded_by(self, input):
+        return self._base('if_not_preceded_by', self, input)
+
+    def preceded_by(self, input):
+        return self._base('if_preceded_by', self, input)
+
+    def not_proceded_by(self, input):
+        return self._base('if_not_proceeded_by', self, input)
+
+    def proceded_by(self, input):
+        return self._base('if_proceeded_by', self, input)
+
+    def enclosed_with(self, open, closed=None):
+        return self._base('if_enclosed_with', self, open, closed)
+
+    @property
+    def optional(self):
+        return self._base('optional', self)
+
+    @property
+    def repeat(self):
+        return self._base('repeat', self)
+
+    @property
+    def exactly(self):
+        return self._base('is_exactly', self)
+
+    def at_least(self, min):
+        return self._base('at_least', min, self)
+
+    def more_than(self, min):
+        return self._base('more_than', min, self)
+
+    def amt(self, amt):
+        return self._base('amt', amt, self)
+
+    def at_most(self, max):
+        return self._base('at_most', max, self)
+
+    def between(self, min, max, greedy=True, possessive=False):
+        return self._base('between', min, max, self, greedy=greedy, possessive=possessive)
+
+    def at_least_one(self, greedy=True, possessive=False):
+        return self._base('at_least_one', self, greedy=greedy, possessive=possessive)
+
+    def at_least_none(self, greedy=True, possessive=False):
+        return self._base('at_least_none', self, greedy=greedy, possessive=possessive)
+
+    def or_(self, input):
+        return self._base('either', self, input)
+
+    @property
+    def ASCII(self):
+        return self.set_flags('a')
+
+    @property
+    def IGNORECASE(self):
+        return self.set_flags('i')
+
+    @property
+    def DOTALL(self):
+        return self.set_flags('s')
+
+    @property
+    def LOCALE(self):
+        return self.set_flags('L')
+
+    @property
+    def MULTILINE(self):
+        return self.set_flags('m')
+
+    @property
+    def UNICODE(self):
+        return self.set_flags('u')
+
+
+    # Named operator functions
+    def append(self, input):
+        return self + input
+
+    def prepend(self, input):
+        return input + self
+
+    # Flag functions
+    @property
+    def flags(self):
+        return self._flags
+
+    def set_flags(self, to):
+        return self._copy(flags=to)
+
+    def add_flag(self, flag):
+        if flag not in self._flags:
+            return self._copy(flags=self._flags + flag)
+        return self
+
+    def remove_flag(self, flag):
+        if flag in self._flags:
+            return self._copy(flags=self._flags.replace(flag, ''))
+        return self
+
     # Magic Functions
     def __call__(self, *args, **kwargs):
         """ This should be called by the user to specify the specific parameters of this instance i.e. anyof('a', 'b') """
@@ -250,14 +367,14 @@ class EZRegex(ABC):
             self._funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
             sanatize=self._sanatize or thing._sanatize if isinstance(thing, EZRegex) else self._sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
-            flags=(self.flags + thing.flags) if isinstance(thing, EZRegex) else self.flags
+            flags=(self._flags + thing.flags) if isinstance(thing, EZRegex) else self._flags
         )
 
     def __radd__(self, thing):
         return self._copy([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self._funcList,
             sanatize=self._sanatize or thing._sanatize if isinstance(thing, EZRegex) else self._sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
-            flags=(self.flags + thing.flags) if isinstance(thing, EZRegex) else self.flags
+            flags=(self._flags + thing.flags) if isinstance(thing, EZRegex) else self._flags
         )
 
     def __iadd__(self, thing):
@@ -406,5 +523,8 @@ class EZRegex(ABC):
         else:
             raise TypeError('EZRegex objects are immutable')
 
-    def __delattr__(self, *args):
-        raise TypeError('EZRegex objects are immutable')
+    def __delattr__(self, name, ignore=False):
+        if ignore:
+            del self.__dict__[name]
+        else:
+            raise TypeError('EZRegex objects are immutable')

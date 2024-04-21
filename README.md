@@ -38,12 +38,14 @@ TLDR: This is to regular expressions what CMake is to makefiles
 * [Usage](#usage)
 * [Invert](#inverting)
 * [Generate](#generation)
+* [Elements and Methods](#elements-and-methods)
 * [Dialects](#dialects)
 * [Documentation](#documentation)
 * [Developer Docs](#developer-documentation)
 * [Installation](#installation)
 * [Todo](#todo)
 * [License](#license)
+* [Credits](#credits)
 
 ## Usage
 
@@ -51,8 +53,11 @@ Quickstart
 ```python
 from ezregex import *
 'foo' + number + optional(whitespace) + word
+# Or, using methods
+number.append(whitespace.optional).prepend('foo').append(word)
 # Matches `foo123abc` and `foo123 abc`
 # but not `abc123foo` or  `foo bar`
+
 ```
 
 Importing as a named package is recommended
@@ -126,11 +131,23 @@ The `invert` function (available as er.invert(`expression`), `expression`.invert
 
 
 ## Generation
-In version 1.7.0 we introduced a new function: `generate_regex`. It takes in 2 sets of strings, and returns a regular expression that will match everything in the first set and nothing in the second set. It may be a bit crude, but it can be a good starting point if you don't know where to start. It's also really good at [regex golf](http://regex.alf.nu/).
+In version v1.7.0 we introduced a new function: `generate_regex`. It takes in 2 sets of strings, and returns a regular expression that will match everything in the first set and nothing in the second set. It may be a bit crude, but it can be a good starting point if you don't know where to start. It's also really good at [regex golf](http://regex.alf.nu/).
 
+## Elements and Methods
+As of v2.1.0, there's *elemental methods* in EZRegex objects, as well as the basic elements. These shadow their element counterparts exactly, and work the same way, they're just for convenience and preference.
+
+For example, these are all equivelent:
+```python
+# Element functions
+optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word)
+# Elemental methods
+whitespace.optional.append(literal('a').repeat.or_('b').unnamed).if_followed_by(word)
+# Mixed
+whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
+```
 
 ## Dialects
-As of version 1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import all the elements as a sub-package, and they should work identically, although some languages may not have the same features as others.
+As of version v1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import all the elements as a sub-package, and they should work identically, although some languages may not have the same features as others.
 ```python
 >>> import ezregex as er # The python dialect is the defualt dialect
 >>> er.group(digit, 'name') + er.earlier_group('name')
@@ -1069,3 +1086,14 @@ See the [GitHub Issue Page](https://github.com/smartycope/ezregex/issues)
 
 ## License
 EZRegex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
+
+## Credits
+This library was written from scratch entirely by Copeland Carter.
+Inspirations for this project include:
+
+- [PyParsing](https://github.com/pyparsing/pyparsing)
+    - I stole a bunch of the operators (especially the [] operator) from them, though we happened upon the same basic structure independantly (convergent evolution, anyone?)
+- [regular-expressions.info](https://www.regular-expressions.info/refflavors.html)
+    - Their reference is where I got a lot of the other regex flavors
+- [human-regex](https://github.com/fleetingbytes/human-regex)
+    - Gave me the idea for including element methods, instead of solely element functions

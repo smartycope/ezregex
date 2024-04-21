@@ -92,19 +92,19 @@ def match_num(num: int, input: InputType) -> EZRegex:
     "Match `num` amount of `input` in the string"
     ...
 
-def match_more_than(min: int, input: InputType) -> EZRegex:
+def more_than(min: int, input: InputType) -> EZRegex:
     "Match more than `min` sequences of `input` in the string"
     ...
 
-def match_at_least(min:int, input:InputType) -> EZRegex:
+def at_least(min:int, input:InputType) -> EZRegex:
     "Match at least `min` sequences of `input` in the string"
     ...
 
-def match_at_most(max:int, input:InputType) -> EZRegex:
+def at_most(max:int, input:InputType) -> EZRegex:
     "Match at most `max` instances of `input` in the string"
     ...
 
-def match_range(min:int, max:int, input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
+def between(min:int, max:int, input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
     """ Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
         Max can be an empty string to indicate no maximum
         `greedy` means it will try to match as many repititions as possible

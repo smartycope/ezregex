@@ -3,6 +3,7 @@ import sys
 
 from ezregex import EZRegex
 
+# TODO: make all the flag functions here also accept re.FLAG types (internally they should work the same though)
 
 class PythonEZRegex(EZRegex):
     _escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f'

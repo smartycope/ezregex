@@ -1,4 +1,5 @@
 import re
+from timeit import repeat
 
 import pytest
 
@@ -91,3 +92,87 @@ def test_re_shadow_funcs():
     eq((digit + group(word)).finditer(string),    re.compile(s).finditer(string))
     eq((digit + group(word)).sub(repl, string),   re.compile(s).sub(repl, string))
     eq((digit + group(word)).subn(repl, string),  re.compile(s).subn(repl, string))
+
+def test_flag_methods():
+    assert (digit + ASCII).flags == 'a'
+    with pytest.raises(TypeError):
+        digit.flags = 'L'
+    assert digit.flags == ''
+    a = digit.set_flags('asL')
+    assert a.flags == 'asL'
+    assert (digit + ASCII).add_flag('L').flags == 'aL'
+    assert (digit + ASCII).remove_flag('a').flags == ''
+    assert (digit + ASCII).remove_flag('L').flags == 'a'
+
+def test_elemental_methods():
+    input = word
+    min = 1
+    max = 3
+    assert digit.group() == group(digit) == digit.unnamed
+    assert digit.group('test') == group(digit, 'test') == digit.named('test')
+    # assert digit.not_preceded_by(input) == if_not_preceded_by(digit, input)
+    # assert digit.preceded_by(input) == if_preceded_by(digit, input)
+    # assert digit.not_proceded_by(input) == if_not_proceded_by(digit, input)
+    # assert digit.proceded_by(input) == if_proceded_by(digit, input)
+    # assert digit.enclosed_with('|') == if_enclosed_with(digit, '|')
+    # assert digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')')
+    assert digit.at_least(min) == at_least(min, digit)
+    assert digit.more_than(min) == more_than(min, digit)
+    assert digit.amt(2) == match_num(2, digit)
+    assert digit.at_most(max) == at_most(max, digit)
+    assert digit.between(min, max) == between(min, max, digit)
+    assert digit.between(min, max, greedy=False) == between(min, max, digit, greedy=False)
+    assert digit.between(min, max, possessive=True) == between(min, max, digit, possessive=True)
+    assert digit.at_least_one() == at_least_one(digit)
+    assert digit.at_least_one(greedy=False) == at_least_one(digit, greedy=False)
+    assert digit.at_least_one(possessive=True) == at_least_one(digit, possessive=True)
+    assert digit.at_least_none() == at_least_none(digit)
+    assert digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False)
+    assert digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True)
+    assert digit.or_(input) == either(digit, input)
+
+    assert MULTILINE + digit.group() == group(digit) + MULTILINE
+    assert MULTILINE + digit.group('test') == group(digit, 'test') + MULTILINE
+    # assert MULTILINE + digit.not_preceded_by(input) == if_not_preceded_by(digit, input) + MULTILINE
+    # assert MULTILINE + digit.preceded_by(input) == if_preceded_by(digit, input) + MULTILINE
+    # assert MULTILINE + digit.not_proceded_by(input) == if_not_proceded_by(digit, input) + MULTILINE
+    # assert MULTILINE + digit.proceded_by(input) == if_proceded_by(digit, input) + MULTILINE
+    # assert MULTILINE + digit.enclosed_with('|') == if_enclosed_with(digit, '|') + MULTILINE
+    # assert MULTILINE + digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')') + MULTILINE
+    assert MULTILINE + digit.at_least(min) == at_least(min, digit) + MULTILINE
+    assert MULTILINE + digit.more_than(min) == more_than(min, digit) + MULTILINE
+    assert MULTILINE + digit.amt(2) == match_num(2, digit) + MULTILINE
+    assert MULTILINE + digit.at_most(max) == at_most(max, digit) + MULTILINE
+    assert MULTILINE + digit.between(min, max) == between(min, max, digit) + MULTILINE
+    assert MULTILINE + digit.between(min, max, greedy=False) == between(min, max, digit, greedy=False) + MULTILINE
+    assert MULTILINE + digit.between(min, max, possessive=True) == between(min, max, digit, possessive=True) + MULTILINE
+    assert MULTILINE + digit.at_least_one() == at_least_one(digit) + MULTILINE
+    assert MULTILINE + digit.at_least_one(greedy=False) == at_least_one(digit, greedy=False) + MULTILINE
+    assert MULTILINE + digit.at_least_one(possessive=True) == at_least_one(digit, possessive=True) + MULTILINE
+    assert MULTILINE + digit.at_least_none() == at_least_none(digit) + MULTILINE
+    assert MULTILINE + digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False) + MULTILINE
+    assert MULTILINE + digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True) + MULTILINE
+    assert MULTILINE + digit.or_(input) == either(digit, input) + MULTILINE
+
+    assert digit.optional == optional(digit)
+    assert digit.repeat == repeat(digit)
+    assert digit.exactly == is_exactly(digit)
+
+    assert digit.ASCII == digit + ASCII
+    assert digit.IGNORECASE == digit + IGNORECASE
+    assert digit.DOTALL == digit + DOTALL
+    assert digit.LOCALE == digit + LOCALE
+    assert digit.MULTILINE == digit + MULTILINE
+
+    assert digit.append(input) == digit + input
+    assert digit.prepend(input) == input + digit
+
+    assert digit.append(input).ASCII == digit + ASCII + input
+    assert digit.prepend(input).ASCII == input + digit + ASCII
+
+    assert 'foo' + number + optional(whitespace) + word == number.append(whitespace.optional).prepend('foo').append(word)
+    assert (
+        optional(whitespace) + group(either(repeat('a'), 'b')) ==
+        whitespace.optional.append(literal('a').repeat.or_('b').unnamed) ==
+        whitespace.optional + repeat('a').or_('b').unnamed
+    )
