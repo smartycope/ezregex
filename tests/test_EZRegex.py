@@ -108,51 +108,57 @@ def test_elemental_methods():
     input = word
     min = 1
     max = 3
-    assert digit.group() == group(digit) == digit.unnamed
-    assert digit.group('test') == group(digit, 'test') == digit.named('test')
-    # assert digit.not_preceded_by(input) == if_not_preceded_by(digit, input)
-    # assert digit.preceded_by(input) == if_preceded_by(digit, input)
-    # assert digit.not_proceded_by(input) == if_not_proceded_by(digit, input)
-    # assert digit.proceded_by(input) == if_proceded_by(digit, input)
-    # assert digit.enclosed_with('|') == if_enclosed_with(digit, '|')
-    # assert digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')')
-    assert digit.at_least(min) == at_least(min, digit)
-    assert digit.more_than(min) == more_than(min, digit)
-    assert digit.amt(2) == match_num(2, digit)
-    assert digit.at_most(max) == at_most(max, digit)
-    assert digit.between(min, max) == between(min, max, digit)
-    assert digit.between(min, max, greedy=False) == between(min, max, digit, greedy=False)
-    assert digit.between(min, max, possessive=True) == between(min, max, digit, possessive=True)
-    assert digit.at_least_one() == at_least_one(digit)
-    assert digit.at_least_one(greedy=False) == at_least_one(digit, greedy=False)
-    assert digit.at_least_one(possessive=True) == at_least_one(digit, possessive=True)
-    assert digit.at_least_none() == at_least_none(digit)
-    assert digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False)
-    assert digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True)
-    assert digit.or_(input) == either(digit, input)
+    try:
+        assert digit.group() == group(digit) == digit.unnamed
+        assert digit.group('test') == group(digit, 'test') == digit.named('test')
+        # assert digit.not_preceded_by(input) == if_not_preceded_by(digit, input)
+        # assert digit.preceded_by(input) == if_preceded_by(digit, input)
+        # assert digit.not_proceded_by(input) == if_not_proceded_by(digit, input)
+        # assert digit.proceded_by(input) == if_proceded_by(digit, input)
+        # assert digit.enclosed_with('|') == if_enclosed_with(digit, '|')
+        # assert digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')')
+        assert digit.at_least(min) == at_least(min, digit)
+        assert digit.more_than(min) == more_than(min, digit)
+        assert digit.amt(2) == match_num(2, digit)
+        assert digit.at_most(max) == at_most(max, digit)
+        assert digit.between(min, max) == between(min, max, digit)
+        assert digit.between(min, max, greedy=False) == between(min, max, digit, greedy=False)
+        assert digit.between(min, max, possessive=True) == between(min, max, digit, possessive=True)
+        assert digit.at_least_one() == at_least_one(digit)
+        assert digit.at_least_one(greedy=False) == at_least_one(digit, greedy=False)
+        assert digit.at_least_one(possessive=True) == at_least_one(digit, possessive=True)
+        assert digit.at_least_none() == at_least_none(digit)
+        assert digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False)
+        assert digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True)
+        assert digit.or_(input) == either(digit, input)
 
-    assert MULTILINE + digit.group() == group(digit) + MULTILINE
-    assert MULTILINE + digit.group('test') == group(digit, 'test') + MULTILINE
-    # assert MULTILINE + digit.not_preceded_by(input) == if_not_preceded_by(digit, input) + MULTILINE
-    # assert MULTILINE + digit.preceded_by(input) == if_preceded_by(digit, input) + MULTILINE
-    # assert MULTILINE + digit.not_proceded_by(input) == if_not_proceded_by(digit, input) + MULTILINE
-    # assert MULTILINE + digit.proceded_by(input) == if_proceded_by(digit, input) + MULTILINE
-    # assert MULTILINE + digit.enclosed_with('|') == if_enclosed_with(digit, '|') + MULTILINE
-    # assert MULTILINE + digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')') + MULTILINE
-    assert MULTILINE + digit.at_least(min) == at_least(min, digit) + MULTILINE
-    assert MULTILINE + digit.more_than(min) == more_than(min, digit) + MULTILINE
-    assert MULTILINE + digit.amt(2) == match_num(2, digit) + MULTILINE
-    assert MULTILINE + digit.at_most(max) == at_most(max, digit) + MULTILINE
-    assert MULTILINE + digit.between(min, max) == between(min, max, digit) + MULTILINE
-    assert MULTILINE + digit.between(min, max, greedy=False) == between(min, max, digit, greedy=False) + MULTILINE
-    assert MULTILINE + digit.between(min, max, possessive=True) == between(min, max, digit, possessive=True) + MULTILINE
-    assert MULTILINE + digit.at_least_one() == at_least_one(digit) + MULTILINE
-    assert MULTILINE + digit.at_least_one(greedy=False) == at_least_one(digit, greedy=False) + MULTILINE
-    assert MULTILINE + digit.at_least_one(possessive=True) == at_least_one(digit, possessive=True) + MULTILINE
-    assert MULTILINE + digit.at_least_none() == at_least_none(digit) + MULTILINE
-    assert MULTILINE + digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False) + MULTILINE
-    assert MULTILINE + digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True) + MULTILINE
-    assert MULTILINE + digit.or_(input) == either(digit, input) + MULTILINE
+        assert MULTILINE + digit.group() == group(digit) + MULTILINE
+        assert MULTILINE + digit.group('test') == group(digit, 'test') + MULTILINE
+        # assert MULTILINE + digit.not_preceded_by(input) == if_not_preceded_by(digit, input) + MULTILINE
+        # assert MULTILINE + digit.preceded_by(input) == if_preceded_by(digit, input) + MULTILINE
+        # assert MULTILINE + digit.not_proceded_by(input) == if_not_proceded_by(digit, input) + MULTILINE
+        # assert MULTILINE + digit.proceded_by(input) == if_proceded_by(digit, input) + MULTILINE
+        # assert MULTILINE + digit.enclosed_with('|') == if_enclosed_with(digit, '|') + MULTILINE
+        # assert MULTILINE + digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')') + MULTILINE
+        assert MULTILINE + digit.at_least(min) == at_least(min, digit) + MULTILINE
+        assert MULTILINE + digit.more_than(min) == more_than(min, digit) + MULTILINE
+        assert MULTILINE + digit.amt(2) == match_num(2, digit) + MULTILINE
+        assert MULTILINE + digit.at_most(max) == at_most(max, digit) + MULTILINE
+        assert MULTILINE + digit.between(min, max) == between(min, max, digit) + MULTILINE
+        assert MULTILINE + digit.between(min, max, greedy=False) == between(min, max, digit, greedy=False) + MULTILINE
+        assert MULTILINE + digit.between(min, max, possessive=True) == between(min, max, digit, possessive=True) + MULTILINE
+        assert MULTILINE + digit.at_least_one() == at_least_one(digit) + MULTILINE
+        assert MULTILINE + digit.at_least_one(greedy=False) == at_least_one(digit, greedy=False) + MULTILINE
+        assert MULTILINE + digit.at_least_one(possessive=True) == at_least_one(digit, possessive=True) + MULTILINE
+        assert MULTILINE + digit.at_least_none() == at_least_none(digit) + MULTILINE
+        assert MULTILINE + digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False) + MULTILINE
+        assert MULTILINE + digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True) + MULTILINE
+        assert MULTILINE + digit.or_(input) == either(digit, input) + MULTILINE
+    # I usually run tests in Python3.12, so I'm just gonna disable all these tests for Python3.10 (since I have automated
+    # tests run in Python3.10, and 3.10 doesn't support possessive or greedy regex operators)
+    except Exception as err:
+        if 'require at least Python3.11' not in str(err):
+            raise err
 
     assert digit.optional == optional(digit)
     assert digit.repeat == repeat(digit)
