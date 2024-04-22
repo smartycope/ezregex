@@ -38,7 +38,7 @@ TLDR: This is to regular expressions what CMake is to makefiles
 * [Usage](#usage)
 * [Invert](#inverting)
 * [Generate](#generation)
-* [Elements and Methods](#elements-and-methods)
+* [Functions vs Methods](#functions-vs-methods)
 * [Dialects](#dialects)
 * [Documentation](#documentation)
 * [Developer Docs](#developer-documentation)
@@ -133,8 +133,8 @@ The `invert` function (available as er.invert(`expression`), `expression`.invert
 ## Generation
 In version v1.7.0 we introduced a new function: `generate_regex`. It takes in 2 sets of strings, and returns a regular expression that will match everything in the first set and nothing in the second set. It may be a bit crude, but it can be a good starting point if you don't know where to start. It's also really good at [regex golf](http://regex.alf.nu/).
 
-## Elements and Methods
-As of v2.1.0, there's *elemental methods* in EZRegex objects, as well as the basic elements. These shadow their element counterparts exactly, and work the same way, they're just for convenience and preference.
+## Functions vs Methods
+As of v2.1.0, *elemental methods* were added to EZRegex objects. These shadow their function element counterparts exactly and work the same way, they're just for convenience and preference.
 
 For example, these are all equivelent:
 ```python
@@ -167,10 +167,12 @@ The currently implemented dialects are:
 
 If you know a particular flavor of regex and would like to contribute, feel free to read the [developer documentation](#developer-documentation) and make a pull request! If you would like one that's not implemented yet, you can also add a [github issue](https://github.com/smartycope/ezregex/issues).
 
+## Usage
+- All the functions in the Python `re` library (`search`, `match`, `sub`, etc.) are implemented in the Python EZRegex dialect, and act identically to their equivalents. If you still want to use the Python `re` library directly, note that functions like `search` and `sub` don't accept EZRegex patterns as valid regex. Be sure to either call .str() (or cast it to a string) or .compile() (to compile to an re.Pattern) when passing to those. Using the member functions however, will be more efficient, as EZRegex caches the compiled re.Pattern internally.
+
 ## Documentation
 ### Notes and Gotchas
 - The different Regular Expression dialects don't all have the same features, and those features don't all work the same way. I've tried to standardize these as best I can and use reasonable names for all the elements. If you're confused by something not working as expected, be sure to understand how your language specifically handles regular expressions.
-- All the functions in the Python `re` library (`search`, `match`, `sub`, etc.) are implemented in the Python EZRegex dialect, and act identically to their equivalents. If you still want to use the Python `re` library, note that functions like `search` and `sub` don't accept EZRegex patterns as valid regex. Be sure to either call .str() (or cast it to a string) or .compile() (to compile to an re.Pattern) when passing to those. Using the member functions however, will be more efficient, as EZRegex caches the compiled re.Pattern internally.
 - Be careful to call functions on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
 - In regular regex, a lot of random things capture groups for no apparent reason. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group(), with the optional `name` parameter.
 - All EZRegexs (except for `raw`) auto-sanitize strings given to them, so there's no need to escape characters or use r strings. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally (unless you want that, of course). To include already written regex strings, use `raw`
@@ -1067,6 +1069,11 @@ There's actually 2 algorithms implemented for "inverting" regexs. The old algori
 Later, when I was reading up on abstract syntax trees, and scrolling around on PyPi, I realized that Python has one built in, and that it's available to use. I reimplemented the whole algorithm to instead parse the AST given by the built-in re lexer, and wrote my own parser on top of it, which works *much* better.
 
 Along the way, I also discovered, deep in the corners of the internet, 2 other Python libraries which do almost the same thing: `xeger` (regex backwards), and `sre_yield`. `xeger` technically works, however it tends to include unprintable characters, so it's output isn't very readable. `sre_yeild` is better, but it can be very slow, and is not quite the use case I'm going for. My invert algorithm is meant to be a debugging tool (though it doubles well for a testing tool), so it does things like detecting words (as opposed to seperate word characters) and inserts actual words, and doing the same for numbers and inserting `12345...`, as well as a couple other enhancements.
+
+### Tests
+Tests are implemented using pytest. Dependancies required for testing are:
+
+```pytest jstyleson py_js_runner rich Cope pydantic```
 
 ## Installation
 EZRegex is distributed on [PyPI](https://pypi.org) as a universal wheel and is available on Linux, macOS and Windows and supports Python 3.10+ and PyPy.

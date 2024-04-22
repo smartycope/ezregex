@@ -111,12 +111,12 @@ def test_elemental_methods():
     try:
         assert digit.group() == group(digit) == digit.unnamed
         assert digit.group('test') == group(digit, 'test') == digit.named('test')
-        # assert digit.not_preceded_by(input) == if_not_preceded_by(digit, input)
-        # assert digit.preceded_by(input) == if_preceded_by(digit, input)
-        # assert digit.not_proceded_by(input) == if_not_proceded_by(digit, input)
-        # assert digit.proceded_by(input) == if_proceded_by(digit, input)
-        # assert digit.enclosed_with('|') == if_enclosed_with(digit, '|')
-        # assert digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')')
+        assert digit.if_not_preceded_by(input) == if_not_preceded_by(input) + digit
+        assert digit.if_preceded_by(input) == if_preceded_by(input) + digit
+        assert digit.if_not_proceded_by(input) == digit + if_not_proceded_by(input)
+        assert digit.if_proceded_by(input) == digit + if_proceded_by(input)
+        assert digit.if_enclosed_with('|') == if_enclosed_with(digit, '|')
+        assert digit.if_enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')')
         assert digit.at_least(min) == at_least(min, digit)
         assert digit.more_than(min) == more_than(min, digit)
         assert digit.amt(2) == match_num(2, digit)
@@ -134,12 +134,12 @@ def test_elemental_methods():
 
         assert MULTILINE + digit.group() == group(digit) + MULTILINE
         assert MULTILINE + digit.group('test') == group(digit, 'test') + MULTILINE
-        # assert MULTILINE + digit.not_preceded_by(input) == if_not_preceded_by(digit, input) + MULTILINE
-        # assert MULTILINE + digit.preceded_by(input) == if_preceded_by(digit, input) + MULTILINE
-        # assert MULTILINE + digit.not_proceded_by(input) == if_not_proceded_by(digit, input) + MULTILINE
-        # assert MULTILINE + digit.proceded_by(input) == if_proceded_by(digit, input) + MULTILINE
-        # assert MULTILINE + digit.enclosed_with('|') == if_enclosed_with(digit, '|') + MULTILINE
-        # assert MULTILINE + digit.enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')') + MULTILINE
+        assert MULTILINE + digit.if_not_preceded_by(input) == if_not_preceded_by(input) + MULTILINE + digit
+        assert MULTILINE + digit.if_preceded_by(input) == if_preceded_by(input) + MULTILINE + digit
+        assert MULTILINE + digit.if_not_proceded_by(input) == digit + if_not_proceded_by(input) + MULTILINE
+        assert MULTILINE + digit.if_proceded_by(input) == digit + if_proceded_by(input) + MULTILINE
+        assert MULTILINE + digit.if_enclosed_with('|') == if_enclosed_with(digit, '|') + MULTILINE
+        assert MULTILINE + digit.if_enclosed_with('(', ')') == if_enclosed_with(digit, '(', ')') + MULTILINE
         assert MULTILINE + digit.at_least(min) == at_least(min, digit) + MULTILINE
         assert MULTILINE + digit.more_than(min) == more_than(min, digit) + MULTILINE
         assert MULTILINE + digit.amt(2) == match_num(2, digit) + MULTILINE
@@ -178,7 +178,7 @@ def test_elemental_methods():
 
     assert 'foo' + number + optional(whitespace) + word == number.append(whitespace.optional).prepend('foo').append(word)
     assert (
-        optional(whitespace) + group(either(repeat('a'), 'b')) ==
-        whitespace.optional.append(literal('a').repeat.or_('b').unnamed) ==
-        whitespace.optional + repeat('a').or_('b').unnamed
+        optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word) ==
+        whitespace.optional.append(literal('a').repeat.or_('b').unnamed).if_followed_by(word) ==
+        whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
     )

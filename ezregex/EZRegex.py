@@ -2,7 +2,6 @@ import logging
 import re
 from abc import ABC
 from functools import partial
-
 from .api import api
 from .generate import *
 from .invert import invert
@@ -15,7 +14,7 @@ from .base import base, psuedonymns
 # TODO: in all the magic functions assert that we're not mixing dialects
 # TODO: figure out if theres a way to make a "change dialect" function
 
-class EZRegex(ABC):
+class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
     def __init__(self, definition, *, sanatize=True, replacement=False, flags=''):
@@ -211,19 +210,25 @@ class EZRegex(ABC):
     def unnamed(self):
         return self.group()
 
-    def not_preceded_by(self, input):
-        return self._base('if_not_preceded_by', self, input)
+    def if_not_preceded_by(self, input):
+        return self._base('if_not_preceded_by', input) + self
 
-    def preceded_by(self, input):
-        return self._base('if_preceded_by', self, input)
+    def if_preceded_by(self, input):
+        return self._base('if_preceded_by', input) + self
 
-    def not_proceded_by(self, input):
-        return self._base('if_not_proceeded_by', self, input)
+    def if_not_proceded_by(self, input):
+        return self + self._base('if_not_proceded_by', input)
 
-    def proceded_by(self, input):
-        return self._base('if_proceeded_by', self, input)
+    def if_proceded_by(self, input):
+        return self + self._base('if_proceded_by', input)
 
-    def enclosed_with(self, open, closed=None):
+    def if_not_followed_by(self, input):
+        return self.if_not_proceded_by(input)
+
+    def if_followed_by(self, input):
+        return self.if_proceded_by(input)
+
+    def if_enclosed_with(self, open, closed=None):
         return self._base('if_enclosed_with', self, open, closed)
 
     @property
