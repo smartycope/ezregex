@@ -27,13 +27,9 @@ def load_base(cls, rgroup_func: Callable[[int|str, EllipsisType], str], replace_
         lambda cur=...: rgroup_func(0, cur=cur) if replace_entire_func is Ellipsis else replace_entire_func,
         replacement=True
     )
-    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    print(psuedonymns)
-    # Add all the psuedonymns
+
     for original, aliases in psuedonymns.items():
-        print(f'setting {original} to {aliases}')
         for alias in aliases:
-            print(f'creating alias of {original} as {alias}')
             rtn[alias] = rtn[original]
 
     return rtn
