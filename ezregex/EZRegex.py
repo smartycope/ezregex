@@ -14,7 +14,7 @@ from .base import base, psuedonymns
 # TODO: in all the magic functions assert that we're not mixing dialects
 # TODO: figure out if theres a way to make a "change dialect" function
 
-class EZRegex:
+class EZRegex(ABC):
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
     def __init__(self, definition, *, sanatize=True, replacement=False, flags=''):
