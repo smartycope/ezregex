@@ -39,6 +39,9 @@ class EZRegex(ABC):
     def _flag_func(self, final:str) -> str:
         raise NotImplementedError('Subclasses need to implement _flag_func(final)')
 
+    def _final_func(self, s:str) -> str:
+        return s
+
     def _escape(self, pattern:str):
         """ This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255 """
         _special_chars_map = {i: '\\' + chr(i) for i in self._escape_chars}
@@ -81,6 +84,9 @@ class EZRegex(ABC):
 
             if len(self._flags):
                 regex = self._flag_func(regex)
+
+            # This has to go in the add_flags scope so it only runs at the very end, like flags
+            regex = self._final_func(regex)
         return regex
 
     def _copy(self, definition=..., sanatize=..., replacement=..., flags=...):
