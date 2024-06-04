@@ -1,5 +1,5 @@
 # import jsonc
-# from ezregex import javascript
+from ezregex.javascript import *
 # import js2py
 import jstyleson
 import py_js_runner
@@ -13,7 +13,9 @@ def runjs(js):
 
 
 def test_javascript():
-    return # This should be written in the javascript branch
+    assert str(word + group(digit + 'test') + raw(r'\w+')) == r'/\w+(\dtest)\w+/'
+    # TODO: JS dialect tests
+    return
     offset = 2
 
     with open('tests/data/regexs.jsonc') as f:
