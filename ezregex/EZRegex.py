@@ -80,7 +80,7 @@ class EZRegex(ABC):
 
         # Add the flags
         if add_flags:
-            regex = self._beginning + regex + self._end
+            regex = regex
 
             if len(self._flags):
                 regex = self._flag_func(regex)

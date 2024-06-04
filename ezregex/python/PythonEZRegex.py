@@ -7,8 +7,6 @@ from ezregex import EZRegex
 
 class PythonEZRegex(EZRegex):
     _escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f'
-    _end = ''
-    _beginning = ''
     _compiled = None
 
     def _flag_func(self, final):

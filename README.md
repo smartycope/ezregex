@@ -200,7 +200,7 @@ If you know a particular flavor of regex and would like to contribute, feel free
 <details>
 	<summary>Literals</summary>
 
-#### 
+####
 - tab
 - space
 - space_or_tab
@@ -219,7 +219,7 @@ If you know a particular flavor of regex and would like to contribute, feel free
 <details>
 	<summary>Not Literals</summary>
 
-#### 
+####
 - not_whitespace
 - not_digit
 - not_word
@@ -229,7 +229,7 @@ If you know a particular flavor of regex and would like to contribute, feel free
 <details>
 	<summary>Catagories</summary>
 
-#### 
+####
 - whitespace
 - whitechunk
 	- A "chunk" of whitespace. Just any amount of whitespace together
@@ -258,7 +258,7 @@ If you know a particular flavor of regex and would like to contribute, feel free
 - alpha_num
 - unicode
 	- Matches a unicode character by name
-- any_between(char: str, and_char: str) 
+- any_between(char: str, and_char: str)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
 
 </details>
@@ -266,33 +266,33 @@ If you know a particular flavor of regex and would like to contribute, feel free
 <details>
 	<summary>Amounts</summary>
 
-#### 
-- match_max(input: InputType) 
+####
+- match_max(input: InputType)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
 If `input` is not provided, it works on the previous regex pattern. That's not recommended for
 clarity's sake though
-- match_num(num: int, input: InputType) 
+- match_num(num: int, input: InputType)
 	- Match `num` amount of `input` in the string
-- more_than(min: int, input: InputType) 
+- more_than(min: int, input: InputType)
 	- Match more than `min` sequences of `input` in the string
-- at_least(min: int, input: InputType) 
+- at_least(min: int, input: InputType)
 	- Match at least `min` sequences of `input` in the string
-- at_most(max: int, input: InputType) 
+- at_most(max: int, input: InputType)
 	- Match at most `max` instances of `input` in the string
-- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False) 
+- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
 Max can be an empty string to indicate no maximum
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
@@ -304,15 +304,15 @@ see https://docs.python.org/3/library/re.html for more help
 <details>
 	<summary>Choices</summary>
 
-#### 
-- optional(input: InputType, greedy: bool=True, possessive: bool=False) 
+####
+- optional(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- either(input: InputType, or_input: InputType) 
-- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None) 
+- either(input: InputType, or_input: InputType)
+- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None)
 	- Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
 or a single string. Can also accept parameters chars and split. If char is set
 to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -320,13 +320,13 @@ as characters, and splits it up to find any of the chars in the string. If
 split is set to true, it forces the ?(...) regex syntax instead of the [...]
 syntax. It should act the same way, but your output regex will look different.
 By default, it just optimizes it for you.
-- any_char_except(*inputs: str) 
+- any_char_except(*inputs: str)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- any_except(input: InputType, type: InputType='.*') 
+- any_except(input: InputType, type: InputType='.*')
 	- Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
 optionally accepts the `type` parameter, which works like this: "Match any `type` other than `input`". For example,
 "match any word which is not foo". Do note that this function is new, and I'm still working out the kinks.
-- each(*inputs: InputType) 
+- each(*inputs: InputType)
 	- Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order.
 
 </details>
@@ -335,19 +335,19 @@ optionally accepts the `type` parameter, which works like this: "Match any `type
 	<summary>Conditionals</summary>
 
 #### These can only be used once in a given expression. They only match a given expression if the expression is/ins'tfollowed/preceeded by a the given pattern
-- if_proceded_by(input: InputType) 
+- if_proceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
 as it only applies to the end
-- if_not_proceded_by(input: InputType) 
+- if_not_proceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
 a given pattern, as it only applies to the end
-- if_preceded_by(input: InputType) 
+- if_preceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
 as it only applies to the beginning
-- if_not_preceded_by(input: InputType) 
+- if_not_preceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming before it. Can only be used once
 in a given pattern, as it only applies to the beginning
-- if_enclosed_with(open: str, stuff: InputType, close: str | None=None) 
+- if_enclosed_with(open: str, stuff: InputType, close: str | None=None)
 	- Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 
@@ -356,16 +356,16 @@ stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 <details>
 	<summary>Grouping</summary>
 
-#### 
-- group(input: InputType, name: str | None=None) 
+####
+- group(input: InputType, name: str | None=None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
-- passive_group(input: InputType) 
+- passive_group(input: InputType)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- earlier_group(num_or_name: int | str) 
+- earlier_group(num_or_name: int | str)
 	- Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
 group which would match `num_or_name`
-- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None) 
-	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
+- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None)
+	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 
 </details>
 
@@ -373,7 +373,7 @@ group which would match `num_or_name`
 	<summary>Replacement</summary>
 
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that theyare not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-- rgroup(num_or_name: str | int) 
+- rgroup(num_or_name: str | int)
 	- Puts in its place the group specified, either by group number (for unnamed
 groups) or group name (for named groups). Named groups are also counted by
 number, I'm pretty sure. Groups are numbered starting from 1
@@ -401,12 +401,12 @@ There's a few of advantages to using this instead of just the regular regex repl
 <details>
 	<summary>Misc</summary>
 
-#### 
-- is_exactly(input: InputType) 
+####
+- is_exactly(input: InputType)
 	- This matches the string if and only if the entire string is exactly equal to `input`
-- literal(input: InputType) 
+- literal(input: InputType)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
-- raw(regex: str) 
+- raw(regex: str)
 	- If you already have some regular regex written, and you want to incorperate
 it, this will allow you to include it without sanatizing all the backslaches
 and such, which all the other EZRegexs do automatically
@@ -438,31 +438,31 @@ and such, which all the other EZRegexs do automatically
 
 #### These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're providedhere for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details
 - perty
-def ASCII(self) 
+def ASCII(self)
 - perty
-def IGNORECASE(self) 
+def IGNORECASE(self)
 - perty
-def DOTALL(self) 
+def DOTALL(self)
 - perty
-def LOCALE(self) 
+def LOCALE(self)
 - perty
-def MULTILINE(self) 
+def MULTILINE(self)
 - perty
-def UNICODE(self) 
+def UNICODE(self)
 - __init__(self, definition: EZRegexDefinition, *, sanatize: bool=True, replacement: bool=False, flags: str='') -> None
 	- The workhorse of the EZRegex library. This represents a regex pattern that can be combined
 with other EZRegexs and strings. Ideally, this should only be called internally, but it should
 still work from the user's end
 - _flag_func(self, final: str) -> str
 - _escape(self, pattern: str) -> str
-	- This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255 
+	- This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255
 - _sanitizeInput(self, i: InputType, addFlags: bool=False) -> str
-	- Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string 
+	- Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string
 - _compile(self, addFlags=True) -> str
 - _copy(self, definition: EZRegexDefinition=..., sanatize: bool=..., replacement: bool=..., flags: str=...)
 - compile(self, addFlags=True) -> re.Pattern
 - str(self) -> str
-- debug(self) 
+- debug(self)
 - copy(self, addFlags=True) -> None
 - test(self, testString: str=None, show=True, context=True) -> bool
 	- Tests the current regex expression to see if it's in @param testString.
@@ -470,71 +470,71 @@ Returns the match objects (None if there was no match)
 - invert(self, amt=1, **kwargs) -> str
 - inverse(self, amt=1, **kwargs) -> str
 	- "Inverts" the current Regex expression to give an example of a string it would match.
-Useful for debugging purposes. 
-- group(self, name: str=None) 
-- named(self, name: str) 
+Useful for debugging purposes.
+- group(self, name: str=None)
+- named(self, name: str)
 - perty
-def unnamed(self) 
-- if_not_preceded_by(self, input: InputType) 
-- if_preceded_by(self, input: InputType) 
-- if_not_proceded_by(self, input: InputType) 
-- if_proceded_by(self, input: InputType) 
-- if_not_followed_by(self, input: InputType) 
-- if_followed_by(self, input: InputType) 
-- if_enclosed_with(self, open: str, closed: str | None=None) 
+def unnamed(self)
+- if_not_preceded_by(self, input: InputType)
+- if_preceded_by(self, input: InputType)
+- if_not_proceded_by(self, input: InputType)
+- if_proceded_by(self, input: InputType)
+- if_not_followed_by(self, input: InputType)
+- if_followed_by(self, input: InputType)
+- if_enclosed_with(self, open: str, closed: str | None=None)
 - perty
-def optional(self) 
+def optional(self)
 - perty
-def repeat(self) 
+def repeat(self)
 - perty
-def exactly(self) 
-- at_least(self, min: int) 
-- more_than(self, min: int) 
-- amt(self, amt: int) 
-- at_most(self, max: int) 
-- between(self, min: int, max: int, greedy: bool=True, possessive: bool=False) 
-- at_least_one(self, greedy: bool=True, possessive: bool=False) 
-- at_least_none(self, greedy: bool=True, possessive: bool=False) 
-- or_(self, input: InputType) 
-- append(self, input: InputType) 
-- prepend(self, input: InputType) 
+def exactly(self)
+- at_least(self, min: int)
+- more_than(self, min: int)
+- amt(self, amt: int)
+- at_most(self, max: int)
+- between(self, min: int, max: int, greedy: bool=True, possessive: bool=False)
+- at_least_one(self, greedy: bool=True, possessive: bool=False)
+- at_least_none(self, greedy: bool=True, possessive: bool=False)
+- or_(self, input: InputType)
+- append(self, input: InputType)
+- prepend(self, input: InputType)
 - perty
 def flags(self) -> str
-- set_flags(self, to: str) 
-- add_flag(self, flag: str) 
-- remove_flag(self, flag: str) 
+- set_flags(self, to: str)
+- add_flag(self, flag: str)
+- remove_flag(self, flag: str)
 - __call__(self, *args, **kwargs) -> EZRegex | str
-	- This should be called by the user to specify the specific parameters of this instance i.e. anyof('a', 'b') 
+	- This should be called by the user to specify the specific parameters of this instance i.e. anyof('a', 'b')
 - __str__(self, addFlags: bool=True) -> str
 - __repr__(self) -> str
 - __eq__(self, thing: InputType) -> bool
-- __mul__(self, amt: int) 
-- __rmul__(self, amt: int) 
-- __imul__(self, amt: int) 
-- __add__(self, thing: InputType) 
-- __radd__(self, thing: InputType) 
-- __iadd__(self, thing: InputType) 
-- __and__(self, thing: InputType) 
-- __rand__(self, thing: InputType) 
-- __lshift__(self, thing: InputType) 
-- __rlshift__(self, thing: InputType) 
-- __ilshift__(self, thing: InputType) 
-- __rshift__(self, thing: InputType) 
-- __rrshift__(self, thing: InputType) 
-- __irshift__(self, thing: InputType) 
+- __mul__(self, amt: int)
+- __rmul__(self, amt: int)
+- __imul__(self, amt: int)
+- __add__(self, thing: InputType)
+- __radd__(self, thing: InputType)
+- __iadd__(self, thing: InputType)
+- __and__(self, thing: InputType)
+- __rand__(self, thing: InputType)
+- __lshift__(self, thing: InputType)
+- __rlshift__(self, thing: InputType)
+- __ilshift__(self, thing: InputType)
+- __rshift__(self, thing: InputType)
+- __rrshift__(self, thing: InputType)
+- __irshift__(self, thing: InputType)
 - __invert__(self) -> str
-- __pos__(self) 
-	- TODO: Add documentation here 
-- __ror__(self, thing: InputType) 
-	- TODO: Add documentation here 
-- __or__(self, thing: InputType) 
-- __xor__(self, thing: InputType) 
-- __rxor__(self, thing: InputType) 
+- __pos__(self)
+	- TODO: Add documentation here
+- __ror__(self, thing: InputType)
+	- TODO: Add documentation here
+- __or__(self, thing: InputType)
+- __xor__(self, thing: InputType)
+- __rxor__(self, thing: InputType)
 - __mod__(self, other: str) -> re.Match | None
-	- I would prefer __rmod__(), but it doesn't work on strings, since __mod__() is already specified for string formmating. 
+	- I would prefer __rmod__(), but it doesn't work on strings, since __mod__() is already specified for string formmating.
 - __hash__(self) -> int
 - __contains__(self, thing: str) -> bool
-- __getitem__(self, args) 
+- __getitem__(self, args)
 - __reversed__(self) -> str
 - __rich__(self) -> str
 - __pretty__(self) -> str
@@ -563,7 +563,7 @@ def flags(self) -> str
 <details>
 	<summary>Literals</summary>
 
-#### 
+####
 - tab
 - space
 - space_or_tab
@@ -582,7 +582,7 @@ def flags(self) -> str
 <details>
 	<summary>Not Literals</summary>
 
-#### 
+####
 - not_whitespace
 - not_digit
 - not_word
@@ -592,7 +592,7 @@ def flags(self) -> str
 <details>
 	<summary>Catagories</summary>
 
-#### 
+####
 - whitespace
 - whitechunk
 	- A "chunk" of whitespace. Just any amount of whitespace together
@@ -621,7 +621,7 @@ def flags(self) -> str
 - alpha_num
 - unicode
 	- Matches a unicode character by name
-- any_between(char: str, and_char: str) 
+- any_between(char: str, and_char: str)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
 
 </details>
@@ -629,33 +629,33 @@ def flags(self) -> str
 <details>
 	<summary>Amounts</summary>
 
-#### 
-- match_max(input: InputType) 
+####
+- match_max(input: InputType)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
 If `input` is not provided, it works on the previous regex pattern. That's not recommended for
 clarity's sake though
-- match_num(num: int, input: InputType) 
+- match_num(num: int, input: InputType)
 	- Match `num` amount of `input` in the string
-- more_than(min: int, input: InputType) 
+- more_than(min: int, input: InputType)
 	- Match more than `min` sequences of `input` in the string
-- at_least(min: int, input: InputType) 
+- at_least(min: int, input: InputType)
 	- Match at least `min` sequences of `input` in the string
-- at_most(max: int, input: InputType) 
+- at_most(max: int, input: InputType)
 	- Match at most `max` instances of `input` in the string
-- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False) 
+- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
 Max can be an empty string to indicate no maximum
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
@@ -667,15 +667,15 @@ see https://docs.python.org/3/library/re.html for more help
 <details>
 	<summary>Choices</summary>
 
-#### 
-- optional(input: InputType, greedy: bool=True, possessive: bool=False) 
+####
+- optional(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- either(input: InputType, or_input: InputType) 
-- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None) 
+- either(input: InputType, or_input: InputType)
+- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None)
 	- Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
 or a single string. Can also accept parameters chars and split. If char is set
 to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -683,13 +683,13 @@ as characters, and splits it up to find any of the chars in the string. If
 split is set to true, it forces the ?(...) regex syntax instead of the [...]
 syntax. It should act the same way, but your output regex will look different.
 By default, it just optimizes it for you.
-- any_char_except(*inputs: str) 
+- any_char_except(*inputs: str)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- any_except(input: InputType, type: InputType='.*') 
+- any_except(input: InputType, type: InputType='.*')
 	- Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
 optionally accepts the `type` parameter, which works like this: "Match any `type` other than `input`". For example,
 "match any word which is not foo". Do note that this function is new, and I'm still working out the kinks.
-- each(*inputs: InputType) 
+- each(*inputs: InputType)
 	- Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order.
 
 </details>
@@ -698,19 +698,19 @@ optionally accepts the `type` parameter, which works like this: "Match any `type
 	<summary>Conditionals</summary>
 
 #### These can only be used once in a given expression. They only match a given expression if the expression is/ins'tfollowed/preceeded by a the given pattern
-- if_proceded_by(input: InputType) 
+- if_proceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
 as it only applies to the end
-- if_not_proceded_by(input: InputType) 
+- if_not_proceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
 a given pattern, as it only applies to the end
-- if_preceded_by(input: InputType) 
+- if_preceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
 as it only applies to the beginning
-- if_not_preceded_by(input: InputType) 
+- if_not_preceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming before it. Can only be used once
 in a given pattern, as it only applies to the beginning
-- if_enclosed_with(open: str, stuff: InputType, close: str | None=None) 
+- if_enclosed_with(open: str, stuff: InputType, close: str | None=None)
 	- Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 
@@ -719,16 +719,16 @@ stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 <details>
 	<summary>Grouping</summary>
 
-#### 
-- group(input: InputType, name: str | None=None) 
+####
+- group(input: InputType, name: str | None=None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
-- passive_group(input: InputType) 
+- passive_group(input: InputType)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- earlier_group(num_or_name: int | str) 
+- earlier_group(num_or_name: int | str)
 	- Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
 group which would match `num_or_name`
-- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None) 
-	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
+- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None)
+	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 
 </details>
 
@@ -736,7 +736,7 @@ group which would match `num_or_name`
 	<summary>Replacement</summary>
 
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that theyare not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-- rgroup(num_or_name: str | int) 
+- rgroup(num_or_name: str | int)
 	- Puts in its place the group specified, either by group number (for unnamed
 groups) or group name (for named groups). Named groups are also counted by
 number, I'm pretty sure. Groups are numbered starting from 1
@@ -764,12 +764,12 @@ There's a few of advantages to using this instead of just the regular regex repl
 <details>
 	<summary>Misc</summary>
 
-#### 
-- is_exactly(input: InputType) 
+####
+- is_exactly(input: InputType)
 	- This matches the string if and only if the entire string is exactly equal to `input`
-- literal(input: InputType) 
+- literal(input: InputType)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
-- raw(regex: str) 
+- raw(regex: str)
 	- If you already have some regular regex written, and you want to incorperate
 it, this will allow you to include it without sanatizing all the backslaches
 and such, which all the other EZRegexs do automatically
@@ -835,7 +835,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Literals</summary>
 
-#### 
+####
 - tab
 - space
 - space_or_tab
@@ -854,7 +854,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Not Literals</summary>
 
-#### 
+####
 - not_whitespace
 - not_digit
 - not_word
@@ -864,7 +864,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Catagories</summary>
 
-#### 
+####
 - whitespace
 - whitechunk
 	- A "chunk" of whitespace. Just any amount of whitespace together
@@ -893,7 +893,7 @@ and such, which all the other EZRegexs do automatically
 - alpha_num
 - unicode
 	- Matches a unicode character by name
-- any_between(char: str, and_char: str) 
+- any_between(char: str, and_char: str)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
 
 </details>
@@ -901,33 +901,33 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Amounts</summary>
 
-#### 
-- match_max(input: InputType) 
+####
+- match_max(input: InputType)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
 If `input` is not provided, it works on the previous regex pattern. That's not recommended for
 clarity's sake though
-- match_num(num: int, input: InputType) 
+- match_num(num: int, input: InputType)
 	- Match `num` amount of `input` in the string
-- more_than(min: int, input: InputType) 
+- more_than(min: int, input: InputType)
 	- Match more than `min` sequences of `input` in the string
-- at_least(min: int, input: InputType) 
+- at_least(min: int, input: InputType)
 	- Match at least `min` sequences of `input` in the string
-- at_most(max: int, input: InputType) 
+- at_most(max: int, input: InputType)
 	- Match at most `max` instances of `input` in the string
-- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False) 
+- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
 Max can be an empty string to indicate no maximum
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
@@ -939,15 +939,15 @@ see https://docs.python.org/3/library/re.html for more help
 <details>
 	<summary>Choices</summary>
 
-#### 
-- optional(input: InputType, greedy: bool=True, possessive: bool=False) 
+####
+- optional(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- either(input: InputType, or_input: InputType) 
-- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None) 
+- either(input: InputType, or_input: InputType)
+- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None)
 	- Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
 or a single string. Can also accept parameters chars and split. If char is set
 to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -955,13 +955,13 @@ as characters, and splits it up to find any of the chars in the string. If
 split is set to true, it forces the ?(...) regex syntax instead of the [...]
 syntax. It should act the same way, but your output regex will look different.
 By default, it just optimizes it for you.
-- any_char_except(*inputs: str) 
+- any_char_except(*inputs: str)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- any_except(input: InputType, type: InputType='.*') 
+- any_except(input: InputType, type: InputType='.*')
 	- Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
 optionally accepts the `type` parameter, which works like this: "Match any `type` other than `input`". For example,
 "match any word which is not foo". Do note that this function is new, and I'm still working out the kinks.
-- each(*inputs: InputType) 
+- each(*inputs: InputType)
 	- Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order.
 
 </details>
@@ -970,19 +970,19 @@ optionally accepts the `type` parameter, which works like this: "Match any `type
 	<summary>Conditionals</summary>
 
 #### These can only be used once in a given expression. They only match a given expression if the expression is/ins'tfollowed/preceeded by a the given pattern
-- if_proceded_by(input: InputType) 
+- if_proceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
 as it only applies to the end
-- if_not_proceded_by(input: InputType) 
+- if_not_proceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
 a given pattern, as it only applies to the end
-- if_preceded_by(input: InputType) 
+- if_preceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
 as it only applies to the beginning
-- if_not_preceded_by(input: InputType) 
+- if_not_preceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming before it. Can only be used once
 in a given pattern, as it only applies to the beginning
-- if_enclosed_with(open: str, stuff: InputType, close: str | None=None) 
+- if_enclosed_with(open: str, stuff: InputType, close: str | None=None)
 	- Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 
@@ -991,16 +991,16 @@ stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 <details>
 	<summary>Grouping</summary>
 
-#### 
-- group(input: InputType, name: str | None=None) 
+####
+- group(input: InputType, name: str | None=None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
-- passive_group(input: InputType) 
+- passive_group(input: InputType)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- earlier_group(num_or_name: int | str) 
+- earlier_group(num_or_name: int | str)
 	- Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
 group which would match `num_or_name`
-- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None) 
-	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
+- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None)
+	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 
 </details>
 
@@ -1008,7 +1008,7 @@ group which would match `num_or_name`
 	<summary>Replacement</summary>
 
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that theyare not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-- rgroup(num_or_name: str | int) 
+- rgroup(num_or_name: str | int)
 	- Puts in its place the group specified, either by group number (for unnamed
 groups) or group name (for named groups). Named groups are also counted by
 number, I'm pretty sure. Groups are numbered starting from 1
@@ -1036,12 +1036,12 @@ There's a few of advantages to using this instead of just the regular regex repl
 <details>
 	<summary>Misc</summary>
 
-#### 
-- is_exactly(input: InputType) 
+####
+- is_exactly(input: InputType)
 	- This matches the string if and only if the entire string is exactly equal to `input`
-- literal(input: InputType) 
+- literal(input: InputType)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
-- raw(regex: str) 
+- raw(regex: str)
 	- If you already have some regular regex written, and you want to incorperate
 it, this will allow you to include it without sanatizing all the backslaches
 and such, which all the other EZRegexs do automatically
@@ -1116,7 +1116,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Literals</summary>
 
-#### 
+####
 - tab
 - space
 - space_or_tab
@@ -1135,7 +1135,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Not Literals</summary>
 
-#### 
+####
 - not_whitespace
 - not_digit
 - not_word
@@ -1145,7 +1145,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Catagories</summary>
 
-#### 
+####
 - whitespace
 - whitechunk
 	- A "chunk" of whitespace. Just any amount of whitespace together
@@ -1174,7 +1174,7 @@ and such, which all the other EZRegexs do automatically
 - alpha_num
 - unicode
 	- Matches a unicode character by name
-- any_between(char: str, and_char: str) 
+- any_between(char: str, and_char: str)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
 
 </details>
@@ -1182,33 +1182,33 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Amounts</summary>
 
-#### 
-- match_max(input: InputType) 
+####
+- match_max(input: InputType)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
 If `input` is not provided, it works on the previous regex pattern. That's not recommended for
 clarity's sake though
-- match_num(num: int, input: InputType) 
+- match_num(num: int, input: InputType)
 	- Match `num` amount of `input` in the string
-- more_than(min: int, input: InputType) 
+- more_than(min: int, input: InputType)
 	- Match more than `min` sequences of `input` in the string
-- at_least(min: int, input: InputType) 
+- at_least(min: int, input: InputType)
 	- Match at least `min` sequences of `input` in the string
-- at_most(max: int, input: InputType) 
+- at_most(max: int, input: InputType)
 	- Match at most `max` instances of `input` in the string
-- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False) 
+- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
 Max can be an empty string to indicate no maximum
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
@@ -1220,15 +1220,15 @@ see https://docs.python.org/3/library/re.html for more help
 <details>
 	<summary>Choices</summary>
 
-#### 
-- optional(input: InputType, greedy: bool=True, possessive: bool=False) 
+####
+- optional(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- either(input: InputType, or_input: InputType) 
-- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None) 
+- either(input: InputType, or_input: InputType)
+- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None)
 	- Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
 or a single string. Can also accept parameters chars and split. If char is set
 to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -1236,13 +1236,13 @@ as characters, and splits it up to find any of the chars in the string. If
 split is set to true, it forces the ?(...) regex syntax instead of the [...]
 syntax. It should act the same way, but your output regex will look different.
 By default, it just optimizes it for you.
-- any_char_except(*inputs: str) 
+- any_char_except(*inputs: str)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- any_except(input: InputType, type: InputType='.*') 
+- any_except(input: InputType, type: InputType='.*')
 	- Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
 optionally accepts the `type` parameter, which works like this: "Match any `type` other than `input`". For example,
 "match any word which is not foo". Do note that this function is new, and I'm still working out the kinks.
-- each(*inputs: InputType) 
+- each(*inputs: InputType)
 	- Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order.
 
 </details>
@@ -1251,19 +1251,19 @@ optionally accepts the `type` parameter, which works like this: "Match any `type
 	<summary>Conditionals</summary>
 
 #### These can only be used once in a given expression. They only match a given expression if the expression is/ins'tfollowed/preceeded by a the given pattern
-- if_proceded_by(input: InputType) 
+- if_proceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
 as it only applies to the end
-- if_not_proceded_by(input: InputType) 
+- if_not_proceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
 a given pattern, as it only applies to the end
-- if_preceded_by(input: InputType) 
+- if_preceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
 as it only applies to the beginning
-- if_not_preceded_by(input: InputType) 
+- if_not_preceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming before it. Can only be used once
 in a given pattern, as it only applies to the beginning
-- if_enclosed_with(open: str, stuff: InputType, close: str | None=None) 
+- if_enclosed_with(open: str, stuff: InputType, close: str | None=None)
 	- Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 
@@ -1272,16 +1272,16 @@ stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 <details>
 	<summary>Grouping</summary>
 
-#### 
-- group(input: InputType, name: str | None=None) 
+####
+- group(input: InputType, name: str | None=None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
-- passive_group(input: InputType) 
+- passive_group(input: InputType)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- earlier_group(num_or_name: int | str) 
+- earlier_group(num_or_name: int | str)
 	- Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
 group which would match `num_or_name`
-- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None) 
-	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
+- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None)
+	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 
 </details>
 
@@ -1289,7 +1289,7 @@ group which would match `num_or_name`
 	<summary>Replacement</summary>
 
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that theyare not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-- rgroup(num_or_name: str | int) 
+- rgroup(num_or_name: str | int)
 	- Puts in its place the group specified, either by group number (for unnamed
 groups) or group name (for named groups). Named groups are also counted by
 number, I'm pretty sure. Groups are numbered starting from 1
@@ -1317,12 +1317,12 @@ There's a few of advantages to using this instead of just the regular regex repl
 <details>
 	<summary>Misc</summary>
 
-#### 
-- is_exactly(input: InputType) 
+####
+- is_exactly(input: InputType)
 	- This matches the string if and only if the entire string is exactly equal to `input`
-- literal(input: InputType) 
+- literal(input: InputType)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
-- raw(regex: str) 
+- raw(regex: str)
 	- If you already have some regular regex written, and you want to incorperate
 it, this will allow you to include it without sanatizing all the backslaches
 and such, which all the other EZRegexs do automatically
@@ -1386,7 +1386,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Literals</summary>
 
-#### 
+####
 - tab
 - space
 - space_or_tab
@@ -1405,7 +1405,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Not Literals</summary>
 
-#### 
+####
 - not_newline
 	- Matches any single character except line break characters, like the dot, but is not affected by any options that make the dot match all characters including line breaks.
 
@@ -1414,7 +1414,7 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Catagories</summary>
 
-#### 
+####
 - whitespace
 - whitechunk
 	- A "chunk" of whitespace. Just any amount of whitespace together
@@ -1443,7 +1443,7 @@ and such, which all the other EZRegexs do automatically
 - alpha_num
 - unicode
 	- Matches a unicode character by name
-- any_between(char: str, and_char: str) 
+- any_between(char: str, and_char: str)
 	- Match any char between `char` and `and_char`, using the ASCII table for reference
 
 </details>
@@ -1451,33 +1451,33 @@ and such, which all the other EZRegexs do automatically
 <details>
 	<summary>Amounts</summary>
 
-#### 
-- match_max(input: InputType) 
+####
+- match_max(input: InputType)
 	- Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
 If `input` is not provided, it works on the previous regex pattern. That's not recommended for
 clarity's sake though
-- match_num(num: int, input: InputType) 
+- match_num(num: int, input: InputType)
 	- Match `num` amount of `input` in the string
-- more_than(min: int, input: InputType) 
+- more_than(min: int, input: InputType)
 	- Match more than `min` sequences of `input` in the string
-- at_least(min: int, input: InputType) 
+- at_least(min: int, input: InputType)
 	- Match at least `min` sequences of `input` in the string
-- at_most(max: int, input: InputType) 
+- at_most(max: int, input: InputType)
 	- Match at most `max` instances of `input` in the string
-- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False) 
+- between(min: int, max: int, input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
 Max can be an empty string to indicate no maximum
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_one(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False) 
+- at_least_none(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
@@ -1489,15 +1489,15 @@ see https://docs.python.org/3/library/re.html for more help
 <details>
 	<summary>Choices</summary>
 
-#### 
-- optional(input: InputType, greedy: bool=True, possessive: bool=False) 
+####
+- optional(input: InputType, greedy: bool=True, possessive: bool=False)
 	- Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
 `greedy` means it will try to match as many repititions as possible
 non-greedy will try to match as few repititions as possible
 `possessive` means it won't backtrack to try to find any repitions
 see https://docs.python.org/3/library/re.html for more help
-- either(input: InputType, or_input: InputType) 
-- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None) 
+- either(input: InputType, or_input: InputType)
+- any_of(*inputs: str, chars: bool | None=None, split: bool | None=None)
 	- Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
 or a single string. Can also accept parameters chars and split. If char is set
 to True, then `inputs` must only be a single string, it interprets `inputs`
@@ -1505,13 +1505,13 @@ as characters, and splits it up to find any of the chars in the string. If
 split is set to true, it forces the ?(...) regex syntax instead of the [...]
 syntax. It should act the same way, but your output regex will look different.
 By default, it just optimizes it for you.
-- any_char_except(*inputs: str) 
+- any_char_except(*inputs: str)
 	- This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters, or a single string of chars to split.
-- any_except(input: InputType, type: InputType='.*') 
+- any_except(input: InputType, type: InputType='.*')
 	- Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
 optionally accepts the `type` parameter, which works like this: "Match any `type` other than `input`". For example,
 "match any word which is not foo". Do note that this function is new, and I'm still working out the kinks.
-- each(*inputs: InputType) 
+- each(*inputs: InputType)
 	- Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order.
 
 </details>
@@ -1520,19 +1520,19 @@ optionally accepts the `type` parameter, which works like this: "Match any `type
 	<summary>Conditionals</summary>
 
 #### These can only be used once in a given expression. They only match a given expression if the expression is/ins'tfollowed/preceeded by a the given pattern
-- if_proceded_by(input: InputType) 
+- if_proceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
 as it only applies to the end
-- if_not_proceded_by(input: InputType) 
+- if_not_proceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
 a given pattern, as it only applies to the end
-- if_preceded_by(input: InputType) 
+- if_preceded_by(input: InputType)
 	- Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
 as it only applies to the beginning
-- if_not_preceded_by(input: InputType) 
+- if_not_preceded_by(input: InputType)
 	- Matches the pattern if it does **not** have `input` coming before it. Can only be used once
 in a given pattern, as it only applies to the beginning
-- if_enclosed_with(open: str, stuff: InputType, close: str | None=None) 
+- if_enclosed_with(open: str, stuff: InputType, close: str | None=None)
 	- Matches if the string has `open`, then `stuff`, then `close`, but only "matches"
 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 
@@ -1541,16 +1541,16 @@ stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
 <details>
 	<summary>Grouping</summary>
 
-#### 
-- group(input: InputType, name: str | None=None) 
+####
+- group(input: InputType, name: str | None=None)
 	- Causes `input` to be captured as an unnamed group. Only useful when replacing regexs
-- passive_group(input: InputType) 
+- passive_group(input: InputType)
 	- As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
-- earlier_group(num_or_name: int | str) 
+- earlier_group(num_or_name: int | str)
 	- Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
 group which would match `num_or_name`
-- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None) 
-	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` 
+- if_exists(num_or_name: int | str, does: InputType, doesnt: InputType | None=None)
+	- Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 
 </details>
 
@@ -1558,7 +1558,7 @@ group which would match `num_or_name`
 	<summary>Replacement</summary>
 
 #### In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that theyare not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-- rgroup(num_or_name: str | int) 
+- rgroup(num_or_name: str | int)
 	- Puts in its place the group specified, either by group number (for unnamed
 groups) or group name (for named groups). Named groups are also counted by
 number, I'm pretty sure. Groups are numbered starting from 1
@@ -1586,12 +1586,12 @@ There's a few of advantages to using this instead of just the regular regex repl
 <details>
 	<summary>Misc</summary>
 
-#### 
-- is_exactly(input: InputType) 
+####
+- is_exactly(input: InputType)
 	- This matches the string if and only if the entire string is exactly equal to `input`
-- literal(input: InputType) 
+- literal(input: InputType)
 	- This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
-- raw(regex: str) 
+- raw(regex: str)
 	- If you already have some regular regex written, and you want to incorperate
 it, this will allow you to include it without sanatizing all the backslaches
 and such, which all the other EZRegexs do automatically
@@ -1668,13 +1668,13 @@ Because most regex dialects *are* 90% identical, a parent EZRegex class implemen
 
 Each subclass of EZRegex must implement a few options to describe the dialect-specific behavior of the EZRegex class, for example, in the JavaScript dialect, /'s are added to the beginning and end of the pattern, and flags are handled differently in each dialect. This has to be implemented directly into the EZRegex subclass.
 
-There's 4 parts that are required:
-- `beginning` and `end`
-    - Plain strings which describe what to tack onto the beginning and end of the compiled pattern (but *before* flags are added)
-- `flag_func`
+There's 2 parts that are required:
+- `_flag_func`
     - An abstract function that gets called with `final`, which is the final compiled pattern *with* `beginning` and `end` attached, and `flags`, which is a string of all the flags applied to the pattern. Internally, the flags are single digits, because flags usually are. They get passed to this function as a single string, which can be parsed and modified if necissary (it usually isn't)
-- `escape_chars`
+- `_escape_chars`
     - The characters that need to be escaped. Should be a byte string (i.e. b'...')
+- `_final_func`
+    - An optional function which takes in the final string about to be returned, and returns the *final* string. Useful for some dialects, for example, in JS adding `/` to the beginning and end of the final pattern
 
 ### Inverting
 There's actually 2 algorithms implemented for "inverting" regexs. The old algorithm regexs the regexs in a specific order to replace parts one at a time. This is just as nasty and horrifying as it sounds. Dispite it being a terrible, *terrible* solution, I actually got it to work decently well.
