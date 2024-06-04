@@ -16,8 +16,75 @@ prerelease = 'hatch build'
 
 [project]
 name = 'ezregex'
-version = '1.9.1'
+dynamic = ["version"]
 description = 'A readable and intuitive way to generate Regular Expressions'
-dependencies = ['random_word']
+dependencies = []
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Copeland Carter", email = "smartycope@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[project.urls]
+Documentation = "https://github.com/smartycope/ezregex?tab=readme-ov-file#documentation"
+Issues = "https://github.com/smartycope/ezregex/issues"
+Source = "https://github.com/smartycope/ezregex"
+"Official Website" = "https://ezregex.org"
+
+[tool.hatch.version]
+path = "ezregex/__init__.py"
+
+
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args    :tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types]
+dependencies = [
+  "mypy>=1.0.0",
+]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:ezregex tests}"
+
+[tool.coverage.run]
+source_pkgs = ["ezregex", "tests"]
+branch = true
+parallel = true
+omit = [
+  "ezregex/__init__.py",
+]
+
+[tool.coverage.paths]
+ezregex = ["ezregex", "*/ezregex/ezregex"]
+tests = ["tests", "*/ezregex/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]

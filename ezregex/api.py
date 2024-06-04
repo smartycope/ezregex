@@ -33,6 +33,9 @@ def furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
 
 
 def api(pattern, replacement_pattern=None, test_string=None, *, replacement_count=0, split_count=0):
+    if type(pattern) is str:
+        raise ValueError(f'The api `pattern` parameter must be of type EZRegex, recieved {type(pattern)}')
+
     # Get an inverse, if nessicary
     if test_string is None:
         test_string = pattern.inverse()

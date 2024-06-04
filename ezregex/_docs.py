@@ -2,13 +2,15 @@ import ast
 import os
 from copy import deepcopy
 from pathlib import Path
+
 # from clipboard import copy
 from rich import print
 
 # ASSUMPTION: Groups are designated using the form "Group: <name>\n<optional description>"
 # ASSUMPTION: strings below variables act as the descriptions for those variables
 # ASSUMPTION: There aren't any extraneous variables or functions in the .pyi dialect files
-
+# TODO: This needs to add to groups instead of setting groups, so if we specify a group in a dialect, it doesn't reset
+# the docs in that group to just the ones specified in the dialect, it also includes the base ones
 class DocGenerator(ast.NodeVisitor):
     """ This parses the .pyi file and gets all the relevant info out of it """
     def __init__(self, node) -> None:
@@ -95,7 +97,8 @@ for dialect, spec in docs.items():
     s = ''
     # Iterate through the groups
     for group, elements in spec.items():
-        s += f'<details style="padding-left: 20px;">\n\t<summary>{group.title()}</summary>\n\n'
+        #  style="padding-left: 20px;"
+        s += f'<details>\n\t<summary>{group.title()}</summary>\n\n'
         # Add the group description, if there is one
         if 'description' in elements:
             s += '#### ' + elements.pop('description') + '\n'
@@ -117,7 +120,7 @@ for dialect, spec in docs.items():
                 s += '\t- ' + description + '\n'
         s += '\n</details>\n\n'
 
-    sdocs += f'<details>\n\t<summary>{dialect}</summary>{s}</details>\n'
+    sdocs += f'<details>\n\t<summary><strong><u>{dialect}</u></strong></summary>{s}</details>\n'
 
 # sdocs += '<details>\n\t<summary>Operators</summary>\n\n'
 # for op, desc in operator_docs.items():
