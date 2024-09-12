@@ -1,0 +1,8 @@
+pytest
+jstyleson
+py_js_runner
+rich
+Cope>=2
+pydantic
+xeger
+sre-yield
