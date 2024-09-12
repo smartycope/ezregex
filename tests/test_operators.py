@@ -12,8 +12,8 @@ offset = 2
 
 
 def test_invert():
-    import ezregex as er
-    regex = (er.digit + er.word)
+    import ezregex as ez
+    regex = (ez.digit + ez.word)
     assert re.search(regex.str(), ~regex)
 
 # TODO: Finish this

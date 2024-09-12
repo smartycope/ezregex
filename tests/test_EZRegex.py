@@ -3,7 +3,7 @@ from timeit import repeat
 
 import pytest
 
-import ezregex as er
+import ezregex as ez
 from ezregex import *
 
 
@@ -18,7 +18,7 @@ def test_access_dialect():
     assert type(literal('thing')) is PythonEZRegex
 
 def test_psuedonyms():
-    assert er.matchMax(digit) == er.match_max(digit)
+    assert ez.matchMax(digit) == ez.match_max(digit)
     assert matchMax(digit) == match_max(digit)
 
 
@@ -35,8 +35,8 @@ def test_immutability():
 def test_test_method():
     return
     # ow = optional(whitechunk)
-    params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
-    function = er.word + er.ow + '(' + params + ')'
+    params = ez.group(ez.atLeastNone(ez.ow + ez.word + ez.ow + ez.optional(',') + ez.ow))
+    function = ez.word + ez.ow + '(' + params + ')'
     function.test('this should match func(param1, param2 ), foo(), and bar( foo,)')
 
     r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')

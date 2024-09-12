@@ -62,12 +62,12 @@ number.append(whitespace.optional).prepend('foo').append(word)
 
 Importing as a named package is recommended
 ```python
-import ezregex as er
+import ezregex as ez
 
-# ow is part of er already as optional whitespace
-params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
+# ow is part of ez already as optional whitespace
+params = ez.group(ez.atLeastNone(ez.ow + ez.word + ez.ow + ez.optional(',') + ez.ow))
 # Seperate parts as variables for cleaner patterns
-function = er.word + er.ow + '(' + params + ')'
+function = ez.word + ez.ow + '(' + params + ')'
 
 # Automatically calls the re.search() function for you
 function % 'some string containing func( param1 , param2)'
@@ -127,7 +127,7 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 
 
 ## Inverting
-The `invert` function (available as er.invert(`expression`), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
+The `invert` function (available as ez.invert(`expression`), `expression`.invert(), or ~`expression`) is useful for debugging. You pass it an expression, and it returns an example of a string that is guaranteed to match the provided expression.
 
 
 ## Generation
@@ -149,11 +149,11 @@ whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
 ## Dialects
 As of version v1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import all the elements as a sub-package, and they should work identically, although some languages may not have the same features as others.
 ```python
->>> import ezregex as er # The python dialect is the defualt dialect
->>> er.group(digit, 'name') + er.earlier_group('name')
+>>> import ezregex as ez # The python dialect is the defualt dialect
+>>> ez.group(digit, 'name') + ez.earlier_group('name')
 EZRegex("(?P<name>\d)(?P=name)")
->>> import ezregex.perl as er
->>> er.group(digit, 'name') + er.earlier_group('name')
+>>> import ezregex.perl as ez
+>>> ez.group(digit, 'name') + ez.earlier_group('name')
 EZRegex("?P<name>\d)(\g<name>")
 ```
 
@@ -1697,7 +1697,7 @@ pip install ezregex
 
 The import name is the same as the package name:
 ```python
-import ezregex as er
+import ezregex as ez
 ```
 
 ## Todo
@@ -1712,8 +1712,8 @@ This library was written from scratch entirely by Copeland Carter.
 Inspirations for this project include:
 
 - [PyParsing](https://github.com/pyparsing/pyparsing)
-    - I stole a bunch of the operators (especially the [] operator) from them, though we happened upon the same basic structure independantly (convergent evolution, anyone?)
+    - I stole a bunch of the operators (especially the [] operator) from them, though we happened upon the same basic structure independantly
 - [regular-expressions.info](https://www.regular-expressions.info/refflavors.html)
-    - Their reference is where I got a lot of the other regex flavors
+    - Their reference tables are where I got a lot of documentation for the other regex flavors
 - [human-regex](https://github.com/fleetingbytes/human-regex)
     - Gave me the idea for including element methods, instead of solely element functions

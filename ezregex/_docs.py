@@ -112,7 +112,7 @@ if __name__ == '__main__':
                 s += '- '
                 # if signature:
                     # Remove the last 27 chars of the functions, because those are the "-> ..." part
-                    # s += str(inspect.signature(getattr(er, element)))[:-27]
+                    # s += str(inspect.signature(getattr(ez, element)))[:-27]
                 s += (signature[:-10] if signature.endswith('-> EZRegex') else signature) if signature else element
 
                 s += '\n'
@@ -144,9 +144,9 @@ if __name__ == '__main__':
     #         # Iterate through the elements within the groups
     #         for element in elements:
     #             s += '- ' + element
-    #             if inspect.isfunction(getattr(er, element)):
+    #             if inspect.isfunction(getattr(ez, element)):
     #                 # Remove the last 27 chars of the functions, because those are the "-> ..." part
-    #                 s += str(inspect.signature(getattr(er, element)))[:-27]
+    #                 s += str(inspect.signature(getattr(ez, element)))[:-27]
     #             s += '\n'
     #             # Add the additional explanation, if there is one
     #             if element in __docs__ and __docs__[element] is not None:

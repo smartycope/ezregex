@@ -1,7 +1,7 @@
 import jstyleson
 import pytest
 
-import ezregex as er
+import ezregex as ez
 from ezregex import *
 from ezregex import EZRegex, python
 
@@ -41,49 +41,49 @@ def test_no_empty_strings():
 
 def test_any_of():
     # """ _any_of_func """
-    assert er.anyof('aiLmsux', split=True, chars=True)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=True, chars=True)._compile(False)}'"
-    # assert er.anyof('aiLmsux', split=False, chars=True)._compile(False) == Error, \
-    #   f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=True)._compile(False)}'"
-    assert er.anyof('aiLmsux', split=None, chars=True)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=None, chars=True)._compile(False)}'"
-    assert er.anyof('aiLmsux', split=True, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
-        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof('aiLmsux', split=True, chars=False)._compile(False)}'"
-    # assert er.anyof('aiLmsux', split=False, chars=False)._compile(False) == Error, \
-    #   f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=False)._compile(False)}'"
-    assert er.anyof('aiLmsux', split=None, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
-        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof('aiLmsux', split=None, chars=False)._compile(False)}'"
-    assert er.anyof('aiLmsux', split=True, chars=None)._compile(False) == '(?:a|i|L|m|s|u|x)', \
-        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof('aiLmsux', split=True, chars=None)._compile(False)}'"
-    # assert er.anyof('aiLmsux', split=False, chars=None)._compile(False) == Error, \
-    #   f"Was supposed to be 'Error', was actually '{er.anyof('aiLmsux', split=False, chars=None)._compile(False)}'"
-    assert er.anyof('aiLmsux', split=None, chars=None)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof('aiLmsux', split=None, chars=None)._compile(False)}'"
+    assert ez.anyof('aiLmsux', split=True, chars=True)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof('aiLmsux', split=True, chars=True)._compile(False)}'"
+    # assert ez.anyof('aiLmsux', split=False, chars=True)._compile(False) == Error, \
+    #   f"Was supposed to be 'Error', was actually '{ez.anyof('aiLmsux', split=False, chars=True)._compile(False)}'"
+    assert ez.anyof('aiLmsux', split=None, chars=True)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof('aiLmsux', split=None, chars=True)._compile(False)}'"
+    assert ez.anyof('aiLmsux', split=True, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
+        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{ez.anyof('aiLmsux', split=True, chars=False)._compile(False)}'"
+    # assert ez.anyof('aiLmsux', split=False, chars=False)._compile(False) == Error, \
+    #   f"Was supposed to be 'Error', was actually '{ez.anyof('aiLmsux', split=False, chars=False)._compile(False)}'"
+    assert ez.anyof('aiLmsux', split=None, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
+        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{ez.anyof('aiLmsux', split=None, chars=False)._compile(False)}'"
+    assert ez.anyof('aiLmsux', split=True, chars=None)._compile(False) == '(?:a|i|L|m|s|u|x)', \
+        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{ez.anyof('aiLmsux', split=True, chars=None)._compile(False)}'"
+    # assert ez.anyof('aiLmsux', split=False, chars=None)._compile(False) == Error, \
+    #   f"Was supposed to be 'Error', was actually '{ez.anyof('aiLmsux', split=False, chars=None)._compile(False)}'"
+    assert ez.anyof('aiLmsux', split=None, chars=None)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof('aiLmsux', split=None, chars=None)._compile(False)}'"
 
-    # assert er.anyof(*list('aiLmsux'), split=True, chars=True)._compile(False) == Error, \
-    #   f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=True)._compile(False)}'"
-    assert er.anyof(*list('aiLmsux'), split=False, chars=True)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=True)._compile(False)}'"
-    assert er.anyof(*list('aiLmsux'), split=None, chars=True)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=True)._compile(False)}'"
-    # assert er.anyof(*list('aiLmsux'), split=True, chars=False)._compile(False) == Error, \
-    #   f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=False)._compile(False)}'"
-    assert er.anyof(*list('aiLmsux'), split=False, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
-        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=False)._compile(False)}'"
-    assert er.anyof(*list('aiLmsux'), split=None, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
-        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=False)._compile(False)}'"
-    # assert er.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False) == Error, \
-    #   f"Was supposed to be 'Error', was actually '{er.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False)}'"
-    assert er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False)}'"
-    assert er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False) == "[aiLmsux]", \
-        f"Was supposed to be '[aiLmsux]', was actually '{er.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False)}'"
+    # assert ez.anyof(*list('aiLmsux'), split=True, chars=True)._compile(False) == Error, \
+    #   f"Was supposed to be 'Error', was actually '{ez.anyof(*list('aiLmsux'), split=True, chars=True)._compile(False)}'"
+    assert ez.anyof(*list('aiLmsux'), split=False, chars=True)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof(*list('aiLmsux'), split=False, chars=True)._compile(False)}'"
+    assert ez.anyof(*list('aiLmsux'), split=None, chars=True)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof(*list('aiLmsux'), split=None, chars=True)._compile(False)}'"
+    # assert ez.anyof(*list('aiLmsux'), split=True, chars=False)._compile(False) == Error, \
+    #   f"Was supposed to be 'Error', was actually '{ez.anyof(*list('aiLmsux'), split=True, chars=False)._compile(False)}'"
+    assert ez.anyof(*list('aiLmsux'), split=False, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
+        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{ez.anyof(*list('aiLmsux'), split=False, chars=False)._compile(False)}'"
+    assert ez.anyof(*list('aiLmsux'), split=None, chars=False)._compile(False) == '(?:a|i|L|m|s|u|x)', \
+        f"Was supposed to be '(?:a|i|L|m|s|u|x)', was actually '{ez.anyof(*list('aiLmsux'), split=None, chars=False)._compile(False)}'"
+    # assert ez.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False) == Error, \
+    #   f"Was supposed to be 'Error', was actually '{ez.anyof(*list('aiLmsux'), split=True, chars=None)._compile(False)}'"
+    assert ez.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof(*list('aiLmsux'), split=False, chars=None)._compile(False)}'"
+    assert ez.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False) == "[aiLmsux]", \
+        f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof(*list('aiLmsux'), split=None, chars=None)._compile(False)}'"
 
 
 def test_any_char_except():
     # """ _any_char_except_func """
-    assert er.any_char_except('abcd')._compile(False) == '[^abcd]'
-    assert er.any_char_except(*list('abcd'))._compile(False) == '[^abcd]'
+    assert ez.any_char_except('abcd')._compile(False) == '[^abcd]'
+    assert ez.any_char_except(*list('abcd'))._compile(False) == '[^abcd]'
 
 
 
@@ -109,8 +109,8 @@ def test_misc():
     test += word
     assert str(test) == str(word + chunk + word), f"{str(test)} != {str(word + chunk + word)}"
     assert test == word + chunk + word
-    assert either('(' + word + ')', '.') == either(er.literal('(') + word() + er.literal(')'), '.'), f"{either('(' + word + ')', '.')} != {either(er.literal('(') + word() + er.literal(')'), '.')}"
-    assert str(er.ifFollowedBy(word)) == r'(?=\w+)'
+    assert either('(' + word + ')', '.') == either(ez.literal('(') + word() + ez.literal(')'), '.'), f"{either('(' + word + ')', '.')} != {either(ez.literal('(') + word() + ez.literal(')'), '.')}"
+    assert str(ez.ifFollowedBy(word)) == r'(?=\w+)'
 
     #TODO: assert (word + ow + anything + ':') in 'word    d:'
     #TODO: assert (word + ow + anything + ':') not in 'word'
