@@ -20,6 +20,8 @@ if __name__ != '__main__':
 else:
     from ezregex.invert_old import invertRegex
 
+# TODO: add an option to put the matching string inside stuff that doesn't match
+# TODO: add an option to include multiple matching strings inside stuff that doesn't match
 
 with open(Path(__file__).parent / 'assets' / 'common_sorted_words.json') as f:
     words = json.load(f)

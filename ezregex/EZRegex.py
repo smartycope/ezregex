@@ -13,6 +13,8 @@ from .base import base, psuedonymns
 # TODO: Seriously consider removing the debug functions
 # TODO: in all the magic functions assert that we're not mixing dialects
 # TODO: figure out if theres a way to make a "change dialect" function
+# TODO: B.join((A, C))
+# TODO: sre.concatenate((A, B, C)) or A + B + C (if I'd fancy the plus-style syntax more than flow-style)
 
 class EZRegex(ABC):
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
@@ -296,7 +298,6 @@ class EZRegex(ABC):
     @property
     def UNICODE(self):
         return self.set_flags('u')
-
 
     # Named operator functions
     def append(self, input):
