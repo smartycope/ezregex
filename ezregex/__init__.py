@@ -13,3 +13,5 @@ from .python import *
 from . import R
 from . import javascript
 from . import perl
+# from ._docs import operator_docs as _operator_docs
+# from ._docs import docs as _docs

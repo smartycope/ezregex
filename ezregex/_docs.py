@@ -74,7 +74,7 @@ docs = {}
 for path in os.walk('.'):
     for file in path[2]:
         # ASSUMPTION: we don't want to parse api.pyi, and it's the only *.pyi file we *don't* want to parse
-        if file.endswith('.pyi') and not file.endswith('api.pyi'):
+        if file.endswith('.pyi') and not file.endswith(('api.pyi', 'EZRegex.pyi')):
             p = os.path.join(path[0] + '/' + file)
             print('Parsing', p)
             with open(p) as f:
@@ -92,82 +92,84 @@ operator_docs = {
     "`|`": "Coming soon! This will work like an or operation, which will work just like anyOf()",
 }
 
-sdocs = ''
-for dialect, spec in docs.items():
-    s = ''
-    # Iterate through the groups
-    for group, elements in spec.items():
-        #  style="padding-left: 20px;"
-        s += f'<details>\n\t<summary>{group.title()}</summary>\n\n'
-        # Add the group description, if there is one
-        if 'description' in elements:
-            s += '#### ' + elements.pop('description') + '\n'
 
-        # Iterate through the elements within the groups
-        for element, about in elements.items():
-            signature, description = about
+if __name__ == '__main__':
+    sdocs = ''
+    for dialect, spec in docs.items():
+        s = ''
+        # Iterate through the groups
+        for group, elements in spec.items():
+            #  style="padding-left: 20px;"
+            s += f'<details>\n\t<summary>{group.title()}</summary>\n\n'
+            # Add the group description, if there is one
+            if 'description' in elements:
+                s += '#### ' + elements.pop('description') + '\n'
 
-            s += '- '
-            # if signature:
-                # Remove the last 27 chars of the functions, because those are the "-> ..." part
-                # s += str(inspect.signature(getattr(er, element)))[:-27]
-            s += (signature[:-10] if signature.endswith('-> EZRegex') else signature) if signature else element
+            # Iterate through the elements within the groups
+            for element, about in elements.items():
+                signature, description = about
 
-            s += '\n'
+                s += '- '
+                # if signature:
+                    # Remove the last 27 chars of the functions, because those are the "-> ..." part
+                    # s += str(inspect.signature(getattr(er, element)))[:-27]
+                s += (signature[:-10] if signature.endswith('-> EZRegex') else signature) if signature else element
 
-            # Add the additional explanation, if there is one
-            if description:
-                s += '\t- ' + description + '\n'
-        s += '\n</details>\n\n'
+                s += '\n'
 
-    sdocs += f'<details>\n\t<summary><strong><u>{dialect}</u></strong></summary>{s}</details>\n'
+                # Add the additional explanation, if there is one
+                if description:
+                    s += '\t- ' + description + '\n'
+            s += '\n</details>\n\n'
 
-# sdocs += '<details>\n\t<summary>Operators</summary>\n\n'
-# for op, desc in operator_docs.items():
-#     sdocs += '- ' + op + '\n\t- ' + desc + '\n'
+        sdocs += f'<details>\n\t<summary><strong><u>{dialect}</u></strong></summary>{s}</details>\n'
 
-    # Leave this open, cause we have the additional 2 operators manually added in the README
-    # (because they're not relevant to ezregex.org)
-    # s += '\n</details>\n\n'
-
-# The exact same thing, just using headers instead of collapsible sections
-# else:
-#     s = ''
-#     # Iterate through the groups
-#     for group, elements in __groups__.items():
-#         s += '### ' + group.title() + '\n'
-#         if group in __docs__['groups_docs']:
-#             s += '#### ' + __docs__['groups_docs'][group] + '\n'
-
-#         # Iterate through the elements within the groups
-#         for element in elements:
-#             s += '- ' + element
-#             if inspect.isfunction(getattr(er, element)):
-#                 # Remove the last 27 chars of the functions, because those are the "-> ..." part
-#                 s += str(inspect.signature(getattr(er, element)))[:-27]
-#             s += '\n'
-#             # Add the additional explanation, if there is one
-#             if element in __docs__ and __docs__[element] is not None:
-#                 s += '\t- ' + __docs__[element] + '\n'
-
-    # s += '### Operators\n'
+    # sdocs += '<details>\n\t<summary>Operators</summary>\n\n'
     # for op, desc in operator_docs.items():
-    #     s += '- ' + op + '\n\t- ' + desc + '\n'
+    #     sdocs += '- ' + op + '\n\t- ' + desc + '\n'
 
-# print(sdocs)
-# copy(sdocs)
-# This automatically opens the README and inserts the docs between the markdown comments.
-readme = Path(__file__).parent.parent / 'README.md'
-print(readme)
-with open(readme, 'r') as f:
-    lines = f.readlines()
+        # Leave this open, cause we have the additional 2 operators manually added in the README
+        # (because they're not relevant to ezregex.org)
+        # s += '\n</details>\n\n'
 
-start = lines.index('<!-- Start of generated docs -->\n') + 1
-end = lines.index('<!-- End of generated docs -->\n')
-# First, get rid of the old one
-lines = lines[:start] + lines[end:]
-# Now add the new one
-lines.insert(start, sdocs)
+    # The exact same thing, just using headers instead of collapsible sections
+    # else:
+    #     s = ''
+    #     # Iterate through the groups
+    #     for group, elements in __groups__.items():
+    #         s += '### ' + group.title() + '\n'
+    #         if group in __docs__['groups_docs']:
+    #             s += '#### ' + __docs__['groups_docs'][group] + '\n'
 
-with open(readme, 'w') as f:
-    f.writelines(lines)
+    #         # Iterate through the elements within the groups
+    #         for element in elements:
+    #             s += '- ' + element
+    #             if inspect.isfunction(getattr(er, element)):
+    #                 # Remove the last 27 chars of the functions, because those are the "-> ..." part
+    #                 s += str(inspect.signature(getattr(er, element)))[:-27]
+    #             s += '\n'
+    #             # Add the additional explanation, if there is one
+    #             if element in __docs__ and __docs__[element] is not None:
+    #                 s += '\t- ' + __docs__[element] + '\n'
+
+        # s += '### Operators\n'
+        # for op, desc in operator_docs.items():
+        #     s += '- ' + op + '\n\t- ' + desc + '\n'
+
+    # print(sdocs)
+    # copy(sdocs)
+    # This automatically opens the README and inserts the docs between the markdown comments.
+    readme = Path(__file__).parent.parent / 'README.md'
+    print(readme)
+    with open(readme, 'r') as f:
+        lines = f.readlines()
+
+    start = lines.index('<!-- Start of generated docs -->\n') + 1
+    end = lines.index('<!-- End of generated docs -->\n')
+    # First, get rid of the old one
+    lines = lines[:start] + lines[end:]
+    # Now add the new one
+    lines.insert(start, sdocs)
+
+    with open(readme, 'w') as f:
+        f.writelines(lines)
