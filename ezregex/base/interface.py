@@ -20,7 +20,7 @@ line_starts_with: EZRegex
 line_ends_with: EZRegex
 word_boundary: EZRegex
 "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string"
-not_word_boundary: EZRegexa
+not_word_boundary: EZRegex
 "The opposite of `wordBoundary`"
 
 
