@@ -9,7 +9,7 @@ extensions = [
     'sphinx.ext.napoleon',       # Support Google/NumPy style docstrings
     'sphinx.ext.viewcode',       # Add links to source code
     'sphinx.ext.intersphinx',    # Link to other projects' documentation
-    'sphinx-autodoc-typehints',  # Include type hints in docs
+    # 'sphinx-autodoc-typehints',  # Include type hints in docs
     'myst_parser',              # Support Markdown files
 ]
 
