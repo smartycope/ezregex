@@ -10,7 +10,7 @@ extensions = [
     'sphinx.ext.viewcode',       # Add links to source code
     'sphinx.ext.intersphinx',    # Link to other projects' documentation
     # 'sphinx-autodoc-typehints',  # Include type hints in docs
-    'myst_parser',              # Support Markdown files
+    # 'myst_parser',              # Support Markdown files
 ]
 
 # Configure autodoc to read type hints from .pyi files
