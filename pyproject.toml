@@ -49,6 +49,20 @@ path = "ezregex/__init__.py"
 
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
+docs = "sphinx-build -b html docs docs/_build/html"
+
+[tool.hatch.envs.docs]
+dependencies = [
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "furo",
+    "myst-parser"
+]
+scripts = {
+    "build" = "sphinx-build -b html docs docs/_build/html",
+    "serve" = "python -m http.server --directory docs/_build/html 8000",
+    "clean" = "rm -rf docs/_build"
+}
 test-cov = "coverage run -m pytest {args    :tests}"
 cov-report = [
   "- coverage combine",
@@ -88,3 +102,16 @@ exclude_lines = [
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
 ]
+
+[tool.mypy]
+plugins = ["pybind11.setup_helpers.mypy_plugin"]
+python_version = "3.12"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+
+[tool.stubgen]
+output = "stubs"
+packages = ["ezregex"]
