@@ -9,7 +9,7 @@ build:
   jobs:
     pre_build:
       - pip install mkdocs mkdocstrings mkdocstrings-python
-      - pip install mkdocs-theme-readthedocs
+      # - pip install mkdocs-theme-readthedocs
 
 mkdocs:
   configuration: mkdocs.yml
