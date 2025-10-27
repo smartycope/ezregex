@@ -10,6 +10,7 @@ build:
     pre_build:
       - pip install mkdocs mkdocstrings mkdocstrings-python
       # - pip install mkdocs-theme-readthedocs
+      - cp README.md docs/index.md
 
 mkdocs:
   configuration: mkdocs.yml
