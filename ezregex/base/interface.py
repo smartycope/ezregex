@@ -9,11 +9,6 @@ from ..EZRegex import EZRegex
 InputType = str | EZRegex | int | float
 
 
-""" Group: Positionals
-These differentiate the *string* starting with a sequence, and a *line* starting with a sequence. Do note that the start
-of the string is also the start of a line. These can also be called without parameters to denote the start/end of a
-string/line without something specific having to be next to it.
-"""
 string_starts_with: EZRegex
 string_ends_with: EZRegex
 line_starts_with: EZRegex
@@ -24,7 +19,6 @@ not_word_boundary: EZRegex
 "The opposite of `wordBoundary`"
 
 
-"Group: Literals"
 tab: EZRegex
 space: EZRegex
 space_or_tab: EZRegex
@@ -39,13 +33,11 @@ period: EZRegex
 underscore: EZRegex
 
 
-"Group: Not Literals"
 not_whitespace: EZRegex
 not_digit: EZRegex
 not_word: EZRegex
 
 
-"Group: Catagories"
 whitespace: EZRegex
 whitechunk: EZRegex
 "A \"chunk\" of whitespace. Just any amount of whitespace together"
@@ -80,7 +72,6 @@ def any_between(char:str, and_char:str) -> EZRegex:
     ...
 
 
-"Group: Amounts"
 def match_max(input:InputType) -> EZRegex:
     """ Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
     If `input` is not provided, it works on the previous regex pattern. That's not recommended for
@@ -133,7 +124,6 @@ def at_least_none(input:InputType, greedy:bool=True, possessive:bool=False) -> E
     ...
 
 
-"Group: Choices"
 def optional(input:InputType, greedy:bool=True, possessive:bool=False) -> EZRegex:
     """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
         `greedy` means it will try to match as many repititions as possible
@@ -172,10 +162,7 @@ def each(*inputs:InputType) -> EZRegex:
     ...
 
 
-""" Group: Conditionals
-These can only be used once in a given expression. They only match a given expression if the expression is/ins't
-followed/preceeded by a the given pattern
-"""
+
 def if_proceded_by(input:InputType) -> EZRegex:
     """ Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
         as it only applies to the end
@@ -207,7 +194,6 @@ def if_enclosed_with(open:str, stuff:InputType, close:str|None=None) -> EZRegex:
     ...
 
 
-"Group: Grouping"
 def group(input:InputType, name:str|None=None) -> EZRegex:
     "Causes `input` to be captured as an unnamed group. Only useful when replacing regexs"
     ...
@@ -227,10 +213,7 @@ def if_exists(num_or_name:int|str, does:InputType, doesnt:InputType|None=None) -
     ...
 
 
-""" Group: Replacement
-In the intrest of "I don't want to think about any syntax at all", I have included replace members. Do note that they
-are not interoperable with the other EZRegexs, and can only be used with other strings and each other.
-"""
+
 def rgroup(num_or_name:str|int) -> EZRegex:
     """ Puts in its place the group specified, either by group number (for unnamed
         groups) or group name (for named groups). Named groups are also counted by
@@ -261,7 +244,6 @@ def replace(string:str, rtn_str:bool=True) -> str|EZRegex:
     ...
 
 
-"Group: Misc"
 def is_exactly(input:InputType) -> EZRegex:
     "This matches the string if and only if the entire string is exactly equal to `input`"
     ...
@@ -279,10 +261,7 @@ def raw(regex:str) -> EZRegex:
     ...
 
 
-""" Group: Premade
-These are some useful combinations that may be commonly used. They are not as stable, and may be changed and added to in
-later versions to make them more accurate
-"""
+
 literally_anything: EZRegex
 "*Any* character, include newline"
 signed: EZRegex
@@ -298,10 +277,6 @@ ow: EZRegex
 "\"Optional Whitechunk\""
 
 
-""" Group: Flags
-These shadow python regex flags, and can just as easily be specified directly to the re library instead. They're provided
-here for compatibility with other regex dialects. See https://docs.python.org/3/library/re.html#flags for details
-"""
 ASCII: EZRegex
 """ Make matching words, word boundaries, digits, and whitespace perform ASCII-only matching instead of full Unicode
 matching. This is only meaningful for Unicode (str) patterns, and is ignored for bytes patterns

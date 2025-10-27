@@ -46,20 +46,18 @@ Source = "https://github.com/smartycope/ezregex"
 path = "ezregex/__init__.py"
 
 
-
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
-docs = "sphinx-build -b html docs docs/_build/html"
+docs = "mkdocs build"
 
 [tool.hatch.envs.docs]
 dependencies = [
-    "sphinx",
-    "sphinx-autodoc-typehints",
-    "furo",
-    "myst-parser"
+    "mkdocs",
+    "mkdocstrings",
+    "mkdocstrings-python",
 ]
 scripts = {
-    "build" = "sphinx-build -b html docs docs/_build/html",
+    "build" = "mkdocs build",
     "serve" = "python -m http.server --directory docs/_build/html 8000",
     "clean" = "rm -rf docs/_build"
 }

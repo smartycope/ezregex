@@ -1,0 +1,9 @@
+# Notes and Gotchas
+- The different Regular Expression dialects don't all have the same features, and those features don't all work the same way. I've tried to standardize these as best I can and use reasonable names for all the elements. If you're confused by something not working as expected, be sure to understand how your language specifically handles regular expressions.
+- Be careful to call functions on the entire pattern: chunk + whitespace.str() is not the same as (chunk + whitespace).str().
+- In regular regex, a lot of random things capture groups for no apparent reason. All regexes in EZRegex intentionally capture passively, so to capture any groups, use group(), with the optional `name` parameter.
+- EZRegexs are not particularly compact. They're designed to be functional and accurate, but they're not going to be as compact as a handwritten regex.
+- All EZRegexs (except for `raw`) auto-sanitize strings given to them, so there's no need to escape characters or use r strings. This *does* mean, however, that you cannot pass actual regex strings to any of them, as they'll think you're talking about it literally (unless you want that, of course). To include already written regex strings, use `raw`
+- Note that I have both camelCase and snake_case versions of each of the functions, because different languages have different conventions. Both versions function identically.
+- The `InputType` can accept strings, other EZRegexs, or entire sequences of EZRegex patterns. It can also accept things that can be cast to a string, but it will warn you when it does, so it's better to cast to a string yourself.
+- The `invert` function can accept any regular expression, not just EZRegex expressions, if you want to use it independently of the rest of the library. It can only invert Python regexes, however.
