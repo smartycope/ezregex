@@ -16,6 +16,17 @@ del lineEndsWith
 del line_end
 del lineEnd
 
+del if_proceded_by
+del ifProcededBy
+del if_not_proceded_by
+del ifNotProcededBy
+del if_preceded_by
+del ifPrecededBy
+del if_not_preceded_by
+del ifNotPrecededBy
+del if_enclosed_with
+del ifEnclosedWith
+
 del ASCII
 del DOTALL
 del IGNORECASE

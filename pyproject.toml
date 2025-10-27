@@ -54,13 +54,9 @@ docs = "mkdocs build"
 dependencies = [
     "mkdocs",
     "mkdocstrings",
-    "mkdocstrings-python",
+    "mkdocstrings-python"
 ]
-scripts = {
-    "build" = "mkdocs build",
-    "serve" = "python -m http.server --directory docs/_build/html 8000",
-    "clean" = "rm -rf docs/_build"
-}
+scripts = {"build" = "mkdocs build", "serve" = "python -m http.server --directory docs/_build/html 8000", "clean" = "rm -rf docs/_build"}
 test-cov = "coverage run -m pytest {args    :tests}"
 cov-report = [
   "- coverage combine",

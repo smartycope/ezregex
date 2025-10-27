@@ -1,12 +1,3 @@
-// "re" is the regex pattern
-// "repl" is the replacement regex pattern
-// "base" is the base string
-// "after" is what the string should look like after replacement
-// "worksIn" is the list of dialects that the regex works in
-// "doesntWorkIn" is the list of dialects that the regex doesn't work in
-// If neither worksIn or doesntWorkIn is specified, it is assumed to work in all dialects.
-// Only one of worksIn or doesntWorkIn can be specified, not both.
-
 [
     {
         "re": "'------------------FIRST REPLACEMENT---------------------'",

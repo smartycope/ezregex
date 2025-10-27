@@ -1,1020 +1,1585 @@
-// This goes ["regex", [things it should match], [things it shouldnt match]]
+// "re" is the regex pattern
+// "should" is the list of strings that should match the regex
+// "shouldnt" is the list of strings that should not match the regex
+// "worksIn" is the list of dialects that the regex works in
+// "doesntWorkIn" is the list of dialects that the regex doesn't work in
+// If neither worksIn or doesntWorkIn is specified, it is assumed to work in all dialects.
+// Only one of worksIn or doesntWorkIn can be specified, not both.
+
 // IMPORTANT NOTE: Because this is a JSON file, and the the regexs get compiled, escaped characters like \n and \t need to
 // be double escaped in the regex patterns (i.e. \\n, \\t), but NOT in the strings they should and shouldn't match
 [
-    [
-        "'------------------FIRST REGEX---------------------'",
-        ["------------------FIRST REGEX---------------------"],
-        ["asdk"]
-    ],
-    [
-        "'stuff' + ' ' + optional(comma) + space + ifFollowedBy('*')",
-        ["stuff , *", "stuff  *"],
-        []
-    ],
-    [
-        "'stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*')",
-        ["stuffa , *", "stuffb  *"],
-        []
-    ],
-    [
-        "anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*')",
-        ["a , *", "b  *"],
-        []
-    ],
-    [
-        "'stuff' + anyof('a', 'b', 'c')",
-        ["stuffa", "stuffb"],
-        []
-    ],
-    [
-        "anyof('a', 'b', 'c')",
-        ["a", "b", "c"],
-        []
-    ],
-    [
-        "one_of('a', 'b', 'c')",
-        ["a", "b", "c"],
-        []
-    ],
-    [
-        "'a' + ifFollowedBy('*')",
-        ["a*"],
-        []
-    ],
-    [
-        "optional(comma) + space",
-        [", ", " "],
-        []
-    ],
-    [
-        "optional(word + ow + ',' + ow) + group(word) + optional(',') + ow",
-        ["word\t ,word2, ", "word", "worddsfs    ", "word,   "],
-        ["", "  "]
-    ],
-    [
-        "optional(whitechunk + 'as' + word)",
-        [" asword"],
-        []
-    ],
-    [
-        "group(optional(matchMax(literal('.') + word)))",
-        ["..........word", ""],
-        []
-    ],
-    [
-        "matchNum(3, either(\"'\", '\"'))",
-        ["\"\"\""],
-        []
-    ],
-    [
-        "matchNum(2, '0')",
-        ["00"],
-        []
-    ],
-    [
-        "matchNum(1, raw('6'))",
-        ["6"],
-        []
-    ],
-    [
-        "raw(r'\\A')",
-        [""],
-        []
-    ],
-    [
-        "raw(r'\\Z')",
-        [""],
-        []
-    ],
-    [
-        "exactly('test')",
-        ["test"],
-        []
-    ],
-    [
-        "raw(r'(test)+')",
-        ["test", "testt", "testtt", "testttt"],
-        []
-    ],
-    [
-        "raw(r'test+')",
-        ["testtesttest"],
-        []
-    ],
-    [
-        "raw(r'(test){3}')",
-        ["testtesttest"],
-        []
-    ],
-    [
-        "raw(r'test{3}')",
-        ["testttt"],
-        []
-    ],
-    [
-        "raw(r'(test){3,5}')",
-        ["testtesttest", "testtesttesttesttest"],
-        []
-    ],
-    [
-        "raw(r\"(test){3, 5}\")",
-        [],
-        []
-    ],
-    [
-        "raw(r\"test{3, 5}\")",
-        [],
-        []
-    ],
-    [
-        "raw(r'test{3,5}')",
-        ["testttt", "testttttt"],
-        []
-    ],
-    [
-        "raw(r'(test){3,}')",
-        ["testtesttest", "testtesttesttest", "testtesttesttesttest"],
-        []
-    ],
-    [
-        "raw(r'test{3,}')",
-        ["testttt", "testtttt", "testttttt"],
-        []
-    ],
-    [
-        "raw(r'\\d')",
-        ["0", "1", "2"],
-        []
-    ],
-    [
-        "raw(r'\\s')",
-        [" ", "\t", "\n"],
-        []
-    ],
-    [
-        "raw(r'\\w')",
-        ["a", "Z", "5", "_"],
-        []
-    ],
-    [
-        "raw(r'\\w+')",
-        ["abc", "123", "test_"],
-        []
-    ],
-    [
-        "raw(r'.')",
-        ["s", "a", "h", "r", "d", "h", "c", "f", "G", "S", "G", "D", "8", "7", "w", "3", "u", "e", "8", "4", "1", "2", "5", "a", "s", "d", "_", ";", ".", ",", "?", ".", "1", "3", "4", "*", "&", "^", "`"],
-        []
-    ],
-    [
-        "raw(r'\\n')",
-        ["\n"],
-        []
-    ],
-    [
-        "raw(r'\\r')",
-        ["\r"],
-        []
-    ],
-    [
-        "raw(r'\\t')",
-        ["\t"],
-        []
-    ],
-    // [
-    //     "raw(r'\\v')",
-    //     ["\\v"],
-    //     []
-    // ],
-    [
-        "raw(r'\\f')",
-        ["\f"],
-        []
-    ],
-    [
-        "raw(r'\\S')",
-        ["s", "d", "g", "S", "G", "H", "R", "5", "1", "2", "2", "$", "%", "^", "&", "*", "Z", "`"],
-        []
-    ],
-    [
-        "raw(r'\\D')",
-        ["s", "d", "f", "G", "S", "D", "G", ";", "(", "[", "]"],
-        []
-    ],
-    [
-        "raw(r'\\W')",
-        ["/", "*", "-", "#", "^", "&", "*", "`", "?", ">", "<"],
-        []
-    ],
-    [
-        "raw(r'(stuff)?')",
-        ["stuff", ""],
-        []
-    ],
-    [
-        "raw(r'(stuff)*')",
-        ["", "stuff", "stuffstuff", "stuffstuffstuff"],
-        []
-    ],
-    [
-        "raw(r'(stuff|things)')",
-        ["stuff", "things"],
-        []
-    ],
-    [
-        "raw(r'[s,t]')",
-        ["s", "t"],
-        []
-    ],
-    [
-        "raw(r'[^s,t]')",
-        ["q", "w", "r", "u", "i", "o", "p", "a", "h", "j", "k", "B", "N", "M", "3", "4", "#", "$"],
-        []
-    ],
-    [
-        "raw(r'(?=stuff)')",
-        ["stuff"],
-        []
-    ],
-    [
-        "raw(r'(?!stuff)')",
-        ["stuff"],
-        []
-    ],
-    [
-        "raw(r'(stuff)')",
-        ["stuff"],
-        []
-    ],
-    [
-        "raw(r'(stuff)?')",
-        ["stuff", ""],
-        []
-    ],
-    [
-        "raw(r'(?P<name>stuff)')",
-        ["stuff"],
-        []
-    ],
-    [
-        "raw(r'(?<=stuff)')",
-        ["thingstuffs"],
-        []
-    ],
-    [
-        "raw(r'(?<!stuff)')",
-        ["thingstuffs"],
-        []
-    ],
-    [
-        "raw(r'(a|b|c|thing|st)uff')",
-        ["auff", "buff", "cuff", "thinguff", "stuff"],
-        []
-    ],
-    // I found these online for testing a different regex suite
-    [
-        "raw(r'A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}')",
-        [],
-        []
-    ],
-    [
-        "raw(r'[\\d] [^\\d] [A-Za-z0-9_]+ . .*')",
-        [],
-        []
-    ],
-    [
-        "raw(r'AB|CD AB|CD|EF|GH (AB|CD)*')",
-        [],
-        []
-    ],
-    [
-        "raw(r'(a??) a*? a{3,}? ab{4,7}?')",
-        [],
-        []
-    ],
-    [
-        "raw(r'(?P<test>ABC*) (?P<a>x)|(?P<b>y)')",
-        [],
-        []
-    ],
-    [
-        "raw(r'[b:]+ (b)|(:+) a|(b)')",
-        [],
-        []
-    ],
-    [
-        "raw(r'(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?')",
-        [],
-        []
-    ],
-    [
-        "raw(r'(?P<name>[a-zA-Z]+)(?P=name)')",
-        [],
-        []
-    ],
-    [
-        "group(+letter, name='g') + earlierGroup('g')",
-        ["AA", "tt"],
-        ["ABt","t", "9d9", "tdt"]
-    ],
-    [
-        "group(+letter) + ' ' + earlierGroup(1)",
-        ["the the", "at at"],
-        ["att", "thethe"]
-    ],
-    [
-        "raw(r'[AB\\]C] [--A] [ABC\\-D] [\\^ABC]')",
-        [],
-        []
-    ],
-    [
-        "stringStartsWith('a')",
-        ["asdfs", "a 89sdf a", "a"],
-        [" asdf", "sdfa", "sdf"]
-    ],
-    [
-        "lineStartsWith('a')",
-        ["asdfs", "a 89sdf a", "a", "sdfs\nasdfd"],
-        [" asdf", "sdf\nsdf", "sdf\n a", "sdfa", "sdf"]
-    ],
-    [
-        "stringEndsWith('a')",
-        ["lklkjfda", "sdf 8 a", "a"],
-        ["asdfds", "sd fd"]
-    ],
-    [
-        "lineEndsWith('a')",
-        ["lklkjfda", "sdf 8 a", "a", "sdf\na", "sdfse\nsdafsda", "sdfa\nsdf"],
-        ["asdfds", "sd fd"]
-    ],
-    [
-        "literal('test')",
-        ["test", " sdfstestsdfs"],
-        ["te st",]
-    ],
-    [
-        "underscore",
-        ["_",],
-        ["a test", "test ", "\ntest\n", "\ntest", "test\n"]
-    ],
-    [
-        "quote",
-        ["\"", "'", "`"],
-        ["a test", "test ", "\ntest\n", "\ntest", "test\n"]
-    ],
-    [
-        "isExactly('test')",
-        ["test",],
-        ["a test", "test ", "\ntest\n", "\ntest", "test\n"]
-    ],
-    [
-        "matchMax('a')",
-        ["aaa", "a"],
-        ["b",]
-    ],
-    [
-        "matchMoreThan(3, 'a')",
-        ["aaaa", "tesaaaaaat"],
-        ["aaa"," aa"]
-    ],
-    [
-        "matchAtLeast(3, 'a')",
-        ["aaa", "aaaa"],
-        ["aa",]
-    ],
-    [
-        "optional('a')",
-        ["", "a", "aa"],
-        []
-    ],
-    [
-        "either('a', 'b')",
-        ["a", "b"],
-        ["c",]
-    ],
-    [
-        "either('aa', 'ba')",
-        ["aa", "ba",],
-        ["bb", "a"]
-    ],
-    [
-        "whitespace",
-        [" ", "\t", "\t  ", "\n"],
-        ["dfsd",]
-    ],
-    [
-        "whitechunk",
-        [" ", "\t", "\t  ", "\n"],
-        ["dfsd",]
-    ],
-    [
-        "white",
-        [" ", "\t", "\t  ", "\n"],
-        ["dfsd",]
-    ],
-    [
-        "digit",
-        ["6",],
-        ["_", "-", "a"]
-    ],
-    [
-        "number",
-        ["6", "69"],
-        ["-a", "A"]
-    ],
-    [
-        "punctuation",
-        ["@", "#", "$", "%", "^", "&", "*", "(", ")"],
-        ["1", "2", "3", "4", "5", "6", "7", "8", "s", "d", "f", "s", "d", "f"]
-    ],
-    [
-        "wordChar",
-        ["w",],
-        ["-",]
-    ],
-    [
-        "hex_digit",
-         ["A", "a", "0"],
-         ["g", "G"]
-    ],
-    [
-        "octDigit",
-        ["7",],
-        ["9", "a", "A", "8"]
-    ],
-    [
-        "chunk",
-        ["wordssdf   asdf\n",],
-        ["\n",]
-    ],
-    [
-        "spaceOrTab",
-        [" ", "\t", " \t  "],
-        ["\n",]
-    ],
-    [
-        "newLine",
-        ["\n",],
-        ["\r",]
-    ],
-    [
-        "carriageReturn",
-        ["\r",],
-        ["\n",]
-    ],
-    [
-        "tab",
-        ["\t",],
-        [" ",]
-    ],
-    [
-        "space",
-        [" ",],
-        ["\t",]
-    ],
-    [
-        "quote",
-        ["'", "\""],
-        ["wer",]
-    ],
-    [
-        "comma",
-        [",",],
-        [".", "`"]
-    ],
-    [
-        "period",
-        [".",],
-        [",",]
-    ],
-    [
-        "matchRange(3, 5, 'a')",
-        ["aaa", "aaaa", "aaaaa", "aaaaaa"],
-        ["aa",]
-    ],
-    [
-        "matchRange(3, 5, 'a', greedy=False)+'aa'",
-        ["aaaaa", "aaaaaa"],
-        ["aa",]
-    ],
-    [
-        "optional('a') + 'b'",
-        ["b", "ab","cb"],
-        ["","c"]
-    ],
-    [
-        "optional('a', greedy=False) + 'b'",
-        ["b", "ab","cb"],
-        ["","c"]
-    ],
-    [
-        "atLeastOne('a')",
-        ["a","aa", "aaaaaaaaaa"],
-        ["", "b"]
-    ],
-    [
-        "atLeastOne('a', greedy=False)",
-        ["a","aa", "aaaaaaaaaaaaaaaaaaaaa"],
-        ["", "b"]
-    ],
-    [
-        "atLeast(0, 'a')",
-        ["", "a", "aaaaaaaaaa", "b"],
-        []
-    ],
-    [
-        "(optional('a') + 'b') * 3",
-        ["abbb", "bbb", "ababab", "bbab"],
-        ["", "aaa", "aa", "a"]
-    ],
-    [
-        "word + whitechunk + group('func') + ':' + '()' + group(either('|', '7'), name='test')",
-        ["wo  func:()|", "wo  func:()7"],
-        ["wo  func:[]|", "wo  func:(]7"],
-    ],
-    [
-        "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test')",
-        ["wo  func:8", "wo  func:7"],
-        []
-    ],
-    [
-        "7 + anyof('abc') + lineEnd",
-        ["7a", "sdfsd7b", "sdf\nsdf7b", "sdf\nsdf7b\n"],
-        ["7asdfsd", "7v"]
-    ],
-    [
-        "7 + anyof('abc') + stringEnd",
-        ["7a", "sdfsd7b"],
-        ["7asdfsd", "7v", "sdf\nsdf7bds", "sdf\nsdf7bf\n"]
-    ],
-    [
-        "lineStart + 7 + anyof('abc')",
-        ["7a", "7bsdfsd", "\n7a", "\n7bsdfsd"],
-        ["ds7asdfsd", "7v"]
-    ],
-    [
-        "stringStart + 7 + anyof('abc')",
-        ["7a", "7bsdfsd"],
-        ["ds7asdfsd", "7v", "\n7a", "\n7bsdfsd"]
-    ],
-    [
-        "+alpha",
-        ["a", "asd"],
-        ["89", "._78"]
-    ],
-    [
-        "+alphanum",
-        ["a", "asd", "3sd", "88"],
-        [".+",]
-    ],
-    [ // https://docs.python.org/3/library/re.html says '<user@host.com' shouldn't match this pattern, but it's wrong.
-        "raw(r'(<)?(\\w+@\\w+(?:\\.\\w+)+)(?(1)>|$)')",
-        ["<user@host.com>", "user@host.com"],
-        ["user@host.com>"]
-    ],
-    [
-        "'foo' + each(chunk + 'here' + chunk, chunk + anyOf('this', 'that') + chunk) + 'bar'",
-        ["fooum here there that bar", "foo that there here bar"],
-        []
-    ],
-    [ // https://docs.python.org/3/library/re.html says '<user@host.com' shouldn't match this pattern, but it's wrong...
-        "opt(group('<')) + group(word + '@' + word + +('.' + word)) + ifExists(1, '>', string_end)",
-        ["<user@host.com>", "user@host.com"],
-        ["user@host.com>"]
-    ],
-    [
-        "match_range(1, 5, word + ' ')",
-        [],
-        []
-    ],
-    [
-        "(match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ')",
-        [],
-        []
-    ],
-    [
-        "group('pattern', name='i') + optional(digit) + match_max(group('me')) + amt(2, 'mhmm')",
-        [],
-        []
-    ],
-    [
-        "string_starts_with",
-        [],
-        []
-    ],
-    [
-        "string_ends_with",
-        [],
-        []
-    ],
-    [
-        "line_starts_with",
-        [],
-        []
-    ],
-    [
-        "line_ends_with",
-        [],
-        []
-    ],
-    [
-        "word_boundary",
-        [],
-        []
-    ],
-    [
-        "not_word_boundary",
-        [],
-        []
-    ],
-    [
-        "tab",
-        [],
-        []
-    ],
-    [
-        "space",
-        [],
-        []
-    ],
-    [
-        "space_or_tab",
-        [],
-        []
-    ],
-    [
-        "new_line",
-        [],
-        []
-    ],
-    [
-        "carriage_return",
-        [],
-        []
-    ],
-    [
-        "quote",
-        [],
-        []
-    ],
-    [
-        "vertical_tab",
-        [],
-        []
-    ],
-    [
-        "form_feed",
-        [],
-        []
-    ],
-    [
-        "comma",
-        [],
-        []
-    ],
-    [
-        "period",
-        [],
-        []
-    ],
-    [
-        "underscore",
-        [],
-        []
-    ],
-    [
-        "any_between('a', 'b')",
-        [],
-        []
-    ],
-    [
-        "not_whitespace",
-        [],
-        []
-    ],
-    [
-        "not_digit",
-        [],
-        []
-    ],
-    [
-        "not_word",
-        [],
-        []
-    ],
-    [
-        "whitespace",
-        [],
-        []
-    ],
-    [
-        "whitechunk",
-        [],
-        []
-    ],
-    [
-        "digit",
-        [],
-        []
-    ],
-    [
-        "number",
-        [],
-        []
-    ],
-    [
-        "word",
-        [],
-        []
-    ],
-    [
-        "word_char",
-        [],
-        []
-    ],
-    [
-        "anything",
-        [],
-        []
-    ],
-    [
-        "chunk",
-        [],
-        []
-    ],
-    [
-        "uppercase",
-        [],
-        []
-    ],
-    [
-        "lowercase",
-        [],
-        []
-    ],
-    [
-        "letter",
-        [],
-        []
-    ],
-    [
-        "hex_digit",
-        [],
-        []
-    ],
-    [
-        "oct_digit",
-        [],
-        []
-    ],
-    [
-        "punctuation",
-        [],
-        []
-    ],
-    [
-        "controller",
-        [],
-        []
-    ],
-    [
-        "printable",
-        [],
-        []
-    ],
-    [
-        "printable_and_space",
-        [],
-        []
-    ],
-    [
-        "alpha_num",
-        [],
-        []
-    ],
-    // TODO
-    // [
-    //     "unicode('pi')",
-    //     [],
-    //     []
-    // ],
-    [
-        "match_max(digit)",
-        [],
-        []
-    ],
-    [
-        "match_num(2, digit)",
-        [],
-        []
-    ],
-    [
-        "match_more_than(2, digit)",
-        [],
-        []
-    ],
-    [
-        "match_at_least(2, digit)",
-        [],
-        []
-    ],
-    [
-        "match_at_most(2, digit)",
-        [],
-        []
-    ],
-    [
-        "match_range(2, 4, digit)",
-        [],
-        []
-    ],
-    [
-        "at_least_one(digit)",
-        [],
-        []
-    ],
-    [
-        "at_least_none(digit)",
-        [],
-        []
-    ],
-    [
-        "optional(digit)",
-        [],
-        []
-    ],
-    [
-        "either(digit, word)",
-        [],
-        []
-    ],
-    [
-        "any_of(digit, word, 'a', 'b')",
-        [],
-        []
-    ],
-    [
-        "any_char_except('abcd')",
-        [],
-        []
-    ],
-    [
-        "if_proceded_by(digit)",
-        [],
-        []
-    ],
-    [
-        "if_not_proceded_by(digit)",
-        [],
-        []
-    ],
-    [
-        "if_preceded_by(digit)",
-        [],
-        []
-    ],
-    [
-        "if_not_preceded_by(digit)",
-        [],
-        []
-    ],
-    [
-        "if_enclosed_with('|', digit)",
-        [],
-        []
-    ],
-    [
-        "group(digit)",
-        [],
-        []
-    ],
-    [
-        "passive_group(digit)",
-        [],
-        []
-    ],
-    // TODO
-    // [
-    //     "'earlier_group(''",
-    //     [],
-    //     []
-    // ],
-    // TODO
-    // [
-    //     "'if_exists'",
-    //     [],
-    //     []
-    // ],
-    [
-        "literally_anything",
-        [],
-        []
-    ],
-    [
-        "signed",
-        [],
-        []
-    ],
-    [
-        "unsigned",
-        [],
-        []
-    ],
-    [
-        "plain_float",
-        [],
-        []
-    ],
-    [
-        "full_float",
-        [],
-        []
-    ],
-    [
-        "int_or_float",
-        [],
-        []
-    ],
-    [
-        "ow",
-        [],
-        []
-    ],
-    [
-        "is_exactly(digit)",
-        [],
-        []
-    ],
-    [
-        "literal('this')",
-        [],
-        []
-    ],
-    [
-        "digit + ASCII",
-        [],
-        []
-    ],
-    [
-        "digit + DOTALL",
-        [],
-        []
-    ],
-    [
-        "digit + IGNORECASE",
-        [],
-        []
-    ],
-    [
-        "group('pattern', name='i') + optional(digit) + 'test'",
-        [],
-        []
-    ],
-    // TODO: This is for bytes only programs or something?...
-    // [
-    //     "digit + LOCALE",
-    //     [],
-    //     []
-    // ],
-    [
-        "digit + MULTILINE",
-        [],
-        []
-    ],
-    // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk)) + 'bar',  ('fooum here there that bar', 'foo that there here bar'),               None),
-    // ('foo' + ((chunk + 'here' + chunk) & (chunk + anyOf('this', 'that') + chunk) & (chunk + 'the' + chunk)) + 'bar',  ('fooum the here there that bar', 'foo that there thehere bar'), ('fooum here there that bar', 'foo that there here bar')),
-    // (,                                                                                    (,),                                                                    (,)),
-    // (word_boundary + word_char[...,3] + wordBoundary,                                       ('yes', 'hey', 'sup', 'thi'),                                           ('none', 'no', 'foo3', '333', 'jar_')), // This does what it's supposed to do, but doesn't search correctly, as far as I understand it
-    //TODO ('foo ' + anyExcept('bar') + ' baz',                                               ('foo thing baz', 'foo bax baz'),                                       ('foo bar baz',)),
-    //TODO: (exactly('foo' + anyExcept('boo') + 'bar'),                                             ('foonotbar', 'foobar'),                                                ('fooboobar', 'boobar', 'fooboo')), // not sure where 'foo boo bar' goes
-    //TODO: (exactly('foo' + anyExcept('boo', number) + 'bar'),                                     ('foo999bar', 'foo8bar'),                                               ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar')),
-    //TODO: (exactly('foo' + anyExcept('boo', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'boobar', 'foo8bar', 'foo98')),
-    //TODO: (exactly(matchAtMost(3, digit)),                                                        ('444', '33', '1'),                                                     ('9999','9830')),
-    //TODO: (exactly('foo' + anyExcept('888', match_amt(3, number)) + 'bar'),                       ('foo999bar', 'foo989bar'),                                             ('fooboobar','foonotbar', 'foo boo bar', 'foobar', 'foo888bar', 'boobar', 'foo8bar', 'foo98')),
-    //TODO: (exactly('foo' + anyExcept('boo', word) + 'bar'),                                       ('foonotbar',),                                                         ('fooboobar', 'foo99bar', 'fooboo', 'boobar', 'foobar')),
-    // TODO: punctuation
-    // TODO: anyExcept(punctuation)
-    // TODO: anyExcept(anyof(punctuation))
-    // (,                                                                                    (,),                                                                    (,)),
-    // TODO:
-    // (raw(r"[ABC]+(?=D).*$ <.*?>"),                                                          None,                                                                   None),
-    // (raw(r"(?:Q)(Q) ^A*$"),                                                                  None,                                                                   None), // I'm not actually sure what this is supposed to do
-    // (raw(r"(?=AB)C (?!CD)DC AB(?<=CD) AB(?<!CD)"),                                           None,                                                                   None), // also not sure how this is actually supposed to work
-    // (matchRange(3, 5, 'a', possessive=True) + 'aa',                                       ('a'*7,),                                                               ('a'*6,)),
-    // (optional('a', possessive=True) + 'b',                                                ('',),                                                                  ('',)),
-    // (atLeastOne(possessive=True),                                                         ('',),                                                                  ('',)),
-    // (atLeastNone(possessive=True),                                                        ('',),                                                                  ('',)),
-    // verticalTab,                                                                          ('',),                                                                  ('',),
-    // formFeed,                                                                             ('',),                                                                  ('',),
-    // either('a', 'b'),                                                                     ('a', 'b'),                                                             None),
-    // multiOptional,                                                                        ('',),                                                                  ('',),
-    // anyBetween,                                                                           ('',),                                                                  ('',),
-    // (unicode,                                                                             ('',),                                                                  ('',),
-    // (word,                                                                                ('word',),                                                              ('33a',)), // Is this *supposed* to work?
-    [
-        "'------------------LAST REGEX---------------------'",
-        ["------------------LAST REGEX---------------------"],
-        ["asdk"]
-    ]
+    {
+        "re": "'------------------FIRST REGEX---------------------'",
+        "should": [
+            "------------------FIRST REGEX---------------------"
+        ],
+        "shouldnt": [
+            "asdk"
+        ]
+    },
+    {
+        "re": "'stuff' + ' ' + optional(comma) + space + ifFollowedBy('*')",
+        "should": [
+            "stuff , *",
+            "stuff  *"
+        ],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "'stuff' + anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*')",
+        "should": [
+            "stuffa , *",
+            "stuffb  *"
+        ],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "anyof('a', 'b', 'c') + ' ' + optional(comma) + space + ifFollowedBy('*')",
+        "should": [
+            "a , *",
+            "b  *"
+        ],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "'stuff' + anyof('a', 'b', 'c')",
+        "should": [
+            "stuffa",
+            "stuffb"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "anyof('a', 'b', 'c')",
+        "should": [
+            "a",
+            "b",
+            "c"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "one_of('a', 'b', 'c')",
+        "should": [
+            "a",
+            "b",
+            "c"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "'a' + ifFollowedBy('*')",
+        "should": [
+            "a*"
+        ],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "optional(comma) + space",
+        "should": [
+            ", ",
+            " "
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "optional(word + ow + ',' + ow) + group(word) + optional(',') + ow",
+        "should": [
+            "word\t ,word2, ",
+            "word",
+            "worddsfs    ",
+            "word,   "
+        ],
+        "shouldnt": [
+            "",
+            "  "
+        ]
+    },
+    {
+        "re": "optional(whitechunk + 'as' + word)",
+        "should": [
+            " asword"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "group(optional(matchMax(literal('.') + word)))",
+        "should": [
+            "..........word",
+            ""
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "matchNum(3, either(\"'\", '\"'))",
+        "should": [
+            "\"\"\""
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "matchNum(2, '0')",
+        "should": [
+            "00"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "matchNum(1, raw('6'))",
+        "should": [
+            "6"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\A')",
+        "should": [
+            ""
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\Z')",
+        "should": [
+            ""
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "exactly('test')",
+        "should": [
+            "test"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(test)+')",
+        "should": [
+            "test",
+            "testt",
+            "testtt",
+            "testttt"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'test+')",
+        "should": [
+            "testtesttest"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(test){3}')",
+        "should": [
+            "testtesttest"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'test{3}')",
+        "should": [
+            "testttt"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(test){3,5}')",
+        "should": [
+            "testtesttest",
+            "testtesttesttesttest"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r\"(test){3, 5}\")",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r\"test{3, 5}\")",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'test{3,5}')",
+        "should": [
+            "testttt",
+            "testttttt"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(test){3,}')",
+        "should": [
+            "testtesttest",
+            "testtesttesttest",
+            "testtesttesttesttest"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'test{3,}')",
+        "should": [
+            "testttt",
+            "testtttt",
+            "testttttt"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\d')",
+        "should": [
+            "0",
+            "1",
+            "2"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\s')",
+        "should": [
+            " ",
+            "\t",
+            "\n"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\w')",
+        "should": [
+            "a",
+            "Z",
+            "5",
+            "_"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\w+')",
+        "should": [
+            "abc",
+            "123",
+            "test_"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'.')",
+        "should": [
+            "s",
+            "a",
+            "h",
+            "r",
+            "d",
+            "h",
+            "c",
+            "f",
+            "G",
+            "S",
+            "G",
+            "D",
+            "8",
+            "7",
+            "w",
+            "3",
+            "u",
+            "e",
+            "8",
+            "4",
+            "1",
+            "2",
+            "5",
+            "a",
+            "s",
+            "d",
+            "_",
+            ";",
+            ".",
+            ",",
+            "?",
+            ".",
+            "1",
+            "3",
+            "4",
+            "*",
+            "&",
+            "^",
+            "`"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\n')",
+        "should": [
+            "\n"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\r')",
+        "should": [
+            "\r"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\t')",
+        "should": [
+            "\t"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\f')",
+        "should": [
+            "\f"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\S')",
+        "should": [
+            "s",
+            "d",
+            "g",
+            "S",
+            "G",
+            "H",
+            "R",
+            "5",
+            "1",
+            "2",
+            "2",
+            "$",
+            "%",
+            "^",
+            "&",
+            "*",
+            "Z",
+            "`"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\D')",
+        "should": [
+            "s",
+            "d",
+            "f",
+            "G",
+            "S",
+            "D",
+            "G",
+            ";",
+            "(",
+            "[",
+            "]"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'\\W')",
+        "should": [
+            "/",
+            "*",
+            "-",
+            "#",
+            "^",
+            "&",
+            "*",
+            "`",
+            "?",
+            ">",
+            "<"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(stuff)?')",
+        "should": [
+            "stuff",
+            ""
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(stuff)*')",
+        "should": [
+            "",
+            "stuff",
+            "stuffstuff",
+            "stuffstuffstuff"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(stuff|things)')",
+        "should": [
+            "stuff",
+            "things"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'[s,t]')",
+        "should": [
+            "s",
+            "t"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'[^s,t]')",
+        "should": [
+            "q",
+            "w",
+            "r",
+            "u",
+            "i",
+            "o",
+            "p",
+            "a",
+            "h",
+            "j",
+            "k",
+            "B",
+            "N",
+            "M",
+            "3",
+            "4",
+            "#",
+            "$"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(?=stuff)')",
+        "should": [
+            "stuff"
+        ],
+        "shouldnt": []
+    },
+    // {
+    //     "re": "raw(r'(?!stuff)')",
+    //     "should": [
+    //         "stuff"
+    //     ],
+    //     "shouldnt": []
+    // },
+    {
+        "re": "raw(r'(stuff)')",
+        "should": [
+            "stuff"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(stuff)?')",
+        "should": [
+            "stuff",
+            ""
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(?P<name>stuff)')",
+        "should": [
+            "stuff"
+        ],
+        "shouldnt": []
+    },
+    // {
+    //     "re": "raw(r'(?<=stuff)')",
+    //     "should": [
+    //         "thingstuffs"
+    //     ],
+    //     "shouldnt": []
+    // },
+    {
+        "re": "raw(r'(?<!stuff)')",
+        "should": [
+            "thingstuffs"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(a|b|c|thing|st)uff')",
+        "should": [
+            "auff",
+            "buff",
+            "cuff",
+            "thinguff",
+            "stuff"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'A AB ABC [^A] [^ABC] A+ A* A? AA* A{2} A{2,4} A{9,12} A{2,} A{,9}')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'[\\d] [^\\d] [A-Za-z0-9_]+ . .*')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'AB|CD AB|CD|EF|GH (AB|CD)*')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(a??) a*? a{3,}? ab{4,7}?')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(?P<test>ABC*) (?P<a>x)|(?P<b>y)')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'[b:]+ (b)|(:+) a|(b)')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "raw(r'(?P<name>[a-zA-Z]+)(?P=name)')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "group(+letter, name='g') + earlierGroup('g')",
+        "should": [
+            "AA",
+            "tt"
+        ],
+        "shouldnt": [
+            "ABt",
+            "t",
+            "9d9",
+            "tdt"
+        ]
+    },
+    {
+        "re": "group(+letter) + ' ' + earlierGroup(1)",
+        "should": [
+            "the the",
+            "at at"
+        ],
+        "shouldnt": [
+            "att",
+            "thethe"
+        ]
+    },
+    {
+        "re": "raw(r'[AB\\]C] [--A] [ABC\\-D] [\\^ABC]')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "stringStartsWith('a')",
+        "should": [
+            "asdfs",
+            "a 89sdf a",
+            "a"
+        ],
+        "shouldnt": [
+            " asdf",
+            "sdfa",
+            "sdf"
+        ]
+    },
+    {
+        "re": "lineStartsWith('a')",
+        "should": [
+            "asdfs",
+            "a 89sdf a",
+            "a",
+            "sdfs\nasdfd"
+        ],
+        "shouldnt": [
+            " asdf",
+            "sdf\nsdf",
+            "sdf\n a",
+            "sdfa",
+            "sdf"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "stringEndsWith('a')",
+        "should": [
+            "lklkjfda",
+            "sdf 8 a",
+            "a"
+        ],
+        "shouldnt": [
+            "asdfds",
+            "sd fd"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "lineEndsWith('a')",
+        "should": [
+            "lklkjfda",
+            "sdf 8 a",
+            "a",
+            "sdf\na",
+            "sdfse\nsdafsda",
+            "sdfa\nsdf"
+        ],
+        "shouldnt": [
+            "asdfds",
+            "sd fd"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "literal('test')",
+        "should": [
+            "test",
+            " sdfstestsdfs"
+        ],
+        "shouldnt": [
+            "te st"
+        ]
+    },
+    {
+        "re": "underscore",
+        "should": [
+            "_"
+        ],
+        "shouldnt": [
+            "a test",
+            "test ",
+            "\ntest\n",
+            "\ntest",
+            "test\n"
+        ]
+    },
+    {
+        "re": "quote",
+        "should": [
+            "\"",
+            "'",
+            "`"
+        ],
+        "shouldnt": [
+            "a test",
+            "test ",
+            "\ntest\n",
+            "\ntest",
+            "test\n"
+        ]
+    },
+    {
+        "re": "isExactly('test')",
+        "should": [
+            "test"
+        ],
+        "shouldnt": [
+            "a test",
+            "test ",
+            "\ntest\n",
+            "\ntest",
+            "test\n"
+        ]
+    },
+    {
+        "re": "matchMax('a')",
+        "should": [
+            "aaa",
+            "a"
+        ],
+        "shouldnt": [
+            "b"
+        ]
+    },
+    {
+        "re": "matchMoreThan(3, 'a')",
+        "should": [
+            "aaaa",
+            "tesaaaaaat"
+        ],
+        "shouldnt": [
+            "aaa",
+            " aa"
+        ]
+    },
+    {
+        "re": "matchAtLeast(3, 'a')",
+        "should": [
+            "aaa",
+            "aaaa"
+        ],
+        "shouldnt": [
+            "aa"
+        ]
+    },
+    {
+        "re": "optional('a')",
+        "should": [
+            "",
+            "a",
+            "aa"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "either('a', 'b')",
+        "should": [
+            "a",
+            "b"
+        ],
+        "shouldnt": [
+            "c"
+        ]
+    },
+    {
+        "re": "either('aa', 'ba')",
+        "should": [
+            "aa",
+            "ba"
+        ],
+        "shouldnt": [
+            "bb",
+            "a"
+        ]
+    },
+    {
+        "re": "whitespace",
+        "should": [
+            " ",
+            "\t",
+            "\t  ",
+            "\n"
+        ],
+        "shouldnt": [
+            "dfsd"
+        ]
+    },
+    {
+        "re": "whitechunk",
+        "should": [
+            " ",
+            "\t",
+            "\t  ",
+            "\n"
+        ],
+        "shouldnt": [
+            "dfsd"
+        ]
+    },
+    {
+        "re": "white",
+        "should": [
+            " ",
+            "\t",
+            "\t  ",
+            "\n"
+        ],
+        "shouldnt": [
+            "dfsd"
+        ]
+    },
+    {
+        "re": "digit",
+        "should": [
+            "6"
+        ],
+        "shouldnt": [
+            "_",
+            "-",
+            "a"
+        ]
+    },
+    {
+        "re": "number",
+        "should": [
+            "6",
+            "69"
+        ],
+        "shouldnt": [
+            "-a",
+            "A"
+        ]
+    },
+    {
+        "re": "punctuation",
+        "should": [
+            "@",
+            "#",
+            "$",
+            "%",
+            "^",
+            "&",
+            "*",
+            "(",
+            ")"
+        ],
+        "shouldnt": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "s",
+            "d",
+            "f",
+            "s",
+            "d",
+            "f"
+        ]
+    },
+    {
+        "re": "wordChar",
+        "should": [
+            "w"
+        ],
+        "shouldnt": [
+            "-"
+        ]
+    },
+    {
+        "re": "hex_digit",
+        "should": [
+            "A",
+            "a",
+            "0"
+        ],
+        "shouldnt": [
+            "g",
+            "G"
+        ]
+    },
+    {
+        "re": "octDigit",
+        "should": [
+            "7"
+        ],
+        "shouldnt": [
+            "9",
+            "a",
+            "A",
+            "8"
+        ]
+    },
+    {
+        "re": "chunk",
+        "should": [
+            "wordssdf   asdf\n"
+        ],
+        "shouldnt": [
+            "\n"
+        ]
+    },
+    {
+        "re": "spaceOrTab",
+        "should": [
+            " ",
+            "\t",
+            " \t  "
+        ],
+        "shouldnt": [
+            "\n"
+        ]
+    },
+    {
+        "re": "newLine",
+        "should": [
+            "\n"
+        ],
+        "shouldnt": [
+            "\r"
+        ]
+    },
+    {
+        "re": "carriageReturn",
+        "should": [
+            "\r"
+        ],
+        "shouldnt": [
+            "\n"
+        ]
+    },
+    {
+        "re": "tab",
+        "should": [
+            "\t"
+        ],
+        "shouldnt": [
+            " "
+        ]
+    },
+    {
+        "re": "space",
+        "should": [
+            " "
+        ],
+        "shouldnt": [
+            "\t"
+        ]
+    },
+    {
+        "re": "quote",
+        "should": [
+            "'",
+            "\""
+        ],
+        "shouldnt": [
+            "wer"
+        ]
+    },
+    {
+        "re": "comma",
+        "should": [
+            ","
+        ],
+        "shouldnt": [
+            ".",
+            "`"
+        ]
+    },
+    {
+        "re": "period",
+        "should": [
+            "."
+        ],
+        "shouldnt": [
+            ","
+        ]
+    },
+    {
+        "re": "matchRange(3, 5, 'a')",
+        "should": [
+            "aaa",
+            "aaaa",
+            "aaaaa",
+            "aaaaaa"
+        ],
+        "shouldnt": [
+            "aa"
+        ]
+    },
+    {
+        "re": "matchRange(3, 5, 'a', greedy=False)+'aa'",
+        "should": [
+            "aaaaa",
+            "aaaaaa"
+        ],
+        "shouldnt": [
+            "aa"
+        ]
+    },
+    {
+        "re": "optional('a') + 'b'",
+        "should": [
+            "b",
+            "ab",
+            "cb"
+        ],
+        "shouldnt": [
+            "",
+            "c"
+        ]
+    },
+    {
+        "re": "optional('a', greedy=False) + 'b'",
+        "should": [
+            "b",
+            "ab",
+            "cb"
+        ],
+        "shouldnt": [
+            "",
+            "c"
+        ]
+    },
+    {
+        "re": "atLeastOne('a')",
+        "should": [
+            "a",
+            "aa",
+            "aaaaaaaaaa"
+        ],
+        "shouldnt": [
+            "",
+            "b"
+        ]
+    },
+    {
+        "re": "atLeastOne('a', greedy=False)",
+        "should": [
+            "a",
+            "aa",
+            "aaaaaaaaaaaaaaaaaaaaa"
+        ],
+        "shouldnt": [
+            "",
+            "b"
+        ]
+    },
+    {
+        "re": "atLeast(0, 'a')",
+        "should": [
+            "",
+            "a",
+            "aaaaaaaaaa",
+            "b"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "(optional('a') + 'b') * 3",
+        "should": [
+            "abbb",
+            "bbb",
+            "ababab",
+            "bbab"
+        ],
+        "shouldnt": [
+            "",
+            "aaa",
+            "aa",
+            "a"
+        ]
+    },
+    {
+        "re": "word + whitechunk + group('func') + ':' + '()' + group(either('|', '7'), name='test')",
+        "should": [
+            "wo  func:()|",
+            "wo  func:()7"
+        ],
+        "shouldnt": [
+            "wo  func:[]|",
+            "wo  func:(]7"
+        ]
+    },
+    {
+        "re": "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test')",
+        "should": [
+            "wo  func:8",
+            "wo  func:7"
+        ],
+        "shouldnt": []
+    },
+    {
+        "re": "7 + anyof('abc') + lineEnd",
+        "should": [
+            "7a",
+            "sdfsd7b",
+            "sdf\nsdf7b",
+            "sdf\nsdf7b\n"
+        ],
+        "shouldnt": [
+            "7asdfsd",
+            "7v"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "7 + anyof('abc') + stringEnd",
+        "should": [
+            "7a",
+            "sdfsd7b"
+        ],
+        "shouldnt": [
+            "7asdfsd",
+            "7v",
+            "sdf\nsdf7bds",
+            "sdf\nsdf7bf\n"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "lineStart + 7 + anyof('abc')",
+        "should": [
+            "7a",
+            "7bsdfsd",
+            "\n7a",
+            "\n7bsdfsd"
+        ],
+        "shouldnt": [
+            "ds7asdfsd",
+            "7v"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "stringStart + 7 + anyof('abc')",
+        "should": [
+            "7a",
+            "7bsdfsd"
+        ],
+        "shouldnt": [
+            "ds7asdfsd",
+            "7v",
+            "\n7a",
+            "\n7bsdfsd"
+        ],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "+alpha",
+        "should": [
+            "a",
+            "asd"
+        ],
+        "shouldnt": [
+            "89",
+            "._78"
+        ]
+    },
+    {
+        "re": "+alphanum",
+        "should": [
+            "a",
+            "asd",
+            "3sd",
+            "88"
+        ],
+        "shouldnt": [
+            ".+"
+        ]
+    },
+    {
+        "re": "raw(r'(<)?(\\w+@\\w+(?:\\.\\w+)+)(?(1)>|$)')",
+        "should": [
+            "<user@host.com>",
+            "user@host.com"
+        ],
+        "shouldnt": [
+            "user@host.com>"
+        ]
+    },
+    {
+        "re": "'foo' + each(chunk + 'here' + chunk, chunk + anyOf('this', 'that') + chunk) + 'bar'",
+        "should": [
+            "fooum here there that bar",
+            "foo that there here bar"
+        ],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "opt(group('<')) + group(word + '@' + word + +('.' + word)) + ifExists(1, '>', string_end)",
+        "should": [
+            "<user@host.com>",
+            "user@host.com"
+        ],
+        "shouldnt": [
+            "user@host.com>"
+        ]
+    },
+    {
+        "re": "match_range(1, 5, word + ' ')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "(match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ') + (match_range(3, 5, word_char) + ' ')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "group('pattern', name='i') + optional(digit) + match_max(group('me')) + amt(2, 'mhmm')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "string_starts_with",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "string_ends_with",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "line_starts_with",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "line_ends_with",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "word_boundary",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "not_word_boundary",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "tab",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "space",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "space_or_tab",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "new_line",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "carriage_return",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "quote",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "vertical_tab",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "form_feed",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "comma",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "period",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "underscore",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "any_between('a', 'b')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "not_whitespace",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "not_digit",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "not_word",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "whitespace",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "whitechunk",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "digit",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "number",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "word",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "word_char",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "anything",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "chunk",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "uppercase",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "lowercase",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "letter",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "hex_digit",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "oct_digit",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "punctuation",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "controller",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "printable",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "printable_and_space",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "alpha_num",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "match_max(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "match_num(2, digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "match_more_than(2, digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "match_at_least(2, digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "match_at_most(2, digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "match_range(2, 4, digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "at_least_one(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "at_least_none(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "optional(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "either(digit, word)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "any_of(digit, word, 'a', 'b')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "any_char_except('abcd')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "if_proceded_by(digit)",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "if_not_proceded_by(digit)",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "if_preceded_by(digit)",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "if_not_preceded_by(digit)",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "if_enclosed_with('|', digit)",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "group(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "passive_group(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "literally_anything",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "signed",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "unsigned",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "plain_float",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "full_float",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "int_or_float",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "ow",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "is_exactly(digit)",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "literal('this')",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "digit + ASCII",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "digit + DOTALL",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "digit + IGNORECASE",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "group('pattern', name='i') + optional(digit) + 'test'",
+        "should": [],
+        "shouldnt": []
+    },
+    {
+        "re": "digit + MULTILINE",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "'------------------LAST REGEX---------------------'",
+        "should": [
+            "------------------LAST REGEX---------------------"
+        ],
+        "shouldnt": [
+            "asdk"
+        ]
+    }
 ]

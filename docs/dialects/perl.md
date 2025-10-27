@@ -1,3 +1,3 @@
-# Perl
+# PCRE
 
-::: ezregex.perl
+::: ezregex.pcre

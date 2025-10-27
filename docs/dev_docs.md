@@ -31,6 +31,27 @@ Later, when I was reading up on abstract syntax trees, and scrolling around on P
 Along the way, I also discovered, deep in the corners of the internet, 2 other Python libraries which do almost the same thing: `xeger` (regex backwards), and `sre_yield`. `xeger` technically works, however it tends to include unprintable characters, so it's output isn't very readable. `sre_yeild` is better, but it can be very slow, and is not quite the use case I'm going for. My invert algorithm is meant to be a debugging tool (though it doubles well for a testing tool), so it does things like detecting words (as opposed to seperate word characters) and inserts actual words, and doing the same for numbers and inserting `12345...`, as well as a couple other enhancements.
 
 ## Tests
-Tests are implemented using pytest. Dependancies required for testing are:
+Tests are run using GitHub Actions, and are run in a Docker container. The Dockerfile is in the `tests` directory, and the manager script is in the same directory. The manager script is run using `bash manager.sh`
 
-```pytest jstyleson py_js_runner rich Cope pydantic```
+How it works:
+1. The docker container is built, either locally, or by GitHub Actions
+2. The manager script is run inside the docker container, given the arguments passed to the docker run command
+3. The manager script runs the appropriate tests
+    * For dialect tests, because the regexs in regexs.jsonc are EZRegexs, not regular expression strings, the file needs to be "compiled" by python in order to be used by other languages, before running individual test runner scripts. This is handled by the `compile_regexs.py` script, which is called by the manager script when appropriate.
+    * Each dialect has its own test runner script, which is run by the manager script. These are written in their appropriate language.
+
+Commands:
+* To build locally:
+    * `docker build -f ./tests/Dockerfile -t ezregex-test .`
+* To force rebuild locally:
+    * `docker build -f ./tests/Dockerfile -t ezregex-test --no-cache .`
+* To run tests locally:
+    * `docker run -v "$(pwd)":/app ezregex-test <args>` to sync the project files
+    * `docker run ezregex-test <args>`
+* To run tests locally with a specific test:
+    * `docker run -v "$(pwd)":/app ezregex-test <invert | generate | all | most | dialect <dialect>>`
+    * dialect accepts `py | js | r | pcre | all`
+
+* If one of the dialect runners *fails*, it could be just a problem with the regexs.jsonc file.
+* If one of the dialect runners *errors*, you're probably allowing compilation of a regex that the dialect doesn't support. That means it's a problem with the code itself, and the regexs.jsonc file has innaccurate dialects specified.
+* If the compile_regexs.py script fails, it's probably a problem with the regexs.jsonc file trying to use a feature of a dialect that it doesn't support (innaccurate dialects).

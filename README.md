@@ -23,7 +23,7 @@
     <img src="https://img.shields.io/badge/Supported%20Dialects-3-green">
     <img src="https://img.shields.io/badge/Python%20Dialect-100%25-blue">
     <img src="https://img.shields.io/badge/JavaScript%20Dialect-50%25-yellow">
-    <img src="https://img.shields.io/badge/Perl%20Dialect-20%25-red">
+    <img src="https://img.shields.io/badge/PCRE%20Dialect-20%25-red">
 </div>
 
 
@@ -154,7 +154,7 @@ As of version v1.6.0, the concepts of *dialects* was introduced. Different langu
 >>> import ezregex as ez # The python dialect is the defualt dialect
 >>> ez.group(digit, 'name') + ez.earlier_group('name')
 EZRegex("(?P<name>\d)(?P=name)")
->>> import ezregex.perl as ez
+>>> import ezregex.pcre as ez
 >>> ez.group(digit, 'name') + ez.earlier_group('name')
 EZRegex("?P<name>\d)(\g<name>")
 ```
@@ -164,7 +164,7 @@ The currently implemented dialects are:
     - Well tested, ~99% implemented
 - JavaScript
     - Under active development, the basics *should* work, though tests aren't in place yet
-- Perl
+- PCRE
     - Next on the roadmap, technically importable, but not implemented yet
 - R
 	- Not implemented yet
