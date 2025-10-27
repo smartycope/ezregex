@@ -5,15 +5,11 @@ build:
   tools:
     python: "3.12"
 
-sphinx:
-  configuration: docs/conf.py
+  # Install dependencies
+  jobs:
+    pre_build:
+      - pip install mkdocs mkdocstrings mkdocstrings-python
+      - pip install mkdocs-theme-readthedocs
 
-# python:
-#   install:
-#     - method: pip
-#       path: .
-    # - requirements: docs/requirements.txt
-
-
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+mkdocs:
+  configuration: mkdocs.yml
