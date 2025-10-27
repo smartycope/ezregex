@@ -103,7 +103,7 @@ APIStructure = TypedDict(
     }
 )
 
-
+# TODO: test that a pattern like <span> does not break things
 def test_correct_output():
     with open('tests/data/regexs.jsonc') as f:
         regexs = jstyleson.load(f)
