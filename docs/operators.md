@@ -1,0 +1,22 @@
+# Operators
+
+- `+`, `<<`, `>>`
+	- These all do the same thing: combine expressions. Feel free to use whichever makes most sense to you
+- `*`
+	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` (using the Ellipsis object), which is equivalent to `any_amt(expr)`
+- `+`
+	- A unary + operator acts exactly as a match_max() does, or, if you're familiar with regex syntax, the + operator
+- `[]`
+	- expr[2, 3] is equivalent to `match_range(2, 3, expr)`
+	- expr[2, ...] or expr[2,] is equivalent to `at_least(2, expr)`
+	- expr[... , 2] is equivalent to `at_most(2, expr)`
+	- expr[...] or expr[0, ...] is equivelent to `at_least_0(expr)`
+	- expr[1, ...] is equivalent to `at_least_1(expr)`
+- `&`
+	- Coming soon! This will work like the + operator, but they can be out of order. Like an `and` operation.
+- `|`
+	- Coming soon! This will work like an or operation, which will work just like any_of()
+- `%`
+    - This automatically calls re.search() for you and returns the match object (or None). Use like this: `(digit * 2) % '99 beers on the wall'`
+- `~`
+    - This inverts the expression, equivalent to calling the .invert() method
