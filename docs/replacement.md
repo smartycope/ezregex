@@ -1,3 +1,0 @@
-# Replacement Regexs
-
-TODO

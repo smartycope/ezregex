@@ -5,6 +5,7 @@
 // "doesntWorkIn" is the list of dialects that the regex doesn't work in
 // If neither worksIn or doesntWorkIn is specified, it is assumed to work in all dialects.
 // Only one of worksIn or doesntWorkIn can be specified, not both.
+// Valid dialects are: py, js, r, pcre, rust
 
 // IMPORTANT NOTE: Because this is a JSON file, and the the regexs get compiled, escaped characters like \n and \t need to
 // be double escaped in the regex patterns (i.e. \\n, \\t), but NOT in the strings they should and shouldn't match
