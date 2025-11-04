@@ -207,6 +207,7 @@ Inspirations for this project include:
     - Their reference is where I got a lot of the other regex flavors
 - [human-regex](https://github.com/fleetingbytes/human-regex)
     - Gave me the idea for including element methods, instead of solely element functions
+<!-- TODO: credit Peter Norvig here for generation -->
 
 <!--
 To publish on PyPI, run:
