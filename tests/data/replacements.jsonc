@@ -9,7 +9,7 @@
 
 [
     {
-        "re": "'------------------FIRST REPLACEMENT---------------------'",
+        "re": "literal('------------------FIRST REPLACEMENT---------------------')",
         "repl": "'-'",
         "base": "asdk",
         "after": "asdk"
@@ -84,19 +84,22 @@
         "re": "group(digit, 'digit') + group(lowercase, 'letter')",
         "repl": "rgroup('letter') + rgroup('digit')",
         "base": "1a2b3c",
-        "after": "a1b2c3"
+        "after": "a1b2c3",
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "group(anyof('aeiou'), 'vowel')",
         "repl": "f\"[{rgroup('vowel')}]\"",
         "base": "hello",
-        "after": "h[e]ll[o]"
+        "after": "h[e]ll[o]",
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "'foo' + group(number, 'num') + 'bar'",
         "repl": "f\"foo-{rgroup('num')}-bar\"",
         "base": "foo87bar",
-        "after": "foo-87-bar"
+        "after": "foo-87-bar",
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "group(word + number) + ':' + ow + group(word)",
@@ -108,16 +111,18 @@
         "re": "group(word + number, 'a') + ':' + ow + group(word, 'b')",
         "repl": "replace_group('a') + ' - ' + replace_group('b')",
         "base": "test1:    thing",
-        "after": "test1 - thing"
+        "after": "test1 - thing",
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk",
         "repl": "'(' + '${' + rgroup(1) + '})'",
         "base": "(name, input) -> ezregex.EZRegex.EZRegex",
-        "after": "(${name, input})"
+        "after": "(${name, input})",
+        "doesntWorkIn": ["r"]
     },
     {
-        "re": "'------------------LAST REPLACEMENT---------------------'",
+        "re": "literal('------------------LAST REPLACEMENT---------------------')",
         "repl": "'-'",
         "base": "asdk",
         "after": "asdk"

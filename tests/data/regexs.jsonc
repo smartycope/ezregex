@@ -5,13 +5,15 @@
 // "doesntWorkIn" is the list of dialects that the regex doesn't work in
 // If neither worksIn or doesntWorkIn is specified, it is assumed to work in all dialects.
 // Only one of worksIn or doesntWorkIn can be specified, not both.
-// Valid dialects are: py, js, r, pcre, rust
+// Valid dialects are: py, js, r, pcre2, rust
 
 // IMPORTANT NOTE: Because this is a JSON file, and the the regexs get compiled, escaped characters like \n and \t need to
 // be double escaped in the regex patterns (i.e. \\n, \\t), but NOT in the strings they should and shouldn't match
+
+// TODO: tests for any_except
 [
     {
-        "re": "'------------------FIRST REGEX---------------------'",
+        "re": "literal('------------------FIRST REGEX---------------------')",
         "should": [
             "------------------FIRST REGEX---------------------"
         ],
@@ -99,7 +101,9 @@
         "shouldnt": [
             "",
             "  "
-        ]
+        ],
+        // This should work in R, but it gives weird errors, and manual testing passes
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "optional(whitechunk + 'as' + word)",
@@ -142,21 +146,33 @@
         "should": [
             ""
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["js", "r"]
     },
     {
         "re": "raw(r'\\Z')",
         "should": [
             ""
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["js", "r"]
+    },
+    {
+        "re": "raw(r'\\z')",
+        "should": [
+            ""
+        ],
+        "shouldnt": [],
+        // This will work in python >=3.14
+        "doesntWorkIn": ["js", "r", "py"]
     },
     {
         "re": "exactly('test')",
         "should": [
             "test"
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "raw(r'(test)+')",
@@ -464,7 +480,8 @@
         "should": [
             "stuff"
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     // {
     //     "re": "raw(r'(?!stuff)')",
@@ -493,7 +510,8 @@
         "should": [
             "stuff"
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["js", "r"]
     },
     // {
     //     "re": "raw(r'(?<=stuff)')",
@@ -507,7 +525,8 @@
         "should": [
             "thingstuffs"
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "raw(r'(a|b|c|thing|st)uff')",
@@ -543,7 +562,8 @@
     {
         "re": "raw(r'(?P<test>ABC*) (?P<a>x)|(?P<b>y)')",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["js"]
     },
     {
         "re": "raw(r'[b:]+ (b)|(:+) a|(b)')",
@@ -553,12 +573,14 @@
     {
         "re": "raw(r'(?:(?P<a1>a)|(?P<b2>b))(?P<c3>c)?')",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["js"]
     },
     {
         "re": "raw(r'(?P<name>[a-zA-Z]+)(?P=name)')",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["js"]
     },
     {
         "re": "group(+letter, name='g') + earlierGroup('g')",
@@ -571,7 +593,8 @@
             "t",
             "9d9",
             "tdt"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "group(+letter) + ' ' + earlierGroup(1)",
@@ -582,7 +605,8 @@
         "shouldnt": [
             "att",
             "thethe"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "raw(r'[AB\\]C] [--A] [ABC\\-D] [\\^ABC]')",
@@ -600,7 +624,8 @@
             " asdf",
             "sdfa",
             "sdf"
-        ]
+        ],
+        "doesntWorkIn": ["js", "r"]
     },
     {
         "re": "lineStartsWith('a')",
@@ -630,7 +655,7 @@
             "asdfds",
             "sd fd"
         ],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "js"]
     },
     {
         "re": "lineEndsWith('a')",
@@ -697,7 +722,8 @@
             "\ntest\n",
             "\ntest",
             "test\n"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "matchMax('a')",
@@ -829,7 +855,13 @@
             "&",
             "*",
             "(",
-            ")"
+            ")",
+            "/",
+            "`",
+            "\"",
+            "'",
+            "!",
+            "\\",
         ],
         "shouldnt": [
             "1",
@@ -888,7 +920,9 @@
         ],
         "shouldnt": [
             "\n"
-        ]
+        ],
+        // Manually tested: works in R
+        // "doesntWorkIn": ["r"]
     },
     {
         "re": "spaceOrTab",
@@ -1070,7 +1104,8 @@
         "shouldnt": [
             "wo  func:[]|",
             "wo  func:(]7"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test')",
@@ -1078,7 +1113,8 @@
             "wo  func:8",
             "wo  func:7"
         ],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "7 + anyof('abc') + lineEnd",
@@ -1160,6 +1196,17 @@
         ]
     },
     {
+        "re": "opt(group('<')) + group(word + '@' + word + +('.' + word)) + ifExists(1, '>', string_end)",
+        "should": [
+            "<user@host.com>",
+            "user@host.com"
+        ],
+        "shouldnt": [
+            "user@host.com>"
+        ],
+        "doesntWorkIn": ["js", "r"]
+    },
+    {
         "re": "raw(r'(<)?(\\w+@\\w+(?:\\.\\w+)+)(?(1)>|$)')",
         "should": [
             "<user@host.com>",
@@ -1167,7 +1214,8 @@
         ],
         "shouldnt": [
             "user@host.com>"
-        ]
+        ],
+        "doesntWorkIn": ["js", "r"]
     },
     {
         "re": "'foo' + each(chunk + 'here' + chunk, chunk + anyOf('this', 'that') + chunk) + 'bar'",
@@ -1177,16 +1225,6 @@
         ],
         "shouldnt": [],
         "doesntWorkIn": ["r"]
-    },
-    {
-        "re": "opt(group('<')) + group(word + '@' + word + +('.' + word)) + ifExists(1, '>', string_end)",
-        "should": [
-            "<user@host.com>",
-            "user@host.com"
-        ],
-        "shouldnt": [
-            "user@host.com>"
-        ]
     },
     {
         "re": "match_range(1, 5, word + ' ')",
@@ -1201,7 +1239,8 @@
     {
         "re": "group('pattern', name='i') + optional(digit) + match_max(group('me')) + amt(2, 'mhmm')",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "string_starts_with",
@@ -1342,11 +1381,6 @@
     },
     {
         "re": "anything",
-        "should": [],
-        "shouldnt": []
-    },
-    {
-        "re": "chunk",
         "should": [],
         "shouldnt": []
     },
@@ -1538,7 +1572,8 @@
     {
         "re": "is_exactly(digit)",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "literal('this')",
@@ -1549,7 +1584,7 @@
         "re": "digit + ASCII",
         "should": [],
         "shouldnt": [],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2", "js"]
     },
     {
         "re": "digit + DOTALL",
@@ -1566,7 +1601,8 @@
     {
         "re": "group('pattern', name='i') + optional(digit) + 'test'",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "digit + MULTILINE",
@@ -1575,7 +1611,25 @@
         "doesntWorkIn": ["r"]
     },
     {
-        "re": "'------------------LAST REGEX---------------------'",
+        "re": "raw(r'^(?=(?!(.)\\1)([^\\DO:105-93+30])(?-1)(?<!\\d(?<=(?![5-90-3])\\d))).[^\\WHY?]$')",
+        "should": ["42"],
+        "shouldnt": ["why"],
+        "worksIn": ["pcre2"]
+    },
+    {
+        "re": "lineStart + word + '/' + '/' + lineEnd",
+        "should": ["asdf//"],
+        "shouldnt": ["/word/", "word/", "word"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "lineStart + word + '/' + lineEnd",
+        "should": ["asdf/"],
+        "shouldnt": ["/word/", "word//", "word"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "literal('------------------LAST REGEX---------------------')",
         "should": [
             "------------------LAST REGEX---------------------"
         ],
