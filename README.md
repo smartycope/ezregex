@@ -20,10 +20,12 @@
     <img src="https://img.shields.io/badge/dependencies-0-blue">
 </div>
 <div align="center">
-    <img src="https://img.shields.io/badge/Supported%20Dialects-3-green">
+    <img src="https://img.shields.io/badge/Supported%20Dialects-4-green">
     <img src="https://img.shields.io/badge/Python%20Dialect-100%25-blue">
-    <img src="https://img.shields.io/badge/JavaScript%20Dialect-50%25-yellow">
-    <img src="https://img.shields.io/badge/Perl%20Dialect-20%25-red">
+    <img src="https://img.shields.io/badge/R%20Dialect-100%25-blue">
+    <img src="https://img.shields.io/badge/JavaScript%20Dialect-90%25-blue">
+    <img src="https://img.shields.io/badge/PCRE2%20Dialect-60%25-yellow">
+    <img src="https://img.shields.io/badge/Rust%20Dialect-0%25-red">
 </div>
 
 
@@ -154,22 +156,21 @@ As of version v1.6.0, the concepts of *dialects* was introduced. Different langu
 >>> import ezregex as ez # The python dialect is the defualt dialect
 >>> ez.group(digit, 'name') + ez.earlier_group('name')
 EZRegex("(?P<name>\d)(?P=name)")
->>> import ezregex.perl as ez
+>>> import ezregex.pcre2 as ez
 >>> ez.group(digit, 'name') + ez.earlier_group('name')
 EZRegex("?P<name>\d)(\g<name>")
 ```
 
 The currently implemented dialects are:
-- Python
-    - Well tested, ~99% implemented
-- JavaScript
-    - Under active development, the basics *should* work, though tests aren't in place yet
-- Perl
-    - Next on the roadmap, technically importable, but not implemented yet
-- R
-	- Not implemented yet
-- Rust
-	- On the roadmap, but not implemented yet
+| Dialect    | Completeness | Tests pass |
+|------------|--------------|------------|
+| Python     | ~99%         | Yes        |
+| JavaScript | ~90%         | Yes        |
+| PCRE2      | ~60%         | Yes        |
+| R          | 100%         | No         |
+| Rust       | 0%           | No         |
+
+Just because a dialect is implemented, doesn't mean it has all the features of the language. However, everything implemented is tested, so if you can import it, it's usable.
 
 If you know a particular flavor of regex and would like to contribute, feel free to read the [developer documentation](#developer-documentation) and make a pull request! If you would like one that's not implemented yet, you can also add a [github issue](https://github.com/smartycope/ezregex/issues).
 
@@ -190,6 +191,10 @@ import ezregex as ez
 
 ## License
 EZRegex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
+
+## Contributing
+
+I love contributions! I don't have many rules for contributing. I just ask that if you're going to add a dialect, before you open a PR, please set up tests for it, and make sure they pass. It doesn't have to be fully implemented, but it should at least be a valid framework to build off of.
 
 ## Credits
 This library was written from scratch entirely by Copeland Carter.

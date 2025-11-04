@@ -1,3 +1,10 @@
+docs/index.md
+tests/data/compiled_regexs.json
+**/compiled_regexs.json
+tests/data/compiled_replacements.json
+tests/summary.txt
+tests/dialect_runners/pcre2
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,venv,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,venv,visualstudiocode
 

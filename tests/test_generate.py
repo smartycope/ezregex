@@ -15,7 +15,6 @@ def phrases(text, sep='/'):
 
 # Tests
 def test_new_parts():
-    return # I'm not changing this code anytime soon, it doesn't interact with any other code, and it takes forever to run
     assert repetitions('a') == {'a+', 'a*', 'a?'}
     assert repetitions('ab') == {'a+b', 'a*b', 'a?b',
                                  'ab+', 'ab*', 'ab?'}
@@ -41,7 +40,6 @@ def test_new_parts():
 
 
 def test_bb():
-    return # I'm not changing this code anytime soon, it doesn't interact with any other code, and it takes forever to run
     assert OR(['a', 'b', 'c']) == OR('a', 'b', 'c') == 'a|b|c'
     assert OR(['a|b', 'c|d']) == OR('a|b', 'c|d') == 'a|b|c|d'
     assert OR(None, 'c') == 'c'
@@ -65,7 +63,6 @@ def test_bb():
     return 'test_bb passes'
 
 def test_generate():
-    return # I'm not changing this code anytime soon, it doesn't interact with any other code, and it takes forever to run
     assert subparts('^it$') == {'^', 'i', 't', '$', '^i', 'it', 't$', '^it', 'it$', '^it$'}
     assert subparts('this') == {'t', 'h', 'i', 's', 'th', 'hi', 'is', 'thi', 'his', 'this'}
     subparts('banana') == {'a', 'an', 'ana', 'anan', 'b', 'ba', 'ban', 'bana',
@@ -106,7 +103,6 @@ def test_generate():
 
 
 def test_generate_auto():
-    return # I'm not changing this code anytime soon, it doesn't interact with any other code, and it takes forever to run
     for w, l in zip(_winners, _losers):
         r = re.compile(generate_regex(w, l, 500, restarts=2))
         for i in w:

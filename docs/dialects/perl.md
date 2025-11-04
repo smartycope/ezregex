@@ -1,3 +1,0 @@
-# Perl
-
-::: ezregex.perl

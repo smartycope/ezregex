@@ -182,3 +182,8 @@ def test_elemental_methods():
         whitespace.optional.append(literal('a').repeat.or_('b').unnamed).if_followed_by(word) ==
         whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
     )
+
+
+def test_no_duplicate_flags():
+    r = lineStart + word + '/' + '/' + lineEnd
+    assert r.str() == r'(?m)^\w+//$'

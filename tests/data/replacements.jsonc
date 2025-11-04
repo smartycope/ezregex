@@ -1,124 +1,130 @@
-[ // This goes ["regex pattern", "replacement regex", "base string", "what the base string should look like after substitution"]
-    [
-        "'------------------FIRST REPLACEMENT---------------------'",
-        "'-'",
-        "asdk",
-        "asdk"
-    ],
-    [ // Replace digits with *
-        "digit",
-        "'*'",
-        "123abc",
-        "***abc"
-    ],
-    [ // Replace vowels with _
-        "anyof('aeiou')",
-        "'_'",
-        "hello",
-        "h_ll_"
-    ],
-    [ // Replace digits with #
-        "digit",
-        "'#'",
-        "a1b2c3",
-        "a#b#c#"
-    ],
-    [ // Swap the first two digits
-        "group(digit) + group(digit)",
-        "rgroup(2) + rgroup(1)",
-        "12345",
-        "21435"
-    ],
-    [ // Duplicate vowels
-        "group(anyof('aeiou'))",
-        "rgroup(1) * 2",
-        "hello",
-        "heelloo"
-    ],
-    [ // Prefix numbers with "num:"
-        "group(number)",
-        "\"num:\" + rgroup(1)",
-        "abc123xyz456",
-        "abcnum:123xyznum:456"
-    ],
-    [ // Separate adjacent characters with -
-        "group(word_char) * 2",
-        "rgroup(1) + '-' + rgroup(2)",
-        "Python",
-        "P-yt-ho-n"
-    ],
-    [ // Duplicate uppercase words
-        "group(+uppercase)",
-        "rgroup(1) * 2",
-        "HelloWorld",
-        "HHelloWWorld"
-    ],
-    [ // Replace non-word characters with space
-        "group(+not_word)",
-        "' '",
-        "a@b#c",
-        "a b c"
-    ],
-    [ // Add underscore between digits and lowercase letters
-        "group(digit) + group(lowercase)",
-        "rgroup(1) + '_' + rgroup(2)",
-        "1a2b3c",
-        "1_a2_b3_c"
-    ],
-    [ // Enclose non-space sequences in angle brackets
-        "group(+not_whitespace)",
-        "f'<{rgroup(1)}>'",
-        "Hello World",
-        "<Hello> <World>"
-    ],
-    [ // Swap digit and letter with named groups
-        "group(digit, 'digit') + group(lowercase, 'letter')",
-        "rgroup('letter') + rgroup('digit')",
-        "1a2b3c",
-        "a1b2c3"
-    ],
-    [ // Enclose vowels in square brackets with named group
-        "group(anyof('aeiou'), 'vowel')",
-        "f\"[{rgroup('vowel')}]\"",
-        "hello",
-        "h[e]ll[o]"
-    ],
-    [
-        "'foo' + group(number, 'num') + 'bar'",
-        "f\"foo-{rgroup('num')}-bar\"",
-        "foo87bar",
-        "foo-87-bar"
-    ],
-    [
-        "group(word + number) + ':' + ow + group(word)",
-        "replace_group(1) + ' - ' + replace_group(2)",
-        "test1:    thing",
-        "test1 - thing"
-    ],
-    [
-        "group(word + number, 'a') + ':' + ow + group(word, 'b')",
-        "replace_group('a') + ' - ' + replace_group('b')",
-        "test1:    thing",
-        "test1 - thing"
-    ],
-    [
-        "stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk",
-        "'(' + '${' + rgroup(1) + '})'",
-        "(name, input) -> ezregex.EZRegex.EZRegex",
-        "(${name, input})"
-    ],
-    [
-        "'------------------LAST REPLACEMENT---------------------'",
-        "'-'",
-        "asdk",
-        "asdk"
-    ],
-]
+// "re" is the regex pattern
+// "repl" is the replacement regex pattern
+// "base" is the base string
+// "after" is what the string should look like after replacement
+// "worksIn" is the list of dialects that the regex works in
+// "doesntWorkIn" is the list of dialects that the regex doesn't work in
+// If neither worksIn or doesntWorkIn is specified, it is assumed to work in all dialects.
+// Only one of worksIn or doesntWorkIn can be specified, not both.
 
-// ("(\\b\\w{3}\\b)", "[\\1]", "The cat sat on the mat", "The [cat] [sat] on the [mat]"),  // Enclose 3-letter words in square brackets
-// ("(\\b\\w+\\b)", "\\U\\1", "python is fun", "PYTHON IS FUN"),  // Convert words to uppercase
-// ("(?P<upper>[A-Z]+)", "\\g<upper>\\g<upper>", "HelloWorld", "HELLOHELLO"),  // Duplicate uppercase words with named group
-// ("(?P<number>[0-9]+)", "num: \\g<number>", "abc123xyz456", "abcnum: 123xyznum: 456"),  // Prefix numbers with "num:" using named group
-// ("(?P<word>\\w+)", "<\\g<word>>", "Python is great", "<Python> <is> <great>"),  // Enclose words in angle brackets with named group
-// ("(?P<word>\\b\\w+\\b)", "\\U\\g<word>", "python is cool", "PYTHON IS COOL"),  // Convert words to uppercase with named group
-// ("(?P<non_space>\\S+)", "<\\g<non_space>>", "Hello World", "<Hello> <World>"),  // Enclose non-space sequences in angle brackets with named group
+[
+    {
+        "re": "literal('------------------FIRST REPLACEMENT---------------------')",
+        "repl": "'-'",
+        "base": "asdk",
+        "after": "asdk"
+    },
+    {
+        "re": "digit",
+        "repl": "'*'",
+        "base": "123abc",
+        "after": "***abc"
+    },
+    {
+        "re": "anyof('aeiou')",
+        "repl": "'_'",
+        "base": "hello",
+        "after": "h_ll_"
+    },
+    {
+        "re": "digit",
+        "repl": "'#'",
+        "base": "a1b2c3",
+        "after": "a#b#c#"
+    },
+    {
+        "re": "group(digit) + group(digit)",
+        "repl": "rgroup(2) + rgroup(1)",
+        "base": "12345",
+        "after": "21435"
+    },
+    {
+        "re": "group(anyof('aeiou'))",
+        "repl": "rgroup(1) * 2",
+        "base": "hello",
+        "after": "heelloo"
+    },
+    {
+        "re": "group(number)",
+        "repl": "\"num:\" + rgroup(1)",
+        "base": "abc123xyz456",
+        "after": "abcnum:123xyznum:456"
+    },
+    {
+        "re": "group(word_char) * 2",
+        "repl": "rgroup(1) + '-' + rgroup(2)",
+        "base": "Python",
+        "after": "P-yt-ho-n"
+    },
+    {
+        "re": "group(+uppercase)",
+        "repl": "rgroup(1) * 2",
+        "base": "HelloWorld",
+        "after": "HHelloWWorld"
+    },
+    {
+        "re": "group(+not_word)",
+        "repl": "' '",
+        "base": "a@b#c",
+        "after": "a b c"
+    },
+    {
+        "re": "group(digit) + group(lowercase)",
+        "repl": "rgroup(1) + '_' + rgroup(2)",
+        "base": "1a2b3c",
+        "after": "1_a2_b3_c"
+    },
+    {
+        "re": "group(+not_whitespace)",
+        "repl": "f'<{rgroup(1)}>'",
+        "base": "Hello World",
+        "after": "<Hello> <World>"
+    },
+    {
+        "re": "group(digit, 'digit') + group(lowercase, 'letter')",
+        "repl": "rgroup('letter') + rgroup('digit')",
+        "base": "1a2b3c",
+        "after": "a1b2c3",
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "group(anyof('aeiou'), 'vowel')",
+        "repl": "f\"[{rgroup('vowel')}]\"",
+        "base": "hello",
+        "after": "h[e]ll[o]",
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "'foo' + group(number, 'num') + 'bar'",
+        "repl": "f\"foo-{rgroup('num')}-bar\"",
+        "base": "foo87bar",
+        "after": "foo-87-bar",
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "group(word + number) + ':' + ow + group(word)",
+        "repl": "replace_group(1) + ' - ' + replace_group(2)",
+        "base": "test1:    thing",
+        "after": "test1 - thing"
+    },
+    {
+        "re": "group(word + number, 'a') + ':' + ow + group(word, 'b')",
+        "repl": "replace_group('a') + ' - ' + replace_group('b')",
+        "base": "test1:    thing",
+        "after": "test1 - thing",
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "stringStart + '(' + group(chunk + optional(',' + chunk)) + ')' + chunk",
+        "repl": "'(' + '${' + rgroup(1) + '})'",
+        "base": "(name, input) -> ezregex.EZRegex.EZRegex",
+        "after": "(${name, input})",
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "literal('------------------LAST REPLACEMENT---------------------')",
+        "repl": "'-'",
+        "base": "asdk",
+        "after": "asdk"
+    }
+]
