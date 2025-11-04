@@ -1,49 +1,81 @@
 #!/bin/bash
 
 # This script is used to run the tests. It should be run from inside the docker container
+function compile_tests() {
+    if [ ! -f data/compiled_regexs.jsonc ]; then
+        echo "Compiling regexs..."
+        python3 compile_regexs.py
+        # Check that it exited successfully
+        if [ $? -ne 0 ]; then
+            echo "Failed to compile regexs. Likely, regexs.jsonc or replacements.jsonc is invalid."
+            exit 1
+        else
+            echo "Done."
+        fi
+    else
+        echo "Regexs already compiled, skipping"
+    fi
+}
 
 function test_py() {
     echo "Running python tests..."
     python3 dialect_runners/py.py
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 
 function test_js() {
     echo "Running javascript tests..."
     node dialect_runners/js.js
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 
 function test_r() {
-    echo "Running r tests..."
+    echo "Running r tests... "
     Rscript dialect_runners/r.R
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 
 function test_pcre() {
-    echo "Running pcre tests..."
-    if [ ! -f dialect_runners/pcre ]; then
-        echo "Compiling pcre..."
-        gcc -o dialect_runners/pcre dialect_runners/pcre.c -lpcre -lcjson -w
+    echo "Running pcre2 tests..."
+    gcc -o dialect_runners/pcre2 dialect_runners/pcre2.c -lpcre2-8 -lcjson -w
+    if [ $? -ne 0 ]; then
+        echo "Failed to compile pcre2 C script"
+        exit 1
     fi
-    ./dialect_runners/pcre
+    ./dialect_runners/pcre2
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
+    echo "Done."
+}
+
+function test_dialects_misc() {
+    echo "Running misc tests..."
+    pytest dialect_runners/misc.py
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 
 # Just test the dialects
 function test_dialect() {
     echo "Running dialect tests for $1..."
-    # If the compiled regexs don't exist, compile them
-    if [ ! -f data/compiled_regexs.jsonc ]; then
-        echo "Compiling regexs..."
-        python3 compile_regexs.py
-        # Check that it exited successfully
-        if [ $? -ne 0 ]; then
-            echo "Failed to compile regexs. Likely, regexs.jsonc is invalid."
-            exit 1
-        fi
-        echo "Done."
-    fi
+    compile_tests
 
     if [ "$1" == "py" ]; then
         test_py
@@ -51,15 +83,18 @@ function test_dialect() {
         test_js
     elif [ "$1" == "r" ]; then
         test_r
-    elif [ "$1" == "pcre" ]; then
+    elif [ "$1" == "pcre2" ]; then
         test_pcre
     elif [ "$1" == "all" ]; then
         test_py
         test_js
         test_r
         test_pcre
+        test_dialects_misc
+    elif [ "$1" == "misc" ]; then
+        test_dialects_misc
     else
-        echo "Usage: $0 dialect py | js | r | pcre | all"
+        echo "Usage: $0 dialect py | js | r | pcre2 | all | misc"
         exit 1
     fi
 }
@@ -67,7 +102,11 @@ function test_dialect() {
 # Run most of the pytests
 function run_pytests() {
     echo "Running pytests..."
-    python3 -m pytest -k "not test_generate and not test_invert"
+    pytest -k "not generate and not invert"
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 
@@ -77,12 +116,21 @@ function run_pytests() {
 function test_generate() {
     echo "Running generate tests..."
     python3 -m pytest ./test_generate.py
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 # Just test the invert module
 function test_invert() {
     echo "Running invert tests..."
-    python3 -m pytest ./test_invert.py
+    compile_tests
+    python3 invert.py "$@"
+    if [ $? -ne 0 ]; then
+        echo "Failed."
+        exit 1
+    fi
     echo "Done."
 }
 
@@ -92,6 +140,7 @@ function test_all() {
     run_pytests
     test_generate
     test_invert
+    echo "All tests pass successfully!"
 }
 
 # Run enough of the tests
@@ -101,6 +150,7 @@ function test_most() {
     # This one takes forever, and will not be modified often
     # test_generate
     test_invert
+    echo "All tests pass successfully!"
 }
 
 # Handle arguments
@@ -114,7 +164,9 @@ elif [ "$1" == "invert" ]; then
     test_invert
 elif [ "$1" == "dialect" ]; then
     test_dialect "$2"
+elif [ "$1" == "pytests" ]; then
+    run_pytests
 else
-    echo "Usage: $0 all | most | generate | invert | dialect <dialect>"
+    echo "Usage: $0 all | most | generate | invert | dialect <dialect> | pytests"
     exit 1
 fi

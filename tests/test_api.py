@@ -105,19 +105,28 @@ APIStructure = TypedDict(
 
 # TODO: test that a pattern like <span> does not break things
 def test_correct_output():
-    with open('tests/data/regexs.jsonc') as f:
+    with open('data/regexs.jsonc') as f:
         regexs = jstyleson.load(f)
 
-    for regex_str, match, dontmatch in regexs:
-        regex = eval(regex_str, python.__dict__)
-        if type(regex) is str:
-            regex = literal(regex)
+    for i in regexs:
+        regex_str = i['re']
+        match = i['should']
+        dontmatch = i['shouldnt']
+        if 'worksIn' in i and 'py' not in i['worksIn']:
+            continue
+        if 'doesntWorkIn' in i and 'py' in i['doesntWorkIn']:
+            continue
+
+        try:
+            regex = eval(regex_str, python.__dict__)
+        except Exception as err:
+            raise AssertionError(f"Failed to parse pattern `{regex_str}`") from err
         try:
             resp = api(regex)
         except NotImplementedError as err:
             warning(err)
         except Exception as err:
-            raise AssertionError(f"Failed with on pattern `{regex_str}` -> `{regex}`") from err
+            raise AssertionError(f"Failed on pattern `{regex_str}` -> `{regex}`") from err
         try:
             TypeAdapter(APIStructure).validate_python(resp)
         except ValidationError as err:
