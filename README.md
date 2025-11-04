@@ -2,8 +2,8 @@
     <img src="https://ezregex.org/favicon.png">
     <br>
     <br>
-    <a href="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml">
-        <img src="https://github.com/smartycope/ezregex/actions/workflows/unit-tests.yml/badge.svg" alt="Unit Tests">
+    <a href="https://github.com/smartycope/ezregex/actions/workflows/tests.yml">
+        <img src="https://github.com/smartycope/ezregex/actions/workflows/tests.yml/badge.svg" alt="Unit Tests">
     </a>
     <a href="https://pypi.org/project/ezregex/">
         <img src="https://img.shields.io/pypi/v/ezregex.svg" alt="PyPI Latest Release">
