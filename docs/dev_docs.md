@@ -45,16 +45,33 @@ How it works:
     * Each dialect has its own test runner script, which is run by the manager script. These are written in their appropriate language.
 
 Commands:
+(All commands should be run from the project root directory)
 * To build locally:
     * `docker build -f ./tests/Dockerfile -t ezregex-test .`
+    * Note: the first time building takes a while
 * To force rebuild locally:
     * `docker build -f ./tests/Dockerfile -t ezregex-test --no-cache .`
-* To run tests locally:
-    * `docker run -v "$(pwd)":/app ezregex-test <args>` to sync the project files
-    * `docker run ezregex-test <args>`
-* To run tests locally with a specific test:
-    * `docker run -v "$(pwd)":/app ezregex-test <invert | generate | all | most | dialect <dialect>>`
-    * dialect accepts `py | js | r | pcre | all`
+* To run tests locally (syncs the project directory and the terminal with the container):
+    * `docker run -it -v "$(pwd)":/app ezregex-test <args>`
+    * Args:
+        * `invert [args] | generate | all | most | dialect <dialect> | pytests`
+        * dialect accepts `py | js | r | pcre2 | all | misc`
+            * misc runs additional dialect tests that can't be covered by the standard suite of regexs.jsonc/replacements.jsonc tests, like when things should throw errors. They're not specific to any given dialect
+        * invert accepts
+            * `--strictness <int>`
+                * How many times we try inverting a regex, to ensure they all work
+            * `--tries <int>`
+                * How many times we try inverting before giving up (-1 means just return a bad inversion)
+            * `--timeout <int>`
+                * How many seconds we allow inverting to take before calling it an infinite loop
+            * `--passed`
+                * Include passed inversions in the summary
+            * `--backend <backend>`
+                * The backend to use for inverting. Defaults to "whatever works, in order". For testing the custom backend, it's recommended to use `re_parser`
+        * generate takes a long time, and is not run by default
+        * pytests runs all the pytests (other than invert and generate)
+        * most runs all the tests other than generate
+        * all runs all the tests
 
 * If one of the dialect runners *fails*, it could be just a problem with the regexs.jsonc file.
 * If one of the dialect runners *errors*, you're probably allowing compilation of a regex that the dialect doesn't support. That means it's a problem with the code itself, and the regexs.jsonc file has innaccurate dialects specified.

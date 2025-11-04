@@ -1,3 +1,3 @@
-# PCRE
+# PCRE2
 
-::: ezregex.pcre
+::: ezregex.pcre2
