@@ -7,7 +7,7 @@ function compile_tests() {
         python3 compile_regexs.py
         # Check that it exited successfully
         if [ $? -ne 0 ]; then
-            echo "Failed to compile regexs. Likely, regexs.jsonc or replacements.jsonc is invalid."
+            echo "Failed to compile regexs."
             exit 1
         else
             echo "Done."

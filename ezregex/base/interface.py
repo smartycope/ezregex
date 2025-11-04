@@ -276,23 +276,3 @@ int_or_float: EZRegex
 ow: EZRegex
 "\"Optional Whitechunk\""
 
-
-ASCII: EZRegex
-""" Make matching words, word boundaries, digits, and whitespace perform ASCII-only matching instead of full Unicode
-matching. This is only meaningful for Unicode (str) patterns, and is ignored for bytes patterns
-"""
-IGNORECASE: EZRegex
-""" Perform case-insensitive matching, including expressions that explicitly use uppercase members. Full Unicode matching
-(such as Ü matching ü) also works unless the ASCII flag is used to disable non-ASCII matches. The current locale does not
-change the effect of this flag unless the LOCALE flag is also used
-"""
-DOTALL: EZRegex
-""" Make the '.' special character match any character at all, including a newline. It's recommended you simply use
-literally_anything instead
-"""
-LOCALE: EZRegex
-"Try not to use this, and rely on unicode matching instead"
-MULTILINE: EZRegex
-" This is automatically inserted when using line_start and line_end, you shouldn't need to add it manually "
-UNICODE: EZRegex
-" Match using the full unicode standard, instead of just ASCII. Enabled by default, and therefore redundant."
