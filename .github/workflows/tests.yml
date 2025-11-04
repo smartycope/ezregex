@@ -1,5 +1,5 @@
 name: All Tests
-
+# TODO: this doesn't actually cache properly, like it should
 on:
   push:
     branches: [ main ]
