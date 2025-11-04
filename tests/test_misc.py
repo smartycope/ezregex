@@ -66,13 +66,12 @@ def test_any_char_except():
     assert er.any_char_except(*list('abcd'))._compile(False) == '[^abcd]'
 
 
-
 def test_misc():
     """ Just threw a bunch of stuff in here for now, I need to move it elsewhere eventually """
     a = word + ow
     # b = stuff + UNICODE
-    c = IGNORECASE + '9'
-    assert a + c == word + ow + IGNORECASE + '9', f"{a + c} != {word + ow + IGNORECASE + '9'}"
+    c = options('ignore_case') + '9'
+    assert a + c == word + ow + options('ignore_case') + '9', f"{a + c} != {word + ow + options('ignore_case') + '9'}"
 
     a = str(PythonEZRegex(r'\s+'))
     with pytest.raises(TypeError):
@@ -95,3 +94,21 @@ def test_misc():
     #TODO: assert (word + ow + anything + ':') in 'word    d:'
     #TODO: assert (word + ow + anything + ':') not in 'word'
     assert str(word) == r'\w+', f'{word}'
+
+
+def test_options():
+    assert options().str() == ''
+    with pytest.raises(ValueError):
+        options('notaflag')
+    with pytest.raises(ValueError):
+        options(notaflag=True)
+    with pytest.raises(ValueError):
+        options(notaflag=False)
+    assert str(word + options('IGNORE_CASE')) == r'(?i)\w+'
+    assert str(word + options('ignore_case')) == r'(?i)\w+'
+    assert str(word + options(ignore_case=True)) == r'(?i)\w+'
+    assert str(word + options(IGNORE_CASE=True)) == r'(?i)\w+'
+    with pytest.raises(ValueError):
+        anyof('a', 'b', 'c') + options('ignore_case') + options(IGNORE_CASE=False)
+
+

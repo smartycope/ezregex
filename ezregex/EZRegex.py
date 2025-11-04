@@ -19,7 +19,7 @@ from .base import base, psuedonymns
 class EZRegex(ABC):
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
 
-    def __init__(self, definition, *, sanatize=True, replacement=False, flags=''):
+    def __init__(self, definition, *, sanatize=True, replacement=False, flags='', options_specified=False):
         """
         The workhorse of the EZRegex library. This represents a regex pattern that can be combined
         with other EZRegexs and strings. Ideally, this should only be called internally, but it should
@@ -28,6 +28,7 @@ class EZRegex(ABC):
         # Set attributes like this so the class can remain "immutable", while still being usable
         self.__setattr__('_flags', flags, True)
         self.__setattr__('_sanatize', sanatize, True)
+        self.__setattr__('_options_specified', options_specified, True)
         self.__setattr__('replacement', replacement, True)
 
         if isinstance(definition, str):
@@ -99,7 +100,7 @@ class EZRegex(ABC):
             regex = self._final_func(regex)
         return regex
 
-    def _copy(self, definition=..., sanatize=..., replacement=..., flags=...):
+    def _copy(self, definition=..., sanatize=..., replacement=..., flags=..., options_specified=...):
         if definition is Ellipsis:
             definition = self._compile()
         if sanatize is Ellipsis:
@@ -108,8 +109,10 @@ class EZRegex(ABC):
             replacement = self.replacement
         if flags is Ellipsis:
             flags = self._flags
+        if options_specified is Ellipsis:
+            options_specified = self._options_specified
 
-        return type(self)(definition, sanatize=sanatize, replacement=replacement, flags=flags)
+        return type(self)(definition, sanatize=sanatize, replacement=replacement, flags=flags, options_specified=options_specified)
 
     def _base(self, element, /, *args, **kwargs):
         """ Constructs the base element specified, and returns it passed with any additional arguements """
@@ -283,30 +286,6 @@ class EZRegex(ABC):
     def or_(self, input):
         return self._base('either', self, input)
 
-    @property
-    def ASCII(self):
-        return self.set_flags('a')
-
-    @property
-    def IGNORECASE(self):
-        return self.set_flags('i')
-
-    @property
-    def DOTALL(self):
-        return self.set_flags('s')
-
-    @property
-    def LOCALE(self):
-        return self.set_flags('L')
-
-    @property
-    def MULTILINE(self):
-        return self.set_flags('m')
-
-    @property
-    def UNICODE(self):
-        return self.set_flags('u')
-
     # Named operator functions
     def append(self, input):
         return self + input
@@ -383,18 +362,26 @@ class EZRegex(ABC):
         return self * amt
 
     def __add__(self, thing):
+        if self._options_specified and isinstance(thing, EZRegex) and thing._options_specified:
+            raise ValueError('Please only specify options once per EZRegex expression')
+
         return self._copy(
             self._funcList + [partial(lambda cur=...: cur + self._sanitizeInput(thing))],
             sanatize=self._sanatize or thing._sanatize if isinstance(thing, EZRegex) else self._sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
-            flags=(self._flags + thing.flags) if isinstance(thing, EZRegex) else self._flags
+            flags=(self._flags + thing.flags) if isinstance(thing, EZRegex) else self._flags,
+            options_specified=self._options_specified or thing._options_specified if isinstance(thing, EZRegex) else self._options_specified
         )
 
     def __radd__(self, thing):
+        if self._options_specified and isinstance(thing, EZRegex) and thing._options_specified:
+            raise ValueError('Please only specify options once per EZRegex expression')
+
         return self._copy([partial(lambda cur=...: self._sanitizeInput(thing) + cur)] + self._funcList,
             sanatize=self._sanatize or thing._sanatize if isinstance(thing, EZRegex) else self._sanatize,
             replacement=self.replacement or thing.replacement if isinstance(thing, EZRegex) else self.replacement,
-            flags=(self._flags + thing.flags) if isinstance(thing, EZRegex) else self._flags
+            flags=(self._flags + thing.flags) if isinstance(thing, EZRegex) else self._flags,
+            options_specified=self._options_specified or thing._options_specified if isinstance(thing, EZRegex) else self._options_specified,
         )
 
     def __iadd__(self, thing):

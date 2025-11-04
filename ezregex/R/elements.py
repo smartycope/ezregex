@@ -3,6 +3,7 @@
 from ..base import load_base, _parse_any_of_params, not_empty
 from ..EZRegex import EZRegex
 from .REZRegex import REZRegex
+from string import Formatter
 
 # As far as I can tell, this is the docs for this syntax:
 # https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/regex
@@ -29,13 +30,6 @@ del if_not_preceded_by
 del ifNotPrecededBy
 del if_enclosed_with
 del ifEnclosedWith
-
-del ASCII
-del DOTALL
-del IGNORECASE
-del LOCALE
-del MULTILINE
-del UNICODE
 
 del exactly
 del is_exactly
@@ -96,3 +90,6 @@ def replace(string, rtn_str=True):
 
 rgroup = replace_group = REZRegex(_rgroup, replacement=True)
 replace_entire = REZRegex('\\0', replacement=True)
+
+def options(*args, **kwargs):
+    raise ValueError('Flags are not supported in R dialect')

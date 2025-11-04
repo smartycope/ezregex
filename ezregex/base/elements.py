@@ -313,14 +313,6 @@ base = {
     'is_exactly':         {'definition': lambda input, cur=...: r"\A" + input + r'\Z'},
     'literal':            {'definition': lambda input, cur=...: cur + input},
     'raw':                {'definition': lambda regex, cur=...: str(regex), 'sanatize': False},
-
-    # Flags
-    'ASCII':              {'definition': lambda cur=...: cur, 'flags': 'a'},
-    'DOTALL':             {'definition': lambda cur=...: cur, 'flags': 's'},
-    'IGNORECASE':         {'definition': lambda cur=...: cur, 'flags': 'i'},
-    'LOCALE':             {'definition': lambda cur=...: cur, 'flags': 'L'},
-    'MULTILINE':          {'definition': lambda cur=...: cur, 'flags': 'm'},
-    'UNICODE':            {'definition': lambda cur=...: cur, 'flags': 'u'},
 }
 
 
@@ -370,11 +362,6 @@ psuedonymns = {
     'optional': ('oneOrNone', 'one_or_none', 'opt',),
     'at_least_one': ('oneOrMore', 'one_or_more', 'atLeastOne', 'atLeast1', 'at_least_1',),
     'at_least_none': ('noneOrMore', 'none_or_more', 'atLeastNone', 'at_least_0', 'atLeast0', 'anyAmt', 'any_amt', 'zeroOrMore', 'zero_or_more',),
-    'ASCII': ('ascii', 'a',),
-    'DOTALL': ('dotall', 's',),
-    'IGNORECASE': ('ignorecase', 'i', 'ignoreCase', 'ignore_case',),
-    'LOCALE': ('locale', 'L',),
-    'MULTILINE': ('multiline', 'm',),
     'signed': ('integer',),
     'literally_anything': ('literallyAnything',),
     'word_boundary': ('wordBoundary',),

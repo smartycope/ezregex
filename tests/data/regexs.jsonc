@@ -1581,31 +1581,7 @@
         "shouldnt": []
     },
     {
-        "re": "digit + ASCII",
-        "should": [],
-        "shouldnt": [],
-        "doesntWorkIn": ["r", "pcre2", "js"]
-    },
-    {
-        "re": "digit + DOTALL",
-        "should": [],
-        "shouldnt": [],
-        "doesntWorkIn": ["r"]
-    },
-    {
-        "re": "digit + IGNORECASE",
-        "should": [],
-        "shouldnt": [],
-        "doesntWorkIn": ["r"]
-    },
-    {
         "re": "group('pattern', name='i') + optional(digit) + 'test'",
-        "should": [],
-        "shouldnt": [],
-        "doesntWorkIn": ["r"]
-    },
-    {
-        "re": "digit + MULTILINE",
         "should": [],
         "shouldnt": [],
         "doesntWorkIn": ["r"]
@@ -1627,6 +1603,133 @@
         "should": ["asdf/"],
         "shouldnt": ["/word/", "word//", "word"],
         "doesntWorkIn": ["r"]
+    },
+    // __________________________________ Options __________________________________
+    // TODO: more specific tests for each flag
+    {
+        "re": "digit + options('ASCII')",
+        "should": [],
+        "shouldnt": [],
+        "worksIn": ["py"]
+    },
+    {
+        "re": "digit + options(single_line=True)",
+        "should": [],
+        "shouldnt": [],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "anyof('a', 'b', 'c') + options('ignore_case')",
+        "should": ["A", "B", "C", "a", "b", "c"],
+        "shouldnt": ["D", "d"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "anyof('a', 'b', 'c') + options('IGNORE_CASE')",
+        "should": ["A", "B", "C", "a", "b", "c"],
+        "shouldnt": ["D", "d"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "anyof('a', 'b', 'c') + options(ignore_case=True)",
+        "should": ["A", "B", "C", "a", "b", "c"],
+        "shouldnt": ["D", "d"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "anyof('a', 'b', 'c') + options(IGNORE_CASE=True)",
+        "should": ["A", "B", "C", "a", "b", "c"],
+        "shouldnt": ["D", "d"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "word + options('single_line')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "doesntWorkIn": ["r"]
+    },
+    {
+        "re": "word + options('multiline')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "doesntWorkIn": ["r"]
+
+    },
+    {
+        "re": "word + options('unicode')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "doesntWorkIn": ["r", "pcre2"]
+    },
+    // Python
+    {
+        "re": "word + options('ascii')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["py"]
+    },
+    {
+        "re": "word + options('locale')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        // They shouldn't be using this anyway
+        "worksIn": []
+    },
+    // JavaScript
+    {
+        "re": "word + options('has_indicies')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["js"]
+    },
+    {
+        "re": "word + options('single_line')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["js"]
+    },
+    {
+        "re": "word + options('sticky')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["js"]
+    },
+    // PCRE2
+    {
+        "re": "word + options('verbose')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["pcre2"]
+    },
+    // {
+    //     "re": "word + options('extra')",
+    //     "should": ["word"],
+    //     "shouldnt": ["{}-"],
+    //     "worksIn": ["pcre2"]
+    // },
+    {
+        "re": "word + options('lazy')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["pcre2"]
+    },
+    // {
+    //     "re": "word + options('anchor')",
+    //     "should": ["word"],
+    //     "shouldnt": ["{}-"],
+    //     "worksIn": ["pcre2"]
+    // },
+    {
+        "re": "word + options('duplicate_groups')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["pcre2"]
+    },
+    {
+        "re": "word + options('noncapturing')",
+        "should": ["word"],
+        "shouldnt": ["{}-"],
+        "worksIn": ["pcre2"]
     },
     {
         "re": "literal('------------------LAST REGEX---------------------')",
