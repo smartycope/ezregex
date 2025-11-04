@@ -193,7 +193,6 @@ import ezregex as ez
 EZRegex is distributed under the [MIT License](https://choosealicense.com/licenses/mit)
 
 ## Contributing
-
 I love contributions! I don't have many rules for contributing. I just ask that if you're going to add a dialect, before you open a PR, please set up tests for it, and make sure they pass. It doesn't have to be fully implemented, but it should at least be a valid framework to build off of.
 
 ## Credits
@@ -206,3 +205,11 @@ Inspirations for this project include:
     - Their reference is where I got a lot of the other regex flavors
 - [human-regex](https://github.com/fleetingbytes/human-regex)
     - Gave me the idea for including element methods, instead of solely element functions
+
+<!--
+To publish on PyPI, run:
+1. Ensure all the versions have been updated
+2. hatch build
+3. hatch publish
+4. (optional) hatch clean
+ -->
