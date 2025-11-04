@@ -7,10 +7,8 @@ from ezregex import EZRegex
 
 class PythonEZRegex(EZRegex):
     _escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f'
+    _repl_escape_chars=b''
     _compiled = None
-
-    def _flag_func(self, final):
-        return f'(?{self.flags}){final}'
 
     def compile(self, add_flags=True):
         return re.compile(self._compile(add_flags))

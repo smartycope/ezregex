@@ -90,7 +90,7 @@ def optional(input, greedy=True, possessive=False, cur=...):
         s += r'+'
     return s
 
-def any_of(*inputs, chars=None, split=None, cur=...):
+def _parse_any_of_params(*inputs, chars=None, split=None):
     if split and len(inputs) != 1:
         raise ValueError("Please don't specifiy split and pass multiple inputs to anyof")
     elif split:
@@ -100,8 +100,13 @@ def any_of(*inputs, chars=None, split=None, cur=...):
         inputs = list(inputs[0])
     elif len(inputs) == 1 and split is None:
         inputs = list(inputs[0])
-    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(s) == 1, inputs)):
+    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(str(s)) == 1, inputs)):
         chars = True
+
+    return chars, inputs
+
+def any_of(*inputs, chars=None, split=None, cur=...):
+    chars, inputs = _parse_any_of_params(*inputs, chars=chars, split=split)
 
     if chars:
         cur += r'['
@@ -213,6 +218,7 @@ def if_exists(num_or_name, does, doesnt, cur=...):
 
 base = {
     # Positional
+    # TODO: enforce these only being at the end or beginning of a chain -- maybe
     'string_starts_with': {'definition': lambda input='', cur=...: r'\A' + input + cur},
     'string_ends_with':   {'definition': lambda input='', cur=...: input + r'\Z' + cur},
     # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
@@ -254,6 +260,7 @@ base = {
     'letter':             {'definition': r'[A-Za-z]'},
     'hex_digit':          {'definition': r'[0-9a-fA-F]'},
     'oct_digit':          {'definition': r'[0-7]'},
+    # TODO: is there a more formal definition of this or something?
     'punctuation':        {'definition': r'[' + escape('`~!@#$%^&*()-_=+[{]}\\|;:\'",<.>/?¢]') + r']'},
     'controller':         {'definition': r'[\x00-\x1F\x7F]'},
     'printable':          {'definition': r'[\x21-\x7E]'},
@@ -293,13 +300,14 @@ base = {
     'if_exists':          {'definition': if_exists},
 
     # Premade
+    # TODO: a chunk of literally anything/chunk of literally anything except ...
     'literally_anything': {'definition': r'(?:.|\n)'},
     'signed':             {'definition': r'(?:(?:\-|\+))?\d+'},
     'unsigned':           {'definition': r'\d+'},
     'plain_float':        {'definition': r'(?:(?:\-|\+))?\d+\.(?:\d+)?'},
     'full_float':         {'definition': r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?'},
     'int_or_float':       {'definition': r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?(?:\-)?\d+(?:\.(?:\d+)?)?'},
-    'ow':                 {'definition': r'(?:\s+)?'},
+    'ow':                 {'definition': r'\s*'},
 
     # Misc.
     'is_exactly':         {'definition': lambda input, cur=...: r"\A" + input + r'\Z'},

@@ -11,6 +11,11 @@ type EZRegexDefinition = str|Callable[[VarArg, DefaultNamedArg[str, "cur"]], str
 
 class EZRegex:
     """ Represent parts of the Regex syntax. Should not be instantiated by the user directly."""
+    _sanatize: bool
+    _flags: str
+    # _funcList: list[Callable[[VarArg, DefaultNamedArg[str, "cur"]], str]]
+    _funcList: list
+    replacement: bool
 
     def __init__(self, definition:EZRegexDefinition, *, sanatize:bool=True, replacement:bool=False, flags:str='') -> None:
         """ The workhorse of the EZRegex library. This represents a regex pattern that can be combined

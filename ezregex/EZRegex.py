@@ -39,26 +39,34 @@ class EZRegex(ABC):
 
     # Private functions
     def _flag_func(self, final:str) -> str:
-        raise NotImplementedError('Subclasses need to implement _flag_func(final)')
+        """ This function is called to add the flags to the regex. It gets called even if there are no flags """
+        if self.flags and not self.replacement:
+            return f'(?{self.flags}){final}'
+        return final
+
 
     def _final_func(self, s:str) -> str:
         return s
 
     def _escape(self, pattern:str):
-        """ This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255 """
-        _special_chars_map = {i: '\\' + chr(i) for i in self._escape_chars}
+        return self.escape(pattern, self.replacement)
+
+    @classmethod
+    def escape(cls, pattern:str, replacement=False):
+        """ Available as a class method, so we can escape strings when defining singletons
+            The user could use this, but I can't think of a reason they would want to.
+        """
+        # This function was modified from the one in /usr/lib64/python3.12/re/__init__.py line 255
+        _special_chars_map = {i: '\\' + chr(i) for i in (cls._repl_escape_chars if replacement else cls._escape_chars)}
         return pattern.translate(_special_chars_map)
 
     def _sanitizeInput(self, i, add_flags=False):
-        """ Instead of rasising an error if passed a strange datatype, it now trys to cast it to a string """
-        # Don't sanatize anything if this is a replacement string
-        if self.replacement:
-            return str(i)
-
+        """ Instead of raising an error if passed a strange datatype, it now tries to cast it to a string """
         # If it's another chain, compile it
         if isinstance(i, EZRegex):
             return i._compile(add_flags=add_flags)
         # It's a string (so we need to escape it)
+        # If this is a replacement string, it will automatically escape based on _repl_escape_chars
         elif isinstance(i, str):
             return self._escape(i)
         # A couple of singletons use bools and None as kwargs, just ignore them and move on
@@ -82,10 +90,10 @@ class EZRegex(ABC):
 
         # Add the flags
         if add_flags:
-            regex = regex
+            # Remove duplicate flags
+            self.__setattr__('_flags', ''.join(set(self._flags)), True)
 
-            if len(self._flags):
-                regex = self._flag_func(regex)
+            regex = self._flag_func(regex)
 
             # This has to go in the add_flags scope so it only runs at the very end, like flags
             regex = self._final_func(regex)
@@ -346,8 +354,8 @@ class EZRegex(ABC):
 
         return self._copy([partial(self._funcList[0], *args, **_kwargs)])
 
-    def __str__(self, add_flags=True):
-        return self._compile(add_flags)
+    def __str__(self):
+        return self._compile()
 
     def __repr__(self):
         return f'{type(self).__name__}("{self}")'
@@ -424,15 +432,15 @@ class EZRegex(ABC):
         return self.invert()
 
     def __pos__(self):
-        comp = self._compile()
+        comp = self._compile(add_flags=False)
         return self._copy(('' if not len(comp) else r'(?:' + comp + r')') + r'+', sanatize=False)
 
     def __ror__(self, thing):
-        return self._copy(f'(?:{self._sanitizeInput(thing)}|{self._compile()})', sanatize=False)
+        return self._copy(f'(?:{self._sanitizeInput(thing)}|{self._compile(add_flags=False)})', sanatize=False)
 
     def __or__(self, thing):
         logging.warning('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
-        return self._copy(f'(?:{self._compile()}|{self._sanitizeInput(thing)})', sanatize=False)
+        return self._copy(f'(?:{self._compile(add_flags=False)}|{self._sanitizeInput(thing)})', sanatize=False)
 
     def __xor__(self, thing):
         return NotImplementedError
@@ -445,7 +453,7 @@ class EZRegex(ABC):
         # I don't need to check this, re will do it for me
         # if not isisntance(other, str):
             # raise TypeError(f"Can't search type {type(other)} ")
-        return re.search(other, self._compile())
+        return re.search(other, self._compile(add_flags=False))
 
     def __hash__(self):
         if len(self._funcList) > 1:
@@ -494,31 +502,31 @@ class EZRegex(ABC):
                 args = args[0]
             if args is None or args is Ellipsis or args == 0:
                 # at_least_0(self)
-                return self._copy(fr'(?:{self._compile()})*', sanatize=False)
+                return self._copy(fr'(?:{self._compile(False)})*', sanatize=False)
             elif args == 1:
                 # at_least_1(self)
-                return self._copy(fr'(?:{self._compile()})+', sanatize=False)
+                return self._copy(fr'(?:{self._compile(False)})+', sanatize=False)
             else:
                 # match_at_least(args, self)
-                return self._copy(fr'(?:{self._compile()}){{{args},}}', sanatize=False)
+                return self._copy(fr'(?:{self._compile(False)}){{{args},}}', sanatize=False)
         else:
             start, end = args
             if start is None or start is Ellipsis:
                 # match_at_most(2, self)
-                return self._copy(fr'(?:{self._compile()}){{0,{end}}}', sanatize=False)
+                return self._copy(fr'(?:{self._compile(False)}){{0,{end}}}', sanatize=False)
             elif end is None or end is Ellipsis:
                 if start == 0:
                     # at_least_0(self)
-                    return self._copy(fr'(?:{self._compile()})*', sanatize=False)
+                    return self._copy(fr'(?:{self._compile(False)})*', sanatize=False)
                 elif start == 1:
                     # at_least_1(self)
-                    return self._copy(fr'(?:{self._compile()})+', sanatize=False)
+                    return self._copy(fr'(?:{self._compile(False)})+', sanatize=False)
                 else:
                     # match_at_least(start, self)
-                    return self._copy(fr'(?:{self._compile()}){{{start},}}', sanatize=False)
+                    return self._copy(fr'(?:{self._compile(False)}){{{start},}}', sanatize=False)
             else:
                 # match_range(start, end, self)
-                return self._copy(fr'(?:{self._compile()}){{{start},{end}}}', sanatize=False)
+                return self._copy(fr'(?:{self._compile(False)}){{{start},{end}}}', sanatize=False)
 
     def __reversed__(self):
         return self.inverse()
