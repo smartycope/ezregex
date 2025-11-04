@@ -42,10 +42,4 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
       - name: Run tests in Docker
-        run: |
-          docker run --rm ezregex-test:latest bash -c "
-            set -e
-            echo '🧪 Running tests...'
-            ./tests/manager.sh test_most
-            echo '✅ Done!'
-          "
+        run: docker run --rm ezregex-test:latest most
