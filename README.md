@@ -167,15 +167,17 @@ The currently implemented dialects are:
 | Python     | ~99%         | Yes        |
 | JavaScript | ~90%         | Yes        |
 | PCRE2      | ~60%         | Yes        |
-| R          | 100%         | No         |
+| R          | 100%         | Yes        |
 | Rust       | 0%           | No         |
 
 Just because a dialect is implemented, doesn't mean it has all the features of the language. However, everything implemented is tested, so if you can import it, it's usable.
 
 If you know a particular flavor of regex and would like to contribute, feel free to read the [developer documentation](#developer-documentation) and make a pull request! If you would like one that's not implemented yet, you can also add a [github issue](https://github.com/smartycope/ezregex/issues).
 
-## Usage
-- All the functions in the Python `re` library (`search`, `match`, `sub`, etc.) are implemented in the Python EZRegex dialect, and act identically to their equivalents. If you still want to use the Python `re` library directly, note that functions like `search` and `sub` don't accept EZRegex patterns as valid regex. Be sure to either call .str() (or cast it to a string) or .compile() (to compile to an re.Pattern) when passing to those. Using the member functions however, will be more efficient, as EZRegex caches the compiled re.Pattern internally.
+## Utilities
+All the functions in the Python `re` library (`search`, `match`, `sub`, etc.) are implemented in the Python EZRegex dialect, and act identically to their equivalents. If you still want to use the Python `re` library directly, note that functions like `search` and `sub` don't accept EZRegex patterns as valid regex. Be sure to either call .str() (or cast it to a string) or .compile() (to compile to an re.Pattern) when passing to those. Using the member functions however, will be more efficient, as EZRegex caches the compiled re.Pattern internally.
+
+There's also an api function, which acts like an API endpoint for regular expressions. This is used by the EZRegex frontend, as it loads this library locally in the browser. It made sense to put it in the library itself, becasue it could be useful for other purposes.
 
 ## Installation
 EZRegex is distributed on [PyPI](https://pypi.org) as a pure-python universal wheel with no dependencies and is available on Linux, macOS and Windows and supports Python 3.10+ and PyPy.
