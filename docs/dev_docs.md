@@ -1,31 +1,33 @@
 # Developer Documentation
 *Note: this page hasn't been updated in a while*
 ## The EZRegex class
-Everything relies on the EZRegex class. The EZRegex class is an abstract class, and each dialect subclasses the EZRegex class to define their own elements specific to that dialect (more on that later). Each element represents a fundamental part of the Regular Expression syntax for that language, as well as less-fundemental common combinations for convenience (like email and float).
+Everything relies on the EZRegex class. The EZRegex class is an abstract class, and each dialect subclasses the EZRegex class to define their own elements specific to that dialect (more on that later). The EZRegex class is not technically a metaclass, but functions similarly: at define time (not at instantiation time), it does a number of things:
+1. Add variables to the class (more on that later)
+2. Take members & methods of the subclass (including from mixins), and instantiate them into instances of the subclass (I'm calling these `singleton members`)
+3. Generate the options function from the flags parameter
+4. Make the subclass immutable
+5. Add psuedonyms
+
+Step 2 is probably the most confusing part. There are 2 reasons for doing it this way, generally. Firstly, I wanted to support chain-like syntax, like `word.anyof('123').digit`. But mainly, I wanted a more object-oriented way of defining dialects, instead of the hodge-podge pile of global functions I had before. The original operator syntax, `word + anyof('123') + digit`, still functions, because at the end of each dialect I simply have a function that puts all the singleton members into the global scope. This is much cleaner than the other way around.
+
+<!-- TODO: autogenerate snakeCase versions, while still keeping the other psuedonyms -->
+The psuedonyms are simply alternate names for most of the functions. Internally, each singleton member has 1 name (lowercase, camel_case), but because this library is intended to be used by people writing in other languages, there's also snakeCase versions of each of them. Also, for many of the concepts, either there's multiple sensible names for them, or different dialects tend to call them different things (`letter` vs `alpha`, `at_least_none` vs `any_amt` vs `zero_or_more`, etc).
+
+Each `singleton member` (and their associated global version) represents a fundamental part of the Regular Expression syntax for that language, as well as less-fundemental common combinations for convenience (like email and float).
+
+## Mixins
+~90% of each regex dialect is exactly the same. \w always is a word character, ...? is always optional, etc.
+
+## Creating a New Dialect
+An example is worth a thousand explanations, so here's an example dialect:
+
+```python
+
+```
 
 EZRegex can accept a string or a function to define how it's supposed to interact with the current "chain" of elements. If it's a string, it just adds it to the end. If it's a function, it can accept any positional or named parameters, but has to accept `cur=...` as the last parameter (it's complicated). The `cur` parameter is the currently compiled regular expression chain, as a string. What's returned becomes the new `cur` parameter of the next element, or, if there is no next element, the final regex. That way you can add to the front or back of an expression, and you can change what exactly gets added to the current expression based on other parameters.
 
-The EZRegex class has operators overloaded so you can combine them in intuitive ways and call them by intuitive names.
 
-The EZRegex class, and it's subclasses are immutible, and should not be instantiated directly.
-
-## Typing & Linting
-The updated method of doing this is to define all the EZRegex elements of a dialect in `elements.py`, and then add type hints and doc strings in the `elements.pyi` file. EZRegex elements that accept parameters are typed as functions (even though they're not), mostly for convenience for the user when using linters. EZRegex elements that don't accept parameters should be typed as EZRegex, and given documentation as a string on the line below it.
-
-## Dialects
-<!-- TODO: rewrite this paragraph -->
-*This is being reevaluated*
-Because most regex dialects *are* 90% identical, a parent EZRegex class implements most of the applicable logic, and a hidden "base" dialect is implemented, but works a bit differently. It has an `elements.py` file, but it defines all the elements as a dict in the form of {"element_name": {"keyword": "arguements"}}. It then has a `load_dialect()` function, which is the only thing importable from it. The reason it's done this way is because most elements, though identical in different dialects, have to be the appropriate dialect subclass. `load_dialect()` takes the dialect type as a parameter, and instantiates the base elements from it's dict and returns a new dict of initialized elements to be dumped into the global scope of the dialect. The `elements.py` file of a specific dialect can then remove any elements that it doesn't support (using the `del` keyword) and add/overwrite any it does support, or that work differently.
-
-Each subclass of EZRegex must implement a few options to describe the dialect-specific behavior of the EZRegex class, for example, in the JavaScript dialect, /'s are added to the beginning and end of the pattern, and flags are handled differently in each dialect. This has to be implemented directly into the EZRegex subclass.
-
-There's 2 parts that are required:
-- `_flag_func`
-    - An abstract function that gets called with `final`, which is the final compiled pattern *with* `beginning` and `end` attached, and `flags`, which is a string of all the flags applied to the pattern. Internally, the flags are single digits, because flags usually are. They get passed to this function as a single string, which can be parsed and modified if necissary (it usually isn't)
-- `_escape_chars`
-    - The characters that need to be escaped. Should be a byte string (i.e. b'...')
-- `_final_func`
-    - An optional function which takes in the final string about to be returned, and returns the *final* string. Useful for some dialects, for example, in JS adding `/` to the beginning and end of the final pattern
 
 ## Inverting
 There's actually 2 algorithms implemented for "inverting" regexs. The old algorithm regexs the regexs in a specific order to replace parts one at a time. This is just as nasty and horrifying as it sounds. Dispite it being a terrible, *terrible* solution, I actually got it to work decently well.
@@ -76,5 +78,3 @@ Commands:
 * If one of the dialect runners *fails*, it could be just a problem with the regexs.jsonc file.
 * If one of the dialect runners *errors*, you're probably allowing compilation of a regex that the dialect doesn't support. That means it's a problem with the code itself, and the regexs.jsonc file has innaccurate dialects specified.
 * If the compile_regexs.py script fails, it's probably a problem with the regexs.jsonc file trying to use a feature of a dialect that it doesn't support (innaccurate dialects).
-
-<!-- TODO: add a section about how to add a dialect -->
