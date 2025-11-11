@@ -8,7 +8,7 @@ from sys import version_info
 from typing import Literal, Union
 import logging
 
-from ezregex import *
+from . import *
 
 if version_info.minor <= 10:
     from re import sre_parse as sre  # type: ignore

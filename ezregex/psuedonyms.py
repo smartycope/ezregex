@@ -1,4 +1,4 @@
-psuedonymns = {
+psuedonyms = {
     'repeat': ('matchMax', 'match_max'),
     'at_most': ('matchAtMost', 'atMost', 'match_at_most',),
     'amt': ('matchNum', 'matchAmt', 'match_amt', 'match_num', 'num',),

@@ -8,12 +8,11 @@ from ..flag_docs import common_flag_docs
 
 class REZRegex(
     BaseMixin(allow_greedy=False, allow_possessive=False),
-    GroupingMixin(
+    GroupsMixin(
         advanced=False,
         named_group=None,
     ),
     AnchorsMixin(string=False),
-    GroupsMixin(advanced=False),
     ReplacementsMixin(
         advanced=False,
         numbered_group=lambda num, cur=...: fr'{cur}\{num}',

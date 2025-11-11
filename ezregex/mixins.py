@@ -3,8 +3,11 @@ from re import escape
 from string import digits
 from sys import version_info
 from typing import Callable
-from ezregex import EZRegex
+from .EZRegex import EZRegex, EZRegexFunc
+from functools import partial
+from string import Formatter
 
+from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 # TODO: add typing to all of these
 
 def raise_if_empty(param, func, param_name='input'):
@@ -18,7 +21,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
     """
 
     def add_greedy_possessive(func):
-        def rtn(*args, greedy=True, possessive=False, **kwargs):
+        def rtn(*args, greedy=True, possessive=False, cur=..., **kwargs):
             if not allow_greedy:
                 raise ValueError('Greedy qualifiers are not allowed in this dialect')
             if not allow_possessive:
@@ -30,10 +33,10 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
 
     class _BaseMixin:
-        literal    = lambda input, cur=...: cur + input
+        literal = lambda input, cur=...: cur + input
         "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
 
-        raw        = lambda regex, cur=...: str(regex), {'sanatize': False}
+        raw = lambda regex, cur=...: str(regex), {'sanatize': False}
         """ If you already have some regular regex written, and you want to incorperate
         it, this will allow you to include it without sanatizing all the backslaches
         and such, which all the other EZRegexs do automatically
@@ -355,14 +358,13 @@ def AssertionsMixin():
 
         def if_proceded_by(input, cur=...):
             """ Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
-        as it only applies to the end
-    """
+                as it only applies to the end
+            """
             raise_if_empty(input, 'if_proceded_by')
             return fr'{cur}(?={input})'
 
         def each(*inputs, cur=...):
             "Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order."
-
             inputs = list(inputs)
             last = inputs.pop()
             s = cur
@@ -373,8 +375,8 @@ def AssertionsMixin():
 
         def if_not_proceded_by(input, cur=...):
             """ Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
-        a given pattern, as it only applies to the end
-    """
+                a given pattern, as it only applies to the end
+            """
             raise_if_empty(input, 'if_not_proceded_by')
             return fr'{cur}(?!{input})'
 
@@ -443,7 +445,12 @@ def ReplacementsMixin(*,
     if entire_match is None:
         entire_match = partial(numbered_group, args=(0,))
 
-    def rgroup(num_or_name, cur=...):
+    # Weird scope error I guess
+    _entire_string = entire_string
+    _string_before_match = string_before_match
+    _string_after_match = string_after_match
+
+    def _rgroup(num_or_name, cur=...):
         """ Puts in its place the group specified, either by group number (for unnamed
             groups) or group name (for named groups). Named groups are also counted by
             number, I'm pretty sure. Groups are numbered starting from 1
@@ -463,7 +470,7 @@ def ReplacementsMixin(*,
 
     class CustomFormatter(Formatter):
         def get_value(self, key, args, kwargs):
-            return rgroup(key, '')
+            return _rgroup(key, '')
     formatter = CustomFormatter()
 
     class _ReplacementsMixin:
@@ -489,17 +496,17 @@ def ReplacementsMixin(*,
             string = formatter.format(string)
             return string if rtn_str else cls(string, sanatize=False, replacement=True)
 
-        rgroup = rgroup, {'replacement': True}
+        rgroup = _rgroup, {'replacement': True}
         replace_entire = entire_match, {'replacement': True}
         "Puts in its place the entire match"
 
 
         if advanced:
-            if entire_string:
-                entire_string = entire_string, {'replacement': True}
-            if string_before_match:
-                string_before_match = string_before_match, {'replacement': True}
-            if string_after_match:
-                string_after_match = string_after_match, {'replacement': True}
+            if _entire_string:
+                entire_string = _entire_string, {'replacement': True}
+            if _string_before_match:
+                string_before_match = _string_before_match, {'replacement': True}
+            if _string_after_match:
+                string_after_match = _string_after_match, {'replacement': True}
 
     return _ReplacementsMixin

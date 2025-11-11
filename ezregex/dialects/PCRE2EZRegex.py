@@ -10,14 +10,14 @@ class PCRE2EZRegex(
     AssertionsMixin(),
     GroupsMixin(advanced=True),
     AnchorsMixin(string=False),
-    BasicGroupsMixin(),
     ReplacementsMixin(
         advanced=True,
         entire_match='$&',
     ),
     EZRegex,
-    _escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',
-    _repl_escape_chars=b'$',
+
+    escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',
+    repl_escape_chars=b'$',
     flags={
         'global': 'g',
         'multiline': 'm',
@@ -50,3 +50,5 @@ error, and it will not match.'''
             return s.replace(r'\$', '$$')
         return s
 
+for i in PCRE2EZRegex.parts():
+    globals()[i] = getattr(PCRE2EZRegex, i)

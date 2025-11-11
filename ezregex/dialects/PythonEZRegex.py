@@ -38,7 +38,9 @@ class PythonEZRegex(
     flags_docs_link='https://docs.python.org/3/library/re.html#flags',
 
     # If we try to combine it with something, invalidate the cache
-    _compiled=(None, lambda l, r: None),
+    variables={
+        '_compiled': (None, lambda l, r: None),
+    }
 ):
     """
     Official docs:

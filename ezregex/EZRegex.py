@@ -7,20 +7,11 @@ import re
 from typing import Any, Callable, Tuple, Dict, Unpack, List, Set
 # from mypy_extensions import DefaultNamedArg, VarArg
 
-from ezregex.api import api
-from ezregex.psuedonymns import psuedonymns
+from .api import api
+from .psuedonyms import psuedonyms
 # from ezregex.generate import generate_regex
-from ezregex.invert import invert
-
-try:
-    from mypy_extensions import DefaultNamedArg, VarArg
-    type EZRegexFunc = Callable[[VarArg, DefaultNamedArg("cur", str)], str]
-except ImportError:
-    type EZRegexFunc = Callable[[..., str], str]
-type EZRegex = 'EZRegex'
-type EZRegexDefinition = str|EZRegexFunc|Tuple[str|EZRegexFunc, Dict[str, Any]]
-type EZRegexOther = str|EZRegex|int
-type EZRegexParam = str|EZRegex|int|bool|None
+from .invert import invert
+from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 
 # TODO: Seperate EZRegex into a "bytes" mode vs "string" mode
 # TODO: consider changing add_flags to "outer" or "end" or something
@@ -28,22 +19,25 @@ type EZRegexParam = str|EZRegex|int|bool|None
 
 # TODO: tests to ensure adding cur to the end AND begining and modifying cur in a singleton method works properly
 
+# These are here because having it be a class member as part of the parent and child classes
+# seems to cause problems
+initial_variables = {
+    # Cast to sets so it can accept strings
+    'flags': (set(), lambda l, r: set(l) | set(r)),
+    'replacement': (False, lambda l, r: l or r),
+    '_sanitize': (True, lambda l, r: l or r),
+    '_options_specified': (False, lambda l, r: l or r),
+}
+"These propagate through the EZRegex chain, in ways defined by the lambda"
+
 class EZRegex(ABC):
     """Represent parts of the Regex syntax. Should not be instantiated by the user directly"""
 
     # TODO: make these private
-    exclusions = []
+    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables']
     "Excluded methods"
-    added_vars = {}
+    _added_vars = {}
     "A dict of {method name: dict} to manually add variables to methods"
-    variables = {
-        # Cast to sets so it can accept strings
-        'flags': (set(), lambda l, r: set(l) | set(r)),
-        'replacement': (False, lambda l, r: l or r),
-        '_sanitize': (True, lambda l, r: l or r),
-        '_options_specified': (False, lambda l, r: l or r),
-    }
-    "These propagate through the EZRegex chain, in ways defined by the lambda"
 
     # For linting's sake
     flags: set[str]
@@ -55,7 +49,7 @@ class EZRegex(ABC):
     @classmethod
     def exclude(cls:type, method:Callable):
         """ Exclude a method from being instantiated as a singleton member """
-        cls.exclusions.append(method.__name__)
+        cls._exclusions.append(method.__name__)
         return method
 
     # I thiiiiink this will work?
@@ -63,7 +57,7 @@ class EZRegex(ABC):
     def add_vars(cls, method:Callable):
         """ Add variables to a method, similar to the `singleton = "abc", {"flags": "m"}` syntax """
         def inner(**kwargs):
-            cls.added_vars[method.__name__] = kwargs
+            cls._added_vars[method.__name__] = kwargs
             return method
         return inner
 
@@ -78,7 +72,7 @@ class EZRegex(ABC):
             assert len(definition) == 2, f'Definition {definition} is not a tuple of length 2'
             assert isinstance(definition[1], dict), f'Definition {definition} is a tuple of 2, but the second element is not a dictionary'
             if type(definition[0]) is str:
-                assert all(k in type_.variables for k in definition[1].keys()), f'Definition {definition} is a tuple of 2, but not all of the keys are in the dialect\'s variables (avilable variables: {type_.variables})'
+                assert all(k in type_._variables for k in definition[1].keys()), f'Definition {definition} is a tuple of 2, but not all of the keys are in the dialect\'s variables (avilable variables: {type_._variables})'
                 return type_([lambda cur=...: cur + definition[0]], **definition[1])
             elif callable(definition[0]):
                 return type_([definition[0]], **definition[1])
@@ -90,7 +84,7 @@ class EZRegex(ABC):
             sig = signature(definition)
             assert 'cur' in sig.parameters, f'Definition {definition} does not have cur as a keyword parameter'
             assert sig.parameters['cur'].default == ..., f'Definition {definition} does not have cur as a keyword parameter with default value of ...'
-            return type_([definition], **type_.added_vars.get(definition.__name__, {}))
+            return type_([definition], **type_._added_vars.get(definition.__name__, {}))
 
         elif isinstance(definition, list):
             return type_(definition)
@@ -150,13 +144,15 @@ class EZRegex(ABC):
 
         return options
 
-    def __init_subclass__(cls:type,
+    def __init_subclass__(
+        cls:type,
         escape_chars:bytes,
         flags:dict[str, str],
         repl_escape_chars:bytes=b'',
         flags_docs_map:dict[str, str]={},
         flags_docs_link:str='',
-        **kwargs:Unpack[Dict[str, EZRegexDefinition]]
+        variables:Unpack[Dict[str, EZRegexDefinition]]={},
+        **kwargs
     ):
         # Validate & set escape_chars
         assert isinstance(escape_chars, bytes), f'Escape chars {escape_chars} is not bytes'
@@ -165,32 +161,28 @@ class EZRegex(ABC):
         cls._repl_escape_chars = repl_escape_chars
 
         # Validate & set variables
-        for v in kwargs.values():
+        for v in variables.values():
             assert isinstance(v, tuple), f'Value {v} is not a tuple'
             assert len(v) == 2, f'Value {v} is not a tuple of length 2'
             assert callable(v[1]), f'Value {v} is a tuple of 2, but the second element is not callable'
             # Make sure the callable has the right signature
             sig = signature(v[1])
             assert len(sig.parameters) == 2, f'Value {v} is a tuple of 2, but the second element is not a callable with 2 parameters'
-        cls.variables.update(kwargs)
+        cls._variables = variables | initial_variables
 
         # Instantiate members & methods
-        # Because we haven't added psuedonymns yet, this only returns the "official"
-        # names of the singleton members. This is intentional.
-        for name in cls.parts():
-            setattr(cls, name, EZRegex._interpret_definition(cls, getattr(cls, name)))
+        for name in cls.parts(include_psuedonyms=False):
+            value = getattr(cls, name)
+            if value is None:
+                delattr(cls, name)
+            else:
+                setattr(cls, name, EZRegex._interpret_definition(cls, value))
 
         # Validate flag params, and generate the options function
         assert isinstance(flags, dict), f'Flags {flags} is not a dictionary'
         assert isinstance(flags_docs_map, dict), f'Flags docs map {flags_docs_map} is not a dictionary'
         assert isinstance(flags_docs_link, str), f'Flags docs link {flags_docs_link} is not a string'
         cls.options = cls._generate_options_from_flags(cls, flags, True, flags_docs_map, flags_docs_link)
-
-        # Make the subclass immutable
-        cls.__setattr__ = cls._raise_immutibility
-        cls.__delattr__ = cls._raise_immutibility
-        cls.__set__ = cls._raise_immutibility
-        cls.__delete__ = cls._raise_immutibility
 
         # For the sake of brevity, these are here. No different than being defined below
         cls.__imul__ = cls.__mul__
@@ -204,17 +196,23 @@ class EZRegex(ABC):
         cls.invert = cls.__invert__ = cls.__reversed__ = cls.inverse
 
         # Add all the psuedonymns
-        for name, ps in psuedonymns.items():
+        for name, ps in psuedonyms.items():
             if hasattr(cls, name):
                 value = getattr(cls, name)
                 for p in ps:
                     setattr(cls, p, value)
 
-        return super().__init_subclass__()
+        # Make the subclass immutable
+        cls.__setattr__ = cls._raise_immutibility
+        cls.__delattr__ = cls._raise_immutibility
+        cls.__set__ = cls._raise_immutibility
+        cls.__delete__ = cls._raise_immutibility
+
+        return super().__init_subclass__(**kwargs)
 
     def __init__(self, func_list:list[EZRegexFunc]=[], **variable_values):
         # Use the defaults, which can get overriden if we're given variable values (i.e. by _combine())
-        self.__dict__.update({k: v[0] for k, v in self.variables.items()})
+        self.__dict__.update({k: v[0] for k, v in self._variables.items()})
         self.__dict__.update(variable_values)
 
         # Now that we're instantiated, we're immutable
@@ -230,11 +228,10 @@ class EZRegex(ABC):
         else:
             func_list = [self._sanitize_other(other)] + self._func_list
             # func_list = [lambda cur=...: self._sanitize_input(other) + cur] + self._func_list
-
         return cls(
             func_list,
             # Use the combination functions to combine & propagate the variables
-            **{k: v[1](self.__dict__[k], other.__dict__[k]) for k, v in self.variables.items()}
+            **{k: v[1](self.__dict__[k], other.__dict__[k]) for k, v in self._variables.items()}
         )
 
     def _sanitize_param(self, i:EZRegexParam, add_flags:bool=False):
@@ -246,10 +243,10 @@ class EZRegex(ABC):
         # If this is a replacement string, it will automatically escape based on _repl_escape_chars
         elif isinstance(i, str):
             return self._escape(i)
-        elif isinstance(i, int):
-            return str(i)
         elif isinstance(i, bool):
             return i
+        elif isinstance(i, int):
+            return str(i)
         # It's something we don't know, try to cast it to a string anyway
         else:
             try:
@@ -273,7 +270,7 @@ class EZRegex(ABC):
         # It's something we don't know, try to cast it to a string anyway
         else:
             try:
-                logging.warning(f"Type {type(other)} passed to EZRegex, auto-casting to a string. Special characters will will not be escaped.")
+                logging.warning(f"Attempting to combine type {type(other)} with EZRegex, auto-casting to a string. Special characters will will not be escaped.")
                 return lambda cur=...: cur + str(other)
             except Exception as e:
                 raise ValueError(f'Incorrect type {type(other)} given to EZRegex parameter: Must be string or another EZRegex chain.') from e
@@ -326,10 +323,9 @@ class EZRegex(ABC):
         _special_chars_map = {i: '\\' + chr(i) for i in (cls._repl_escape_chars if replacement else cls._escape_chars)}
         return pattern.translate(_special_chars_map)
 
-
     # Regular functions
     @classmethod
-    def parts(cls):
+    def parts(cls, include_psuedonyms=True):
         """ A utility function that lists all the names of all singleton methods in this dialect
             This excludes dunder methods, abstract methods, and any methods marked with @exclude
         """
@@ -338,7 +334,8 @@ class EZRegex(ABC):
             if (
                 i not in dir(EZRegex) and
                 not i.startswith('__') and
-                i not in cls.exclusions
+                i not in cls._exclusions and
+                (include_psuedonyms or i not in psuedonyms.keys())
             )
         ]
 
@@ -435,10 +432,10 @@ class EZRegex(ABC):
 
     # Named operator functions
     # TODO: ensure these have tests (there's a possibility these are backwards)
-    def append(self, input:EZRegexOther) -> EZRegex:
+    def append(self, input:EZRegexOther) -> EZRegexType:
         return self._combine(input, type(self))
 
-    def prepend(self, input:EZRegexOther) -> EZRegex:
+    def prepend(self, input:EZRegexOther) -> EZRegexType:
         return self._combine(input, type(self), add_to_end=False)
 
     # TODO: tests for this
@@ -501,7 +498,7 @@ class EZRegex(ABC):
 
         return type(self)([partial(self._func_list[0], *args, **_kwargs)], **self.__dict__)
 
-    def __get__(self, instance:EZRegex|None, owner:type) -> EZRegex:
+    def __get__(self, instance:EZRegexType|None, owner:type) -> EZRegexType:
         # We're trying to access it as a class member. This is how chains are started
         if instance is None:
             return self
@@ -513,10 +510,10 @@ class EZRegex(ABC):
         """
         return self._sanitize_other(other, add_flags=True) == self._compile()
 
-    def __add__(self, other:EZRegexOther) -> EZRegex:
+    def __add__(self, other:EZRegexOther) -> EZRegexType:
         return self._combine(other, type(self))
 
-    def __radd__(self, other:EZRegexOther) -> EZRegex:
+    def __radd__(self, other:EZRegexOther) -> EZRegexType:
         return other._combine(self, type(self), add_to_end=False)
 
     def __mul__(self, amt):
@@ -538,10 +535,10 @@ class EZRegex(ABC):
     def __rmul__(self, amt):
         return amt.__mul__(self)
 
-    def __and__(self, other:EZRegexOther) -> EZRegex:
+    def __and__(self, other:EZRegexOther) -> EZRegexType:
         raise NotImplementedError
 
-    def __rand__(self, other:EZRegexOther) -> EZRegex:
+    def __rand__(self, other:EZRegexOther) -> EZRegexType:
         raise NotImplementedError
 
     def __pos__(self):
@@ -550,7 +547,7 @@ class EZRegex(ABC):
         except AttributeError:
             raise ValueError(f'at_least_one is not supported in {type(self).__name__}') from None
 
-    def __or__(self, other:EZRegexOther) -> EZRegex:
+    def __or__(self, other:EZRegexOther) -> EZRegexType:
         logging.warning('The or operator is unstable and likely to fail, if used more than twice. Use anyof() instead, for now.')
         try:
             return type(self).either(self, other)
@@ -559,13 +556,13 @@ class EZRegex(ABC):
 
         # return self._copy(f'(?:{self._compile(add_flags=False)}|{self._sanitizeInput(other)})', sanatize=False)
 
-    def __ror__(self, other:EZRegexOther) -> EZRegex:
+    def __ror__(self, other:EZRegexOther) -> EZRegexType:
         return other.__or__(self)
 
-    def __xor__(self, other:EZRegexOther) -> EZRegex:
+    def __xor__(self, other:EZRegexOther) -> EZRegexType:
         return NotImplementedError
 
-    def __rxor__(self, other:EZRegexOther) -> EZRegex:
+    def __rxor__(self, other:EZRegexOther) -> EZRegexType:
         return NotImplementedError
 
     def __mod__(self, other:EZRegexOther) -> re.Match|None:
@@ -595,7 +592,7 @@ class EZRegex(ABC):
         # assert isinstance(other, str), "`in` statement can only be used with a string"
         return re.search(self._compile(), other) is not None
 
-    def __getitem__(self, args:slice|tuple) -> EZRegex:
+    def __getitem__(self, args:slice|tuple) -> EZRegexType:
         # digit[2, 3]    # (2, 3)
         # digit[2, ...]  # (2, Ellipsis)
         # digit[2, None] # (2, None)
@@ -649,7 +646,8 @@ class EZRegex(ABC):
         return self._compile()
 
     def __repr__(self):
-        return f'{type(self).__name__}({self._compile()}, {self.__dict__})'
+        d = {k: v for k, v in self.__dict__.items() if k != "_func_list"}
+        return f'{type(self).__name__}({self._compile()}, {d})'
 
 if __name__ == "__main__":
     # Mixins are plain classes (they don't need to inherit from EZRegex)
