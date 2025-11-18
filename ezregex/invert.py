@@ -1,3 +1,5 @@
+__version__ = '2.1.0'
+
 import json
 import string
 import traceback
@@ -7,6 +9,7 @@ from re import search
 from sys import version_info
 from typing import Literal, Union
 import logging
+
 
 from . import *
 
@@ -24,6 +27,8 @@ else:
 # TODO: add an option to put the matching string inside stuff that doesn't match
 # TODO: add an option to include multiple matching strings inside stuff that doesn't match
 
+# TODO: inverting r"(?P<first>(?:(?:\w|\-))+) (?:(?P<initial>[A-Za-z])(?:\.|\w+) )?(?P<last>\w+),.+" doesn't seem to ever put a - in the first word
+
 with open(Path(__file__).parent / 'assets' / 'common_sorted_words.json') as f:
     words = json.load(f)
 
@@ -33,10 +38,10 @@ def invert(
     tries:int=10,
     backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']=...,
     words:Literal['lookup', 'random']|None='lookup',
-    randomNumbers=False,
+    random_numbers=False,
     alot=8,
 ) -> str:
-    return Inverter(expr,tries, backend, words, randomNumbers, alot).invert()
+    return Inverter(expr,tries, backend, words, random_numbers, alot).invert()
 
 
 class Inverter:
@@ -48,7 +53,7 @@ class Inverter:
             expr: The regular expression to invert. Can be a string, or a EZRegex expression
             words: Controls how works are handled. If `random`, words are made of random letters. If `lookup`,
                 it looks up valid english words and inserts them to make it more readable.
-            randomNumbers: controls whether all numbers are 12345... to a desired length, or if they're
+            random_numbers: controls whether all numbers are 12345... to a desired length, or if they're
                 just random numbers (again, for readability)
             self.alot: When given a choice of how many characters to put someone, it inserts a random integer
                 between 1 and `alot`.
@@ -69,12 +74,12 @@ class Inverter:
         tries:int=10,
         backend:Literal['re_parser', 'regex', 'xeger', 'sre_yield']=...,
         words:Literal['lookup', 'random']|None='lookup',
-        randomNumbers=False,
+        random_numbers=False,
         alot=8,
     ):
         self.expr = str(expr)
         self.words = words
-        self.randomNumbers = randomNumbers
+        self.random_numbers = random_numbers
         self.alot = alot
         self.tries = tries
         self.backend = backend
@@ -129,7 +134,7 @@ class Inverter:
         if length is Ellipsis:
             length = randint(2, self.alot)
 
-        if self.randomNumbers:
+        if self.random_numbers:
             return str(randint(0, 10**length))
         else:
             return ''.join(map(lambda i: str(i)[-1], range(1, length+1)))

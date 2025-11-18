@@ -5,10 +5,11 @@ import logging
 import re
 # TODO: Unpack is only 3.11+
 from typing import Any, Callable, Tuple, Dict, Unpack, List, Set
+
 # from mypy_extensions import DefaultNamedArg, VarArg
 
 from .api import api
-from .psuedonyms import psuedonyms
+from .psuedonyms import psuedonyms, all_psuedonyms
 # from ezregex.generate import generate_regex
 from .invert import invert
 from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
@@ -33,8 +34,7 @@ initial_variables = {
 class EZRegex(ABC):
     """Represent parts of the Regex syntax. Should not be instantiated by the user directly"""
 
-    # TODO: make these private
-    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables']
+    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables', '_parse_any_of_params']
     "Excluded methods"
     _added_vars = {}
     "A dict of {method name: dict} to manually add variables to methods"
@@ -196,11 +196,18 @@ class EZRegex(ABC):
         cls.invert = cls.__invert__ = cls.__reversed__ = cls.inverse
 
         # Add all the psuedonymns
+        def to_camel_case(s):
+            return ''.join((word.capitalize() if cnt else word) for cnt, word in enumerate(s.split('_')))
+
         for name, ps in psuedonyms.items():
             if hasattr(cls, name):
                 value = getattr(cls, name)
+                setattr(cls, to_camel_case(name), value)
+
                 for p in ps:
                     setattr(cls, p, value)
+                    # also add camelCase versions of the psuedonyms
+                    setattr(cls, to_camel_case(p), value)
 
         # Make the subclass immutable
         cls.__setattr__ = cls._raise_immutibility
@@ -231,7 +238,15 @@ class EZRegex(ABC):
         return cls(
             func_list,
             # Use the combination functions to combine & propagate the variables
-            **{k: v[1](self.__dict__[k], other.__dict__[k]) for k, v in self._variables.items()}
+            **{
+                # combine_spec is (default_value, lamdba l, r: ...)
+                var: combine_spec[1](
+                    self.__dict__[var],
+                    other.__dict__[var] if isinstance(other, type(self)) else combine_spec[0]
+                )
+                for var, combine_spec in
+                self._variables.items()
+            }
         )
 
     def _sanitize_param(self, i:EZRegexParam, add_flags:bool=False):
@@ -335,7 +350,7 @@ class EZRegex(ABC):
                 i not in dir(EZRegex) and
                 not i.startswith('__') and
                 i not in cls._exclusions and
-                (include_psuedonyms or i not in psuedonyms.keys())
+                (include_psuedonyms or i not in all_psuedonyms)
             )
         ]
 
@@ -508,13 +523,15 @@ class EZRegex(ABC):
         """ NOTE: This will return True for equivelent EZRegex expressions of different dialects
             ALSO NOTE: This checks flags as well
         """
-        return self._sanitize_other(other, add_flags=True) == self._compile()
+        if not isinstance(other, type(self)):
+            return False
+        return other._compile() == self._compile()
 
     def __add__(self, other:EZRegexOther) -> EZRegexType:
         return self._combine(other, type(self))
 
     def __radd__(self, other:EZRegexOther) -> EZRegexType:
-        return other._combine(self, type(self), add_to_end=False)
+        return self._combine(other, type(self), add_to_end=False)
 
     def __mul__(self, amt):
         if amt is Ellipsis:

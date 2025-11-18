@@ -38,9 +38,9 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         raw = lambda regex, cur=...: str(regex), {'sanatize': False}
         """ If you already have some regular regex written, and you want to incorperate
-        it, this will allow you to include it without sanatizing all the backslaches
-        and such, which all the other EZRegexs do automatically
-    """
+            it, this will allow you to include it without sanatizing all the backslaches
+            and such, which all the other EZRegexs do automatically
+        """
 
         # Positional
         word_boundary      = r'\b'
@@ -162,7 +162,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             return s
 
         @staticmethod
-        @EZRegex.exclude
+        @EZRegex.exclude # TODO: this doesn't work. It's currently manually specified in EZRegex.py
         def _parse_any_of_params(*inputs, chars=None, split=None):
             if split and len(inputs) != 1:
                 raise ValueError("Please don't specifiy split and pass multiple inputs to anyof")

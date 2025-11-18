@@ -75,6 +75,7 @@ Commands:
         * most runs all the tests other than generate
         * all runs all the tests
 
+### Some helpful hints
 * If one of the dialect runners *fails*, it could be just a problem with the regexs.jsonc file.
 * If one of the dialect runners *errors*, you're probably allowing compilation of a regex that the dialect doesn't support. That means it's a problem with the code itself, and the regexs.jsonc file has innaccurate dialects specified.
 * If the compile_regexs.py script fails, it's probably a problem with the regexs.jsonc file trying to use a feature of a dialect that it doesn't support (innaccurate dialects).

@@ -3,12 +3,15 @@ from timeit import repeat
 
 import pytest
 
-import ezregex as er
+import ezregex as ez
 from ezregex import *
 
 
 def test_basic():
-    assert literal('test') == 'test'
+    assert literal('test').str() == 'test'
+
+def test_eq():
+    assert literal('test') + digit == 'test' + digit
 
 def test_basic_concat():
     assert str(literal('test') + digit) == r'test\d'
@@ -18,9 +21,9 @@ def test_access_dialect():
     assert type(literal('thing')) is PythonEZRegex
 
 def test_psuedonyms():
-    assert er.matchMax(digit) == er.match_max(digit)
+    assert ez.matchMax(digit) == ez.match_max(digit)
+    assert ez.python.matchMax(digit) == ez.python.match_max(digit)
     assert matchMax(digit) == match_max(digit)
-
 
 def test_immutability():
     with pytest.raises(TypeError):
@@ -35,8 +38,8 @@ def test_immutability():
 def test_test_method():
     return
     # ow = optional(whitechunk)
-    params = er.group(er.atLeastNone(er.ow + er.word + er.ow + er.optional(',') + er.ow))
-    function = er.word + er.ow + '(' + params + ')'
+    params = ez.group(ez.atLeastNone(ez.ow + ez.word + ez.ow + ez.optional(',') + ez.ow))
+    function = ez.word + ez.ow + '(' + params + ')'
     function.test('this should match func(param1, param2 ), foo(), and bar( foo,)')
 
     r = 'group 1' + ':' + ow + group('stuff') + ' | ' + 'group ' + number + ': ' + group('things') + ' | ' + 'named group "' + word + '": '  + named_group('foo', 'bar')
@@ -174,7 +177,34 @@ def test_elemental_methods():
         whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
     )
 
-
 def test_no_duplicate_flags():
     r = lineStart + word + '/' + '/' + lineEnd
     assert r.str() == r'(?m)^\w+//$'
+
+def test_accurate_types():
+    # ...is a function
+    assert type(ez.options) is type(test_accurate_types)
+    assert type(ez.number) is ez.PythonEZRegex
+    assert type(number) is ez.PythonEZRegex
+    assert type(ez.python.number) is ez.PythonEZRegex
+    assert type(ez.any_of) is ez.PythonEZRegex
+    assert type(any_of) is ez.PythonEZRegex
+    assert type(ez.python.any_of) is ez.PythonEZRegex
+    assert type(ez.unicode) is ez.PythonEZRegex
+    assert type(unicode) is ez.PythonEZRegex
+    assert type(ez.python.unicode) is ez.PythonEZRegex
+    assert type(ez.match_range) is ez.PythonEZRegex
+    assert type(match_range) is ez.PythonEZRegex
+    assert type(ez.python.match_range) is ez.PythonEZRegex
+    assert type(ez.is_exactly) is ez.PythonEZRegex
+    assert type(is_exactly) is ez.PythonEZRegex
+    assert type(ez.python.is_exactly) is ez.PythonEZRegex
+    assert type(ez.exactly) is ez.PythonEZRegex
+    assert type(exactly) is ez.PythonEZRegex
+    assert type(ez.python.exactly) is ez.PythonEZRegex
+    assert type(ez.raw) is ez.PythonEZRegex
+    assert type(raw) is ez.PythonEZRegex
+    assert type(ez.python.raw) is ez.PythonEZRegex
+    assert type(ez.match_amt) is ez.PythonEZRegex
+    assert type(match_amt) is ez.PythonEZRegex
+    assert type(ez.python.match_amt) is ez.PythonEZRegex

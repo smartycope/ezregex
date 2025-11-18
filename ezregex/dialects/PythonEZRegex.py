@@ -58,8 +58,8 @@ class PythonEZRegex(
     version_numbered = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
     "Same as `version`, but it uses numbered groups for each version number instead of named groups"
 
-    # Just for compatibility with previous python verions
-    is_exactly = lambda s: fr'\A{s}\Z'
+    # For compatibility with previous python verions
+    is_exactly = lambda s, cur=...: fr'\A{s}\Z'
 
     @EZRegex.exclude
     def compile(self, add_flags=True):
@@ -107,3 +107,4 @@ class PythonEZRegex(
 
 for i in PythonEZRegex.parts():
     globals()[i] = getattr(PythonEZRegex, i)
+
