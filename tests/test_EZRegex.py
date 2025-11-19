@@ -59,24 +59,19 @@ def test_test_method():
     group(+group(number) + group(anyof('98'))).test('999')
 
 def test_no_parameters_to_chains():
-    # This is sort of conceptually impossible, ish
-    # with pytest.raises(TypeError):
-    #     digit(6)
-    # with pytest.raises(TypeError):
-    #     digit(input=6)
     with pytest.raises(TypeError):
         (digit + word)(6)
     with pytest.raises(TypeError):
         (digit + word)(input=6)
-    # This is also conceptually impossible without a moderate refactor
-    # with pytest.raises(TypeError):
-    #     match_amt(6, digit)(6)
-    # with pytest.raises(TypeError):
-    #     match_amt(6, digit)(input=6)
-
-    assert match_amt(6, digit)()
-    assert (digit + word)()
-    assert digit()
+    # This is unnecessary and confusing
+    with pytest.raises(TypeError):
+        match_amt(6, digit)()
+    with pytest.raises(TypeError):
+        (digit + word)()
+    # This *doesn't* raise an error, primarily because I can't think of a good
+    # way to distinguish it from singleton members which *do* take parameters (like anyof())
+    # Also, I guess it's not that big of a deal, since it shouldn't break anything
+    assert digit().str() == r'\d'
 
 def test_re_shadow_funcs():
     s = r'\d(\w+)'

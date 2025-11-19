@@ -185,6 +185,7 @@ class EZRegex(ABC):
         cls.options = cls._generate_options_from_flags(cls, flags, True, flags_docs_map, flags_docs_link)
 
         # For the sake of brevity, these are here. No different than being defined below
+        # There's no particular reason I put these here instead of in __init__()
         cls.__imul__ = cls.__mul__
         cls.__iadd__ = cls.__add__
         # The shift operators just shadow the add operators
