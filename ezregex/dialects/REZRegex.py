@@ -3,8 +3,9 @@ __version__ = '1.1.0'
 
 import re
 from .. import EZRegex
-from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
+from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin, _parse_any_of_params)
 from ..flag_docs import common_flag_docs
+from ..inject_parts import inject_parts
 
 class REZRegex(
     BaseMixin(allow_greedy=False, allow_possessive=False),
@@ -39,7 +40,7 @@ class REZRegex(
     punctuation = r'[]`~!@#\$%^&\*\(\)\-_=\+[\{}\\\|;:\'",<\.>/\?]'
 
     def any_of(*inputs, chars=None, split=None, cur=...):
-        chars, inputs = BaseMixin._parse_any_of_params(*inputs, chars=chars, split=split)
+        chars, inputs = _parse_any_of_params(*inputs, chars=chars, split=split)
 
         if chars:
             if ']' in inputs:
@@ -68,5 +69,4 @@ class REZRegex(
     # def options(*args, **kwargs):
     #     raise ValueError('Flags are not supported in R dialect')
 
-for i in REZRegex.parts():
-    globals()[i] = getattr(REZRegex, i)
+globals().update(inject_parts(REZRegex))

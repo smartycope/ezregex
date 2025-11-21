@@ -4,7 +4,7 @@ __version__ = '3.0.0'
 
 # Import this as a submodule
 from . import generate
-from . import api
+from .api import api
 from .EZRegex import EZRegex
 from .generate import generate_regex
 from .invert import invert

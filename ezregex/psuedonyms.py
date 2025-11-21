@@ -1,19 +1,23 @@
 # camelCase versions (of the original, and it's psuedonyms) are automatically added,
 # so only include actually different psuedonyms
+# If there is the same name on both sides (key and value), it causes complex issues
+# The keys must be the cannonical names (i.e. the name that is used in the mixin or subclass)
+# Don't forget that the values must be tuples, even if there is only one psuedonym
 
 psuedonyms = {
     'match_max'          : ('repeat',),
-    'at_most'            : ('match_at_most',),
-    'match_num'          : ('match_amt', 'match_num', 'num', 'amt'),
+    'match_at_most'      : ('at_most',),
+    'match_num'          : ('match_amt', 'num', 'amt'),
     'match_range'        : ('between', 'match_between',),
-    'more_than'          : ('match_greater_than', 'match_more_than',),
-    'at_least'           : ('match_min', 'match_at_least',),
+    'match_more_than'    : ('match_greater_than', 'more_than',),
+    'match_at_least'     : ('match_min', 'at_least',),
     'line_starts_with'   : ('line_start',),
     'string_starts_with' : ('string_start',),
     'line_ends_with'     : ('line_end',),
     'string_ends_with'   : ('string_end',),
     'chunk'              : ('stuff',),
-    'whitechunk'         : ('whitespace',),
+    'whitechunk'         : ('whitespace', 'white_chunk', 'white_space'),
+    'white_char'         : ('whitechar',),
     'anything'           : ('anychar', 'any_char', 'char',),
     'letter'             : ('alpha',),
     'alpha_num'          : ('alphanum'  , 'alpha_num',),
@@ -34,6 +38,7 @@ psuedonyms = {
     'signed'             : ('integer', 'signed_int', 'signed_integer',),
     'rgroup'             : ('replace_group',),
     'replace_entire'     : ('replace_all',),
+    'either'             : ('or_',),
 }
 
 all_psuedonyms = set()

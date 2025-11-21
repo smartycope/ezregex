@@ -3,16 +3,69 @@ from re import escape
 from string import digits
 from sys import version_info
 from typing import Callable
+from inspect import signature, Parameter
+
+from .psuedonyms import psuedonyms
 from .EZRegex import EZRegex, EZRegexFunc
 from functools import partial
 from string import Formatter
 
+
 from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 # TODO: add typing to all of these
+# TODO: rename "input" to "pattern"
 
 def raise_if_empty(param, func, param_name='input'):
     if not len(str(param)):
-        raise ValueError(f'Parameter {param_name} in {func} cannot be empty')
+        try:
+            func_names = psuedonyms[func]
+        except KeyError:
+            func_names = False
+        raise ValueError(f'Parameter {param_name} in {func} {"(aka " + ", ".join(func_names) + ")" if func_names else ""} cannot be empty')
+
+
+def imply_input_is_cur(func):
+    """ If `input` is Ellipsis, it will use `cur` instead, and `cur` will be set to an empty string.
+        This is useful for functions that want to allow both inline and operator style chaining
+        i.e. digit.amt(2) and amt(2, digit)
+
+        NOTE: `input` must be a keyword parameter, and it must be the last parameter able to be
+        provided as a positional argument. Don't use *args.
+
+        NOTE: must come *after* add_greedy_possessive, not before. Don't ask me why.
+    """
+    def rtn(*args, input=..., cur=..., **kwargs):
+        # First, check how many positional only params there are
+        # parameters is an ordered mapping
+        for num_params, param in enumerate(signature(func).parameters.values()):
+            if param.name == 'input': break
+
+        # If input is provided as a positional arg, make it into a keyword arg
+        if len(args) > num_params:
+            input = args[-1]
+            args = args[:-1]
+
+        if input is Ellipsis:
+            return func(*args, input=cur, cur='', **kwargs)
+
+        raise_if_empty(input, func.__name__)
+        return func(*args, input=input, cur=cur, **kwargs)
+    return rtn
+
+def _parse_any_of_params(*inputs, chars=None, split=None):
+    if split and len(inputs) != 1:
+        raise ValueError("Please don't specifiy split and pass multiple inputs to anyof")
+    elif split:
+        inputs = list(inputs[0])
+    elif len(inputs) == 1 and split is None and chars is not False:  # None means auto
+        chars = True
+        inputs = list(inputs[0])
+    elif len(inputs) == 1 and split is None:
+        inputs = list(inputs[0])
+    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(str(s)) == 1, inputs)):
+        chars = True
+
+    return chars, inputs
 
 
 def BaseMixin(*, allow_greedy=False, allow_possessive=False):
@@ -28,9 +81,8 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 raise ValueError('Possessive qualifiers are not allowed in this dialect')
             if (not greedy) and possessive:
                 raise ValueError('You can\'t be both non-greedy and possessive at the same time')
-            return func(*args, **kwargs)
+            return func(*args, cur=cur, **kwargs)
         return rtn
-
 
     class _BaseMixin:
         literal = lambda input, cur=...: cur + input
@@ -66,7 +118,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         not_word           = r'\W'
 
         # Catagories
-        whitespace         = r'\s'
+        white_char         = r'\s'
         whitechunk         = r'\s+'
         "A \"chunk\" of whitespace. Just any amount of whitespace together"
         digit              = r'\d'
@@ -118,7 +170,8 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         "\"Optional Whitechunk\""
 
         @add_greedy_possessive
-        def match_range(min, max, input, greedy=True, possessive=False, cur=...):
+        @imply_input_is_cur
+        def match_range(min, max, input=..., *, greedy=True, possessive=False, cur=...):
             """ Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
                 Max can be an empty string to indicate no maximum
                 `greedy` means it will try to match as many repititions as possible
@@ -140,15 +193,14 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         # Choices
         @add_greedy_possessive
-        def optional(input, greedy=True, possessive=False, cur=...):
+        @imply_input_is_cur
+        def optional(input=..., *, greedy=True, possessive=False, cur=...):
             """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
                 see https://docs.python.org/3/library/re.html for more help
             """
-            raise_if_empty(input, 'optional')
-
             s = cur
             if len(input) > 1:
                 s += fr'(?:{input})?'
@@ -161,23 +213,6 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 s += r'+'
             return s
 
-        @staticmethod
-        @EZRegex.exclude # TODO: this doesn't work. It's currently manually specified in EZRegex.py
-        def _parse_any_of_params(*inputs, chars=None, split=None):
-            if split and len(inputs) != 1:
-                raise ValueError("Please don't specifiy split and pass multiple inputs to anyof")
-            elif split:
-                inputs = list(inputs[0])
-            elif len(inputs) == 1 and split is None and chars is not False:  # None means auto
-                chars = True
-                inputs = list(inputs[0])
-            elif len(inputs) == 1 and split is None:
-                inputs = list(inputs[0])
-            elif len(inputs) > 1 and chars is None and all(map(lambda s: len(str(s)) == 1, inputs)):
-                chars = True
-
-            return chars, inputs
-
         def any_of(*inputs, chars=None, split=None, cur=...):
             """ Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
                 or a single string. Can also accept parameters chars and split. If char is set
@@ -187,7 +222,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 syntax. It should act the same way, but your output regex will look different.
                 By default, it just optimizes it for you.
             """
-            chars, inputs = BaseMixin._parse_any_of_params(*inputs, chars=chars, split=split)
+            chars, inputs = _parse_any_of_params(*inputs, chars=chars, split=split)
 
             if chars:
                 cur += r'['
@@ -205,7 +240,8 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         def any_char_except(*inputs, cur=...):
             """ This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters,
-                or a single string of chars to split. """
+                or a single string of chars to split.
+            """
 
             # If it's just a string, split it up
             if len(inputs) == 1 and len(inputs[0]) > 1:
@@ -217,47 +253,51 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             cur += r']'
             return cur
 
-        def any_between(char, and_char, cur=...):
+        def any_between(char:str, and_char:str, cur=...):
             """Match any char between `char` and `and_char`, using the ASCII table for reference"""
             raise_if_empty(char, 'any_between', 'char')
             raise_if_empty(and_char, 'any_between', 'and_char')
             return cur + r'[' + char + r'-' + and_char + r']'
 
-        def either(input, or_input, cur=...):
-            raise_if_empty(input, 'either')
+        @imply_input_is_cur
+        def either(or_input, input=..., cur=...):
+            """ Match either `input` or `or_input`. To choose between more than 2 things,
+                you can either chain multiple `either` calls, or use `any_of`
+            """
             return cur + rf'(?:{input}|{or_input})'
 
         # Amounts
-        def match_max(input, cur=...):
+        @imply_input_is_cur
+        def match_max(input=..., *, cur=...):
             """ Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
             If `input` is not provided, it works on the previous regex pattern. That's not recommended for
             clarity's sake though
             """
-            raise_if_empty(input, 'match_max')
             return cur + r'(?:' + input + r')' + r'+'
 
-        def match_num(num, input, cur=...):
+        @imply_input_is_cur
+        def match_num(num:int, input=..., *, cur=...):
             """ Match `num` amount of `input` in the string """
-            raise_if_empty(input, 'match_num')
             return cur + r'(?:' + input + r')' + r'{' + str(num) + r'}'
 
-        def match_more_than(min, input, cur=...):
+        @imply_input_is_cur
+        def match_more_than(min:int, input=..., *, cur=...):
             """ Match more than `min` sequences of `input` in the string """
-            raise_if_empty(input, 'match_more_than')
             return cur + r'(?:' + input + r')' + r'{' + str(int(min) + 1) + r',}'
 
-        def match_at_least(min, input, cur=...):
+        @imply_input_is_cur
+        def match_at_least(min:int, input=..., *, cur=...):
             """ Match at least `min` sequences of `input` in the string """
-            raise_if_empty(input, 'match_at_least')
             return cur + r'(?:' + input + r')' + r'{' + str(min) + r',}'
 
-        def match_at_most(max, input, cur=...):
+        @imply_input_is_cur
+        def match_at_most(max:int, input=..., *, cur=...):
             """ Match at most `max` sequences of `input` in the string """
-            raise_if_empty(input, 'match_at_most')
             return cur + r'(?:' + input + r')' + r'{0,' + str(max) + r'}'
 
         @add_greedy_possessive
-        def at_least_one(input, greedy=True, possessive=False, cur=...):
+        @imply_input_is_cur
+        def at_least_one(input=..., *, greedy=True, possessive=False, cur=...):
             """ Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
@@ -279,7 +319,8 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             return s
 
         @add_greedy_possessive
-        def at_least_none(input, greedy=True, possessive=False, cur=...):
+        @imply_input_is_cur
+        def at_least_none(input=..., *, greedy=True, possessive=False, cur=...):
             """ Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
@@ -312,8 +353,11 @@ def GroupsMixin(*,
         specify how to handle named groups.
     """
     class _GroupsMixin:
-        def group(input, name=None, cur=...):
-            "Causes `input` to be captured as an unnamed group. Only useful when replacing regexs"
+        @imply_input_is_cur
+        def group(input, *, name=None, cur=...):
+            """ Causes `input` to be captured as a group. Specify `name` only as a keyword argument.
+                Only useful when replacing regexs
+            """
             raise_if_empty(input, 'group')
             if name is not None:
                 if named_group is None:
@@ -321,7 +365,8 @@ def GroupsMixin(*,
                 raise_if_empty(name, 'group', 'name')
             return f'{cur}({input})' if name is None else named_group(input, name, cur=cur)
 
-        def passive_group(input, cur=...):
+        @imply_input_is_cur
+        def passive_group(input, *, cur=...):
             "As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is"
             raise_if_empty(input, 'passive_group')
             return f'{cur}(?:{input})'
@@ -330,7 +375,7 @@ def GroupsMixin(*,
             def earlier_group(num_or_name, cur=...):
                 """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
                     group which would match `num_or_name`
-    """
+                """
                 raise_if_empty(num_or_name, 'earlier_group', num_or_name)
                 return earlier_numbered_group(num_or_name, cur=cur) \
                     if isinstance(num_or_name, int) or num_or_name in digits \
@@ -356,11 +401,11 @@ def AssertionsMixin():
             raise_if_empty(input, 'any_except')
             return cur + f'(?!{input}){type}'
 
-        def if_proceded_by(input, cur=...):
+        @imply_input_is_cur
+        def if_proceded_by(input, *, cur=...):
             """ Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
                 as it only applies to the end
             """
-            raise_if_empty(input, 'if_proceded_by')
             return fr'{cur}(?={input})'
 
         def each(*inputs, cur=...):
@@ -373,35 +418,35 @@ def AssertionsMixin():
             s += last
             return s
 
-        def if_not_proceded_by(input, cur=...):
+        @imply_input_is_cur
+        def if_not_proceded_by(input, *, cur=...):
             """ Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
                 a given pattern, as it only applies to the end
             """
-            raise_if_empty(input, 'if_not_proceded_by')
             return fr'{cur}(?!{input})'
 
-        def if_preceded_by(input, cur=...):
+        @imply_input_is_cur
+        def if_preceded_by(input, *, cur=...):
             """ Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
                 as it only applies to the beginning
             """
-            raise_if_empty(input, 'if_preceded_by')
             return fr'(?<={input}){cur}'
 
-        def if_not_preceded_by(input, cur=...):
+        @imply_input_is_cur
+        def if_not_preceded_by(input, *, cur=...):
             """ Matches the pattern if it does **not** have `input` coming before it. Can only be used once
                 in a given pattern, as it only applies to the beginning
             """
-            raise_if_empty(input, 'if_not_preceded_by')
             return fr'(?<!{input}){cur}'
 
-        def if_enclosed_with(open, stuff, close=..., cur=...):
+        @imply_input_is_cur
+        def if_enclosed_with(open, close=..., input=..., *, cur=...):
             """ Matches if the string has `open`, then `stuff`, then `close`, but only \"matches\"
                 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
             """
-            raise_if_empty(input, 'if_enclosed_with')
             if close is Ellipsis:
                 close = open
-            return fr'((?<={open}){stuff}(?={open if close is None else close}))'
+            return fr'((?<={open}){input}(?={close}))'
 
     return _AssertionsMixin
 
@@ -411,7 +456,7 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
         if string:
             string_starts_with = lambda input='', cur=...: r'\A' + input + cur
             string_ends_with   = lambda input='', cur=...: input + string_end + cur
-            is_exactly = lambda input, cur=...: r"\A" + input + string_end
+            is_exactly = imply_input_is_cur(lambda input=..., cur=...: r"\A" + input + string_end)
             "This matches the string if and only if the entire string is exactly equal to `input`"
 
         if line:
@@ -466,7 +511,7 @@ def ReplacementsMixin(*,
 
         return numbered_group(num_or_name, cur=cur) \
             if is_num \
-            else named_group(num_or_name, '', cur=cur)
+            else named_group(num_or_name, cur=cur)
 
     class CustomFormatter(Formatter):
         def get_value(self, key, args, kwargs):

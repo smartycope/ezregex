@@ -4,6 +4,7 @@ __version__ = '1.1.0'
 from .. import EZRegex
 from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
+from ..inject_parts import inject_parts
 
 class JavascriptEZRegex(
     BaseMixin(allow_greedy=True, allow_possessive=True),
@@ -64,6 +65,4 @@ class JavascriptEZRegex(
     string_starts_with = lambda input='', cur=...: r'^' + input + cur, {'_string_anchor_used': True}
     string_ends_with   = lambda input='', cur=...: cur + input + r'$', {'_string_anchor_used': True}
 
-
-for i in JavascriptEZRegex.parts():
-    globals()[i] = getattr(JavascriptEZRegex, i)
+globals().update(inject_parts(JavascriptEZRegex))

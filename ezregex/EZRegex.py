@@ -3,10 +3,13 @@ from functools import partial
 from inspect import signature
 import logging
 import re
-# TODO: Unpack is only 3.11+
-from typing import Any, Callable, Tuple, Dict, Unpack, List, Set
+from typing import Callable, Dict, List, Set
 
-# from mypy_extensions import DefaultNamedArg, VarArg
+# Unpack is only available in 3.11+
+try:
+    from typing import Unpack
+except ImportError:
+    Unpack = dict
 
 from .api import api
 from .psuedonyms import psuedonyms, all_psuedonyms
@@ -18,26 +21,30 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # TODO: consider changing add_flags to "outer" or "end" or something
 # TODO: a lot of the raised ValueErrors should probably a custom Exception. Something like UnimplementedDialect or something
 
-# TODO: tests to ensure adding cur to the end AND begining and modifying cur in a singleton method works properly
-
 # These are here because having it be a class member as part of the parent and child classes
 # seems to cause problems
 initial_variables = {
     # Cast to sets so it can accept strings
-    'flags': (set(), lambda l, r: set(l) | set(r)),
-    'replacement': (False, lambda l, r: l or r),
-    '_sanitize': (True, lambda l, r: l or r),
+    'flags'             : (set(), lambda l, r: set(l) | set(r)),
+    'replacement'       : (False, lambda l, r: l or r),
+    '_sanitize'         : (True,  lambda l, r: l or r),
     '_options_specified': (False, lambda l, r: l or r),
 }
-"These propagate through the EZRegex chain, in ways defined by the lambda"
+""" These propagate through the EZRegex chain, in ways defined by the lambda.
+    The first value is the default, the second is the function to use to combine the values.
+    The 2nd value takes 2 arguments, the left and right values, and returns the combined value.
+"""
 
 class EZRegex(ABC):
     """Represent parts of the Regex syntax. Should not be instantiated by the user directly"""
 
-    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables', '_parse_any_of_params']
+    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables']
     "Excluded methods"
     _added_vars = {}
     "A dict of {method name: dict} to manually add variables to methods"
+
+    lazy_check_params = False
+    "If True, parameters passed to singleton methods will not be checked until the regex is compiled"
 
     # For linting's sake
     flags: set[str]
@@ -121,7 +128,7 @@ class EZRegex(ABC):
         # This is a function, not an EZRegex subclass, by intention, even though it's used like one
         def options(*args, **kwargs):
             flags = EZRegex._parse_options_params(flag_map, *args, normalize_case=normalize_case, **kwargs)
-            return type_(lambda cur=...: cur, flags=flags, options_specified=True)
+            return type_([lambda cur=...: cur], flags=flags, options_specified=True)
 
         docs = ''
         if docs_link:
@@ -193,6 +200,8 @@ class EZRegex(ABC):
         cls.__lshift__ = cls.__rshift__ = cls.__add__
         cls.__rlshift__ = cls.__rrshift__ = cls.__radd__
         cls.__ilshift__ = cls.__irshift__ = cls.__iadd__
+        # I just think this is a good psuedonym
+        cls.then = cls.append
 
         cls.invert = cls.__invert__ = cls.__reversed__ = cls.inverse
 
@@ -210,7 +219,7 @@ class EZRegex(ABC):
                     # also add camelCase versions of the psuedonyms
                     setattr(cls, to_camel_case(p), value)
 
-        # Make the subclass immutable
+        # Makenum_params + 1 the subclass immutable
         cls.__setattr__ = cls._raise_immutibility
         cls.__delattr__ = cls._raise_immutibility
         cls.__set__ = cls._raise_immutibility
@@ -226,15 +235,24 @@ class EZRegex(ABC):
         # Now that we're instantiated, we're immutable
         self.__dict__['_func_list'] = func_list
 
-    def _combine(self, other:EZRegexOther, cls:type, add_to_end:bool=True):
+    # TODO: opimization: add a param to disable sanitizing, if we're called from __get__ (we're chaining)
+    def _combine(self, other:EZRegexOther, cls:type, add_to_end:bool=True, compile:bool=False):
+        # print(f'combining with compile = {compile}')
+        # # print(f'other = {other}')
+        # print(f'other type = {type(other)}')
+        # print(f'other is EZRegex = {isinstance(other, EZRegex)}')
+        # # Print the name of the function that called us
+        # import inspect
+        # print(f'function that called us = {inspect.currentframe().f_back.f_code.co_name}')
+
         if isinstance(other, EZRegex) and not isinstance(other, type(self)):
             raise ValueError('Cannot combine EZRegex objects of different dialects')
 
         if add_to_end:
-            func_list = self._func_list + [self._sanitize_other(other)]
+            func_list = self._func_list + self._sanitize_other(other, compile=compile)
             # func_list = self._func_list + [lambda cur=...: cur + self._sanitize_input(other)]
         else:
-            func_list = [self._sanitize_other(other)] + self._func_list
+            func_list = self._sanitize_other(other, compile=compile) + self._func_list
             # func_list = [lambda cur=...: self._sanitize_input(other) + cur] + self._func_list
         return cls(
             func_list,
@@ -271,23 +289,31 @@ class EZRegex(ABC):
             except Exception as e:
                 raise ValueError(f'Incorrect type {type(i)} given to EZRegex parameter: Must be string or another EZRegex chain.') from e
 
-    def _sanitize_other(self, other:EZRegexOther, add_flags:bool=False) -> Callable[[str], str]:
+    def _sanitize_other(self, other:EZRegexOther, compile:bool=True) -> List[Callable[[str], str]]:
         """ Sanitize things that are combined with the current chain (i.e. via +) """
-        # If it's another chain, compile it
+        # So somethings we need to compile immediately, while others we don't. Consider:
+        # digit + whitespace.opt
+        # digit.whitespace.opt
+        # In the first case, we need to compile whitespace.opt immediately, because they're
+        # seperate chains
+        # In the second case, if we compile immediately, we'll break left to right operator precedence rules
+
+        # If it's another chain, add it's func_list to ours
         if isinstance(other, EZRegex):
-            return lambda cur=...: other._compile(cur, add_flags=add_flags)
+            # Remember, flags are handled in _combine()
+            return [lambda cur=...: cur + other._compile(add_flags=False)] if compile else other._func_list
         # It's a string (so we need to escape it)
         # If this is a replacement string, it will automatically escape based on _repl_escape_chars
         elif isinstance(other, str):
-            return lambda cur=...: cur + self._escape(other)
+            return [lambda cur=...: cur + self._escape(other)]
         # Allow word + 1 -> "\w+1"
         elif isinstance(other, int):
-            return lambda cur=...: cur + str(other)
+            return [lambda cur=...: cur + str(other)]
         # It's something we don't know, try to cast it to a string anyway
         else:
             try:
                 logging.warning(f"Attempting to combine type {type(other)} with EZRegex, auto-casting to a string. Special characters will will not be escaped.")
-                return lambda cur=...: cur + str(other)
+                return [lambda cur=...: cur + str(other)]
             except Exception as e:
                 raise ValueError(f'Incorrect type {type(other)} given to EZRegex parameter: Must be string or another EZRegex chain.') from e
 
@@ -310,8 +336,8 @@ class EZRegex(ABC):
         if add_flags:
             regex = self._flag_func(regex)
 
-        # This used to go in the add_flags scope so it only ran at the very end, like flags
-        regex = self._final_func(regex)
+            # This is in the flags scope, because we only add flags at the very end
+            regex = self._final_func(regex)
         return regex
 
     # Abstract methods
@@ -449,10 +475,10 @@ class EZRegex(ABC):
     # Named operator functions
     # TODO: ensure these have tests (there's a possibility these are backwards)
     def append(self, input:EZRegexOther) -> EZRegexType:
-        return self._combine(input, type(self))
+        return self._combine(input, type(self), compile=True)
 
     def prepend(self, input:EZRegexOther) -> EZRegexType:
-        return self._combine(input, type(self), add_to_end=False)
+        return self._combine(input, type(self), add_to_end=False, compile=True)
 
     # TODO: tests for this
     def concat(self, *args):
@@ -498,27 +524,57 @@ class EZRegex(ABC):
     # Magic Functions
     def __call__(self, *args:Unpack[List[EZRegexParam]], **kwargs:Unpack[Dict[str, EZRegexParam]]):
         """ This should be called by the user to specify the specific parameters of this instance i.e. anyof('a', 'b') """
-        # If this is being called without parameters, still complain, that's weird.
-        # If it's being called *with* parameters, then it better be a fundemental
-        # member, otherwise that doesn't make any sense.
-        if len(self._func_list) != 1:
-            raise TypeError("You're trying to pass parameters to a chain of expressions. That doesn't make any sense. Stop that.")
+        # Alright, buckle up
+        # Firstly, the following are true:
+        # 1. singleton members are instances of their own class (EZRegex subclass)
+        # 2. We have both __get__ and __call__ operators overloaded, which return modified instances/copies of the original instance
+        # 3. __get__ and __call__ have the same precedence, so they get evaluated from left to right
+        #   (https://docs.python.org/3/reference/expressions.html#evaluation-order)
 
-        # Sanatize the arguments
+        # Given these assumptions, consider the following:
+        # word_char.match_num(4)
+        # Because __get__ and __call__ have the same precedence, this is evaluated as:
+        # (word_char.match_num)(4)
+        # instead of
+        # word_char.(match_num(4))
+        # Which is unintuitive for my framework
+
+        # To fix this, we pass along the entire current chain to the copy we create below,
+        # and modify the last function instead of the only function.
+
+        # This means that if you try to pass parameters to a singleton member that it can't accept,
+        # it will throw an error, but if you call a chain with no parameters, there's really no
+        # way (that I can think of right now) to tell if it's a chain or just at the end of a chain.
+        # This means that you *can* do things like word_char() and word_char().match_num(4)(), which
+        # I would like to discourage, but really have no way to prevent. It also won't necissarily
+        # break anything, so it's fine.
+
+        # Sanatize the positional arguments
         if self._sanitize:
             args = tuple(map(self._sanitize_param, args))
 
+        # Sanatize the keyword arguments
         _kwargs = {}
         for key, val in kwargs.items():
             _kwargs[key] = self._sanitize_param(val) if self._sanitize else val
 
-        return type(self)([partial(self._func_list[0], *args, **_kwargs)], **self.__dict__)
+        # Check the parameters are all valid
+        if not type(self).lazy_check_params:
+            sig = signature(self._func_list[-1])
+            # This raises a TypeError if the arguments are invalid
+            sig.bind(*args, cur=..., **_kwargs)
+
+        # Create a copy, and pass the current variables to it, so they stay in the chain.
+        # Also pass the current _func_list to the copy, and modify the last function to have
+        # the parameters given to this function given to it (a partial call). This will
+        # let it still require cur, while all the others get bound
+        return type(self)(self._func_list[:-1] + [partial(self._func_list[-1], *args, **_kwargs)], **self.__dict__)
 
     def __get__(self, instance:EZRegexType|None, owner:type) -> EZRegexType:
         # We're trying to access it as a class member. This is how chains are started
         if instance is None:
             return self
-        return instance._combine(self, owner)
+        return instance._combine(self, owner, compile=False)
 
     def __eq__(self, other:EZRegexOther) -> bool:
         """ NOTE: This will return True for equivelent EZRegex expressions of different dialects
@@ -529,7 +585,7 @@ class EZRegex(ABC):
         return other._compile() == self._compile()
 
     def __add__(self, other:EZRegexOther) -> EZRegexType:
-        return self._combine(other, type(self))
+        return self._combine(other, type(self), compile=True)
 
     def __radd__(self, other:EZRegexOther) -> EZRegexType:
         return self._combine(other, type(self), add_to_end=False)

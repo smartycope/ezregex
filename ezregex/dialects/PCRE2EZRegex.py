@@ -4,6 +4,7 @@ __version__ = '1.1.0'
 from ..EZRegex import EZRegex
 from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
+from ..inject_parts import inject_parts
 
 class PCRE2EZRegex(
     BaseMixin(allow_greedy=True, allow_possessive=True),
@@ -50,5 +51,4 @@ error, and it will not match.'''
             return s.replace(r'\$', '$$')
         return s
 
-for i in PCRE2EZRegex.parts():
-    globals()[i] = getattr(PCRE2EZRegex, i)
+globals().update(inject_parts(PCRE2EZRegex))

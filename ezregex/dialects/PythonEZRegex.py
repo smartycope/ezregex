@@ -9,6 +9,7 @@ from .. import EZRegex
 from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
 from sys import version_info
+from ..inject_parts import inject_parts
 
 # TODO: make all the flag functions here also accept re.FLAG types (internally they should work the same though)
 
@@ -58,12 +59,9 @@ class PythonEZRegex(
     version_numbered = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
     "Same as `version`, but it uses numbered groups for each version number instead of named groups"
 
-    # For compatibility with previous python verions
-    is_exactly = lambda s, cur=...: fr'\A{s}\Z'
-
     @EZRegex.exclude
     def compile(self, add_flags=True):
-        return re.compile(self._compile(add_flags))
+        return re.compile(self._compile(add_flags=add_flags))
 
     @property
     @EZRegex.exclude
@@ -105,6 +103,4 @@ class PythonEZRegex(
     def subn(self, repl, string, count=0):
         return self.compile().subn(repl, string, count)
 
-for i in PythonEZRegex.parts():
-    globals()[i] = getattr(PythonEZRegex, i)
-
+globals().update(inject_parts(PythonEZRegex))
