@@ -9,8 +9,10 @@ from .EZRegex import EZRegex
 from .generate import generate_regex
 from .invert import invert
 # Python is the default
-from .dialects.PythonEZRegex import *
-from .dialects import PythonEZRegex as python
-from .dialects import REZRegex as r
-from .dialects import JavascriptEZRegex as javascript
-from .dialects import PCRE2EZRegex as pcre2
+from .python import *
+
+# from .dialects import PythonEZRegex as python
+# from .dialects import REZRegex as r
+# from . import REZRegex as r
+# from .dialects import JavascriptEZRegex as javascript
+# from .dialects import PCRE2EZRegex as pcre2
