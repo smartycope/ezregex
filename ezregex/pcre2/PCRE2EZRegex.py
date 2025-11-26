@@ -50,5 +50,3 @@ error, and it will not match.'''
             # This is how you escape a $ in a replacement string
             return s.replace(r'\$', '$$')
         return s
-
-globals().update(inject_parts(PCRE2EZRegex))

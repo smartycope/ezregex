@@ -48,6 +48,7 @@ failures = []
 for r in track(res, total=len(res)):
     def do_test(r):
         global failures
+        # TODO: at some point in the future, try removing this and see if it magically started working
         # For SOME REASON this one AND ONLY THIS ONE doesn't work INSIDE the docker container, but
         # works OUTSIDE of it. I have no idea why. They've each been tested manually.
         if r in (

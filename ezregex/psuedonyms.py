@@ -20,7 +20,7 @@ psuedonyms = {
     'white_char'         : ('whitechar',),
     'anything'           : ('anychar', 'any_char', 'char',),
     'letter'             : ('alpha',),
-    'alpha_num'          : ('alphanum'  , 'alpha_num',),
+    'letter_num'         : ('alphanum'  , 'alpha_num',),
     'any_between'        : ('num_between', 'amt_between',),
     'hex_digit'          : ('hex',),
     'new_line'           : ('newline',),

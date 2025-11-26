@@ -102,5 +102,3 @@ class PythonEZRegex(
     @EZRegex.exclude
     def subn(self, repl, string, count=0):
         return self.compile().subn(repl, string, count)
-
-globals().update(inject_parts(PythonEZRegex))

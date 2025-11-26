@@ -5,7 +5,6 @@ import re
 from .. import EZRegex
 from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin, _parse_any_of_params)
 from ..flag_docs import common_flag_docs
-from ..inject_parts import inject_parts
 
 class REZRegex(
     BaseMixin(allow_greedy=False, allow_possessive=False),
@@ -58,7 +57,7 @@ class REZRegex(
                 cur += '|'
             cur = cur[:-1]
             cur += r')'
-            return cur
+        return cur
 
     # For some reason \N doesn't seem to work? It doesn't matter that much
     chunk = r'[^\n]+'
@@ -68,5 +67,3 @@ class REZRegex(
 
     # def options(*args, **kwargs):
     #     raise ValueError('Flags are not supported in R dialect')
-
-globals().update(inject_parts(REZRegex))

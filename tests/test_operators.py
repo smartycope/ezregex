@@ -52,6 +52,8 @@ def test_imul():
 
 def test_mul():
     assert 2 * digit == digit * 2
+    assert (2 * digit).str() == r'\d\d'
+    assert (digit * 2).str() == r'\d\d'
 
 def test_mod():
     assert digit % 'sldkj' is None, f'{digit % "sldkj"} != None'

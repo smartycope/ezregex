@@ -7,6 +7,7 @@ import pytest
 import ezregex as ez
 from ezregex import *
 
+# TODO: tests to check (and define) how raw() interacts with replacement groups
 
 def test_basic():
     assert literal('test').str() == 'test'
@@ -338,3 +339,33 @@ def test_accurate_types():
     assert type(ez.match_amt) is ez.PythonEZRegex
     assert type(match_amt) is ez.PythonEZRegex
     assert type(ez.python.match_amt) is ez.PythonEZRegex
+    assert type(ez.alpha) is ez.PythonEZRegex
+    assert type(alpha) is ez.PythonEZRegex
+    assert type(ez.python.alpha) is ez.PythonEZRegex
+    assert type(ez.alphanum) is ez.PythonEZRegex
+    assert type(alphanum) is ez.PythonEZRegex
+    assert type(ez.python.alphanum) is ez.PythonEZRegex
+    assert type(ez.letter) is ez.PythonEZRegex
+    assert type(letter) is ez.PythonEZRegex
+    assert type(ez.python.letter) is ez.PythonEZRegex
+    assert type(ez.letter_num) is ez.PythonEZRegex
+    assert type(letter_num) is ez.PythonEZRegex
+    assert type(ez.python.letter_num) is ez.PythonEZRegex
+
+
+def test_proper_sanitation():
+    assert literal(r'\A').str() == r'\\A'
+    assert raw(r'\A').str() == r'\A'
+    assert raw(r'\A').word.str() == r'\A\w+'
+    assert literal(r'\A').word.str() == r'\\A\w+'
+    assert (digit + raw(r'\A').word).str() == r'\d\A\w+'
+    assert (digit + literal(r'\A').word).str() == r'\d\\A\w+'
+    assert digit.raw(r'\A').word.str() == r'\d\A\w+'
+    assert digit.literal(r'\A').word.str() == r'\d\\A\w+'
+    assert (digit.raw(r'\A') + word).str() == r'\d\A\w+'
+    assert (digit.literal(r'\A') + word).str() == r'\d\\A\w+'
+
+    # I'm not sure what this will do... it should raise an error?
+    with pytest.raises(TypeError):
+        digit.raw.word.str()
+    # TODO: this could use some more tests in it

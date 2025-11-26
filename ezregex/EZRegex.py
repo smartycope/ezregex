@@ -20,14 +20,13 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # TODO: Seperate EZRegex into a "bytes" mode vs "string" mode
 # TODO: consider changing add_flags to "outer" or "end" or something
 # TODO: a lot of the raised ValueErrors should probably a custom Exception. Something like UnimplementedDialect or something
-
+def raise_(ex): raise ex
 # These are here because having it be a class member as part of the parent and child classes
 # seems to cause problems
 initial_variables = {
     # Cast to sets so it can accept strings
     'flags'             : (set(), lambda l, r: set(l) | set(r)),
     'replacement'       : (False, lambda l, r: l or r),
-    '_sanitize'         : (True,  lambda l, r: l or r),
     '_options_specified': (False, lambda l, r: l or r),
 }
 """ These propagate through the EZRegex chain, in ways defined by the lambda.
@@ -36,9 +35,13 @@ initial_variables = {
 """
 
 class EZRegex(ABC):
-    """Represent parts of the Regex syntax. Should not be instantiated by the user directly"""
+    """ Represents a part of regular expression syntax.
+        If you're seeing this, and looking for documentation, go here: https://ezregex.readthedocs.io/en/latest/
+    """
 
-    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables']
+    # then and invert are added dynamically (for convenience), and they don't start with __,
+    # so they have to be excluded here
+    _exclusions = ['_escape_chars', '_repl_escape_chars', '_variables', 'invert', 'then']
     "Excluded methods"
     _added_vars = {}
     "A dict of {method name: dict} to manually add variables to methods"
@@ -49,9 +52,9 @@ class EZRegex(ABC):
     # For linting's sake
     flags: set[str]
     replacement: bool
-    _sanitize: bool
     _options_specified: bool
     _func_list: list[EZRegexFunc]
+    _is_raw: bool
 
     @classmethod
     def exclude(cls:type, method:Callable):
@@ -132,21 +135,21 @@ class EZRegex(ABC):
 
         docs = ''
         if docs_link:
-            docs += f"Documentation: \n\t{docs_link}\n\n"
+            docs += f"Documentation:\n    {docs_link}\n\n"
         docs += '''Usage:
-        word + options(ignore_case=True)
-        word + options('ignore_case')
-        word + options('ignore_case', 'multiline')
-        word + options('ignore_case', multiline=True)
+    word + options(ignore_case=True)
+    word + options('ignore_case')
+    word + options('ignore_case', 'multiline')
+    word + options('ignore_case', multiline=True)
 
-    Args:
-    '''
+Args:
+'''
         _docs = {k.lower(): v for k, v in docs_map.items()}
         for flag in flag_map.keys():
             try:
-                docs += f"\t{flag.lower()}:\n\t\t{_docs[flag.lower()]}\n"
+                docs += f"    {flag.lower()}:\n        {_docs[flag.lower()]}\n"
             except KeyError:
-                docs += f"\t{flag.lower()}\n"
+                docs += f"    {flag.lower()}\n"
         options.__doc__ = docs
 
         return options
@@ -161,6 +164,9 @@ class EZRegex(ABC):
         variables:Unpack[Dict[str, EZRegexDefinition]]={},
         **kwargs
     ):
+        def to_camel_case(s):
+            return ''.join((word.capitalize() if cnt else word) for cnt, word in enumerate(s.split('_')))
+
         # Validate & set escape_chars
         assert isinstance(escape_chars, bytes), f'Escape chars {escape_chars} is not bytes'
         assert isinstance(repl_escape_chars, bytes), f'Replacement escape chars {repl_escape_chars} is not bytes'
@@ -183,13 +189,29 @@ class EZRegex(ABC):
             if value is None:
                 delattr(cls, name)
             else:
-                setattr(cls, name, EZRegex._interpret_definition(cls, value))
+                to = EZRegex._interpret_definition(cls, value)
+                setattr(cls, name, to)
+                setattr(cls, to_camel_case(name), to)
 
         # Validate flag params, and generate the options function
         assert isinstance(flags, dict), f'Flags {flags} is not a dictionary'
         assert isinstance(flags_docs_map, dict), f'Flags docs map {flags_docs_map} is not a dictionary'
         assert isinstance(flags_docs_link, str), f'Flags docs link {flags_docs_link} is not a string'
         cls.options = cls._generate_options_from_flags(cls, flags, True, flags_docs_map, flags_docs_link)
+
+        # Define raw
+        # We define this here instead of in a mixin for a number of reasons:
+        # 1. It's definitely the same in all dialects
+        # 2. It should be in every dialect
+        # 3. This is the only thing that needs to bypass sanitation, and if we define it
+        #    separately, we don't have to add special handling for a single singleton member
+        def raw(regex, cur=...):
+            """ If you already have some regular regex written and you want to incorperate
+                it, this will allow you to include it without sanitizing all the backslashes
+                and such, which all the other EZRegexs do automatically
+            """
+            return cur + regex
+        cls.raw = cls([raw], _is_raw=True)
 
         # For the sake of brevity, these are here. No different than being defined below
         # There's no particular reason I put these here instead of in __init__()
@@ -206,20 +228,15 @@ class EZRegex(ABC):
         cls.invert = cls.__invert__ = cls.__reversed__ = cls.inverse
 
         # Add all the psuedonymns
-        def to_camel_case(s):
-            return ''.join((word.capitalize() if cnt else word) for cnt, word in enumerate(s.split('_')))
-
         for name, ps in psuedonyms.items():
             if hasattr(cls, name):
                 value = getattr(cls, name)
-                setattr(cls, to_camel_case(name), value)
-
                 for p in ps:
                     setattr(cls, p, value)
                     # also add camelCase versions of the psuedonyms
                     setattr(cls, to_camel_case(p), value)
 
-        # Makenum_params + 1 the subclass immutable
+        # Make the subclass immutable
         cls.__setattr__ = cls._raise_immutibility
         cls.__delattr__ = cls._raise_immutibility
         cls.__set__ = cls._raise_immutibility
@@ -227,24 +244,16 @@ class EZRegex(ABC):
 
         return super().__init_subclass__(**kwargs)
 
-    def __init__(self, func_list:list[EZRegexFunc]=[], **variable_values):
+    def __init__(self, func_list:list[EZRegexFunc]=[], _is_raw=False, **variable_values):
         # Use the defaults, which can get overriden if we're given variable values (i.e. by _combine())
         self.__dict__.update({k: v[0] for k, v in self._variables.items()})
         self.__dict__.update(variable_values)
+        self.__dict__['_is_raw'] = _is_raw
 
         # Now that we're instantiated, we're immutable
         self.__dict__['_func_list'] = func_list
 
-    # TODO: opimization: add a param to disable sanitizing, if we're called from __get__ (we're chaining)
-    def _combine(self, other:EZRegexOther, cls:type, add_to_end:bool=True, compile:bool=False):
-        # print(f'combining with compile = {compile}')
-        # # print(f'other = {other}')
-        # print(f'other type = {type(other)}')
-        # print(f'other is EZRegex = {isinstance(other, EZRegex)}')
-        # # Print the name of the function that called us
-        # import inspect
-        # print(f'function that called us = {inspect.currentframe().f_back.f_code.co_name}')
-
+    def _combine(self, other:EZRegexOther, cls:type, add_to_end:bool=True, compile:bool=False, propogate_raw:bool=False):
         if isinstance(other, EZRegex) and not isinstance(other, type(self)):
             raise ValueError('Cannot combine EZRegex objects of different dialects')
 
@@ -265,7 +274,11 @@ class EZRegex(ABC):
                 )
                 for var, combine_spec in
                 self._variables.items()
-            }
+            },
+            # `other` is the right most operand, so it should be the raw value when it gets called.
+            # If we have raw on the left side, then they're trying to do something like digit.raw.word,
+            # which will get called out when they try to compile, so we can ignore it
+            _is_raw=other._is_raw if propogate_raw else False,
         )
 
     def _sanitize_param(self, i:EZRegexParam, add_flags:bool=False):
@@ -277,8 +290,10 @@ class EZRegex(ABC):
         # If this is a replacement string, it will automatically escape based on _repl_escape_chars
         elif isinstance(i, str):
             return self._escape(i)
-        elif isinstance(i, bool):
+        # Some parameters can be None or bools
+        elif isinstance(i, bool) or i is None:
             return i
+        # If parameters are ints, convert them to strings, and just know that when writing mixins
         elif isinstance(i, int):
             return str(i)
         # It's something we don't know, try to cast it to a string anyway
@@ -290,7 +305,9 @@ class EZRegex(ABC):
                 raise ValueError(f'Incorrect type {type(i)} given to EZRegex parameter: Must be string or another EZRegex chain.') from e
 
     def _sanitize_other(self, other:EZRegexOther, compile:bool=True) -> List[Callable[[str], str]]:
-        """ Sanitize things that are combined with the current chain (i.e. via +) """
+        """ Sanitize things that are combined with the current chain (i.e. via +)
+            Note that this is only called by _combine()
+        """
         # So somethings we need to compile immediately, while others we don't. Consider:
         # digit + whitespace.opt
         # digit.whitespace.opt
@@ -549,14 +566,17 @@ class EZRegex(ABC):
         # I would like to discourage, but really have no way to prevent. It also won't necissarily
         # break anything, so it's fine.
 
-        # Sanatize the positional arguments
-        if self._sanitize:
+        # Don't sanitize raw specifically
+        if not self._is_raw:
+            # Sanatize the positional arguments
             args = tuple(map(self._sanitize_param, args))
 
-        # Sanatize the keyword arguments
-        _kwargs = {}
-        for key, val in kwargs.items():
-            _kwargs[key] = self._sanitize_param(val) if self._sanitize else val
+            # Sanatize the keyword arguments
+            _kwargs = {}
+            for key, val in kwargs.items():
+                _kwargs[key] = self._sanitize_param(val)
+        else:
+            _kwargs = kwargs
 
         # Check the parameters are all valid
         if not type(self).lazy_check_params:
@@ -571,10 +591,14 @@ class EZRegex(ABC):
         return type(self)(self._func_list[:-1] + [partial(self._func_list[-1], *args, **_kwargs)], **self.__dict__)
 
     def __get__(self, instance:EZRegexType|None, owner:type) -> EZRegexType:
+        # lhs.rhs -> type(lhs).__dict__["rhs"].__get__(lhs, type(lhs))
+        # self is rhs, instance is lhs, owner is type(lhs)
         # We're trying to access it as a class member. This is how chains are started
         if instance is None:
             return self
-        return instance._combine(self, owner, compile=False)
+        # Remember, . (__get__) and () (__call__) have the same precedence, so they get evaluated from left to right
+        # This means if we do digit.raw('foo'), it goes digit._combine(raw)('foo').
+        return instance._combine(self, owner, compile=False, propogate_raw=True)
 
     def __eq__(self, other:EZRegexOther) -> bool:
         """ NOTE: This will return True for equivelent EZRegex expressions of different dialects
@@ -590,7 +614,7 @@ class EZRegex(ABC):
     def __radd__(self, other:EZRegexOther) -> EZRegexType:
         return self._combine(other, type(self), add_to_end=False)
 
-    def __mul__(self, amt):
+    def __mul__(self, amt:int):
         if amt is Ellipsis:
             try:
                 return type(self).at_least_none(self)
@@ -606,8 +630,8 @@ class EZRegex(ABC):
             rtn = rtn + self
         return rtn
 
-    def __rmul__(self, amt):
-        return amt.__mul__(self)
+    def __rmul__(self, amt:int):
+        return self.__mul__(amt)
 
     def __and__(self, other:EZRegexOther) -> EZRegexType:
         raise NotImplementedError
@@ -628,7 +652,7 @@ class EZRegex(ABC):
         except AttributeError:
             raise ValueError(f'either is not supported in {type(self).__name__}') from None
 
-        # return self._copy(f'(?:{self._compile(add_flags=False)}|{self._sanitizeInput(other)})', sanatize=False)
+        # return self._copy(f'(?:{self._compile(add_flags=False)}|{self._sanitizeInput(other)})', sanitize=False)
 
     def __ror__(self, other:EZRegexOther) -> EZRegexType:
         return other.__or__(self)

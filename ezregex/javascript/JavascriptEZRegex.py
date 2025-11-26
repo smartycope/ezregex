@@ -18,6 +18,8 @@ class JavascriptEZRegex(
     AnchorsMixin(),
     ReplacementsMixin(
         advanced=False,
+        named_group=lambda name, cur=...: fr'{cur}$<{name}>',
+        numbered_group=lambda num, cur=...: fr'{cur}${num}',
         entire_match='$&',
     ),
     EZRegex,
@@ -40,7 +42,7 @@ class JavascriptEZRegex(
     flags_docs_link='https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions#advanced_searching_with_flags',
 
     variables={
-        '_string_anchor_used': (True, lambda l, r: l or r),
+        '_string_anchor_used': (False, lambda l, r: l or r),
     },
 ):
     """
@@ -64,5 +66,3 @@ class JavascriptEZRegex(
 
     string_starts_with = lambda input='', cur=...: r'^' + input + cur, {'_string_anchor_used': True}
     string_ends_with   = lambda input='', cur=...: cur + input + r'$', {'_string_anchor_used': True}
-
-globals().update(inject_parts(JavascriptEZRegex))

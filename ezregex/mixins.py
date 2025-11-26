@@ -15,6 +15,11 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # TODO: add typing to all of these
 # TODO: rename "input" to "pattern"
 
+# NOTE: when writing mixins, keep in mind that parameters which are None or bools will be passed as-is,
+# ints will be cast to strings, and strings will be escaped based on the dialect's _escape_chars. Any
+# other types will be auto-cast to strings, special characters will not be escaped, and a warning thrown
+# See EZRegex._sanitize_param for more info
+
 def raise_if_empty(param, func, param_name='input'):
     if not len(str(param)):
         try:
@@ -75,9 +80,9 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
     def add_greedy_possessive(func):
         def rtn(*args, greedy=True, possessive=False, cur=..., **kwargs):
-            if not allow_greedy:
+            if not greedy and not allow_greedy:
                 raise ValueError('Greedy qualifiers are not allowed in this dialect')
-            if not allow_possessive:
+            if possessive and not allow_possessive:
                 raise ValueError('Possessive qualifiers are not allowed in this dialect')
             if (not greedy) and possessive:
                 raise ValueError('You can\'t be both non-greedy and possessive at the same time')
@@ -87,12 +92,6 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
     class _BaseMixin:
         literal = lambda input, cur=...: cur + input
         "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
-
-        raw = lambda regex, cur=...: str(regex), {'sanatize': False}
-        """ If you already have some regular regex written, and you want to incorperate
-            it, this will allow you to include it without sanatizing all the backslaches
-            and such, which all the other EZRegexs do automatically
-        """
 
         # Positional
         word_boundary      = r'\b'
@@ -148,7 +147,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         printable          = r'[\x21-\x7E]'
         "Matches printable ASCII characters"
         printable_and_space= r'[\x20-\x7E]'
-        alpha_num          = r'[A-Za-z0-9_]'
+        letter_num          = r'[A-Za-z0-9_]'
         unicode            = lambda name, cur=...: fr'\N{name}'
         "Matches a unicode character by name"
 
@@ -478,7 +477,7 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
     return _AnchorsMixin
 
 def ReplacementsMixin(*,
-    named_group:None|Callable[[str,str],str]=lambda name, cur=...: f"{cur}$<{name}>",
+    named_group:None|Callable[[str,str],str]=lambda name, cur=...: f"{cur}${{{name}}}",
     numbered_group:None|Callable[[int,str],str]=lambda num, cur=...: f"{cur}${{{num}}}",
     entire_match:None|EZRegexFunc=None,
     advanced=False,
@@ -488,7 +487,7 @@ def ReplacementsMixin(*,
 ):
     # if entire_match isn't specified, most of the time the 0th number group is the same thing
     if entire_match is None:
-        entire_match = partial(numbered_group, args=(0,))
+        entire_match = partial(numbered_group, 0)
 
     # Weird scope error I guess
     _entire_string = entire_string
@@ -497,8 +496,10 @@ def ReplacementsMixin(*,
 
     def _rgroup(num_or_name, cur=...):
         """ Puts in its place the group specified, either by group number (for unnamed
-            groups) or group name (for named groups). Named groups are also counted by
-            number, I'm pretty sure. Groups are numbered starting from 1
+            groups) or group name (for named groups). Named groups are typically also counted by
+            number, check your specific dialect docs for details.
+            Group 0 is handled specially by this function, so it calls for the entire match,
+            even if 0 doesn't mean the entire match in your dialect.
         """
         raise_if_empty(num_or_name, 'rgroup', num_or_name)
         is_num = isinstance(num_or_name, int) or num_or_name in digits
@@ -508,6 +509,9 @@ def ReplacementsMixin(*,
 
         if is_num and numbered_group is None:
             raise ValueError('numbered groups are not supported by this dialect')
+
+        if is_num and num_or_name in (0, '0'):
+            return entire_match(cur=cur)
 
         return numbered_group(num_or_name, cur=cur) \
             if is_num \
@@ -519,9 +523,12 @@ def ReplacementsMixin(*,
     formatter = CustomFormatter()
 
     class _ReplacementsMixin:
+        rliteral = lambda input, cur=...: cur + input, {'replacement': True}
+        """ Exactly like literal, but for replacement regexs """
+
         @EZRegex.exclude
         @classmethod
-        def replace(cls, string, rtn_str=True):
+        def replace(cls, string, compile=True):
             """ Generates a valid regex replacement string, using Python f-string like syntax.
 
                 Example:
@@ -529,9 +536,10 @@ def ReplacementsMixin(*,
 
                 Like Python f-strings, use {{ and }} to specify { and }
 
-                Set the `rtn_str` parameter to True to have it return an EZRegex type instead of a string
+                Set the `compile` parameter to False to have it return an EZRegex subclass instance instead of a string
 
-                Note: Remember that index 0 is the entire match
+                Note: 0 is handled specially by this function, so it calls for the entire match,
+                    even if 0 doesn't mean the entire match in your dialect.
 
                 There's a few of advantages to using this instead of just the regular regex replacement syntax:
                 - It's consistent between dialects
@@ -539,7 +547,7 @@ def ReplacementsMixin(*,
                 - It handles numbered, named, and entire replacement types the same
             """
             string = formatter.format(string)
-            return string if rtn_str else cls(string, sanatize=False, replacement=True)
+            return string if compile else cls([lambda cur=...: cur + string], replacement=True)
 
         rgroup = _rgroup, {'replacement': True}
         replace_entire = entire_match, {'replacement': True}

@@ -20,3 +20,6 @@ digit + whitespace.opt
 and
 digit.whitespace.opt
     - also note that whitespace == whitechunk, and not white_char
+
+
+- make a note in GOTCHAS that linting, types, and docstrings are fickle
