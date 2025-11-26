@@ -3,8 +3,7 @@ __version__ = '1.1.0'
 
 import re
 from .. import EZRegex
-from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin, _parse_any_of_params)
-from ..flag_docs import common_flag_docs
+from ..mixins import (BaseMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin, _parse_any_of_params)
 
 class REZRegex(
     BaseMixin(allow_greedy=False, allow_possessive=False),

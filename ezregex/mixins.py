@@ -13,14 +13,14 @@ from string import Formatter
 
 from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 # TODO: add typing to all of these
-# TODO: rename "input" to "pattern"
+# TODO: rename "pattern" to "pattern"
 
 # NOTE: when writing mixins, keep in mind that parameters which are None or bools will be passed as-is,
 # ints will be cast to strings, and strings will be escaped based on the dialect's _escape_chars. Any
 # other types will be auto-cast to strings, special characters will not be escaped, and a warning thrown
 # See EZRegex._sanitize_param for more info
 
-def raise_if_empty(param, func, param_name='input'):
+def raise_if_empty(param, func, param_name='pattern'):
     if not len(str(param)):
         try:
             func_names = psuedonyms[func]
@@ -29,48 +29,48 @@ def raise_if_empty(param, func, param_name='input'):
         raise ValueError(f'Parameter {param_name} in {func} {"(aka " + ", ".join(func_names) + ")" if func_names else ""} cannot be empty')
 
 
-def imply_input_is_cur(func):
-    """ If `input` is Ellipsis, it will use `cur` instead, and `cur` will be set to an empty string.
+def imply_pattern_is_cur(func):
+    """ If `pattern` is Ellipsis, it will use `cur` instead, and `cur` will be set to an empty string.
         This is useful for functions that want to allow both inline and operator style chaining
         i.e. digit.amt(2) and amt(2, digit)
 
-        NOTE: `input` must be a keyword parameter, and it must be the last parameter able to be
+        NOTE: `pattern` must be a keyword parameter, and it must be the last parameter able to be
         provided as a positional argument. Don't use *args.
 
         NOTE: must come *after* add_greedy_possessive, not before. Don't ask me why.
     """
-    def rtn(*args, input=..., cur=..., **kwargs):
+    def rtn(*args, pattern=..., cur=..., **kwargs):
         # First, check how many positional only params there are
         # parameters is an ordered mapping
         for num_params, param in enumerate(signature(func).parameters.values()):
-            if param.name == 'input': break
+            if param.name == 'pattern': break
 
-        # If input is provided as a positional arg, make it into a keyword arg
+        # If pattern is provided as a positional arg, make it into a keyword arg
         if len(args) > num_params:
-            input = args[-1]
+            pattern = args[-1]
             args = args[:-1]
 
-        if input is Ellipsis:
-            return func(*args, input=cur, cur='', **kwargs)
+        if pattern is Ellipsis:
+            return func(*args, pattern=cur, cur='', **kwargs)
 
-        raise_if_empty(input, func.__name__)
-        return func(*args, input=input, cur=cur, **kwargs)
+        raise_if_empty(pattern, func.__name__)
+        return func(*args, pattern=pattern, cur=cur, **kwargs)
     return rtn
 
-def _parse_any_of_params(*inputs, chars=None, split=None):
-    if split and len(inputs) != 1:
-        raise ValueError("Please don't specifiy split and pass multiple inputs to anyof")
+def _parse_any_of_params(*patterns, chars=None, split=None):
+    if split and len(patterns) != 1:
+        raise ValueError("Please don't specifiy split and pass multiple patterns to anyof")
     elif split:
-        inputs = list(inputs[0])
-    elif len(inputs) == 1 and split is None and chars is not False:  # None means auto
+        patterns = list(patterns[0])
+    elif len(patterns) == 1 and split is None and chars is not False:  # None means auto
         chars = True
-        inputs = list(inputs[0])
-    elif len(inputs) == 1 and split is None:
-        inputs = list(inputs[0])
-    elif len(inputs) > 1 and chars is None and all(map(lambda s: len(str(s)) == 1, inputs)):
+        patterns = list(patterns[0])
+    elif len(patterns) == 1 and split is None:
+        patterns = list(patterns[0])
+    elif len(patterns) > 1 and chars is None and all(map(lambda s: len(str(s)) == 1, patterns)):
         chars = True
 
-    return chars, inputs
+    return chars, patterns
 
 
 def BaseMixin(*, allow_greedy=False, allow_possessive=False):
@@ -90,7 +90,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         return rtn
 
     class _BaseMixin:
-        literal = lambda input, cur=...: cur + input
+        literal = lambda pattern, cur=...: cur + pattern
         "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
 
         # Positional
@@ -169,20 +169,20 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         "\"Optional Whitechunk\""
 
         @add_greedy_possessive
-        @imply_input_is_cur
-        def match_range(min, max, input=..., *, greedy=True, possessive=False, cur=...):
-            """ Match between `min` and `max` sequences of `input` in the string. This also accepts `greedy` and `possessive` parameters
+        @imply_pattern_is_cur
+        def match_range(min, max, pattern=..., *, greedy=True, possessive=False, cur=...):
+            """ Match between `min` and `max` sequences of `pattern` in the string. This also accepts `greedy` and `possessive` parameters
                 Max can be an empty string to indicate no maximum
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
                 see https://docs.python.org/3/library/re.html for more help
             """
-            raise_if_empty(input, 'match_range')
+            raise_if_empty(pattern, 'match_range')
 
             s = cur
-            if len(input):
-                s += r'(?:' + input + r')'
+            if len(pattern):
+                s += r'(?:' + pattern + r')'
             s += r'{' + str(min) + r',' + str(max) + r'}'
             if not greedy:
                 s += r'?'
@@ -192,62 +192,62 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         # Choices
         @add_greedy_possessive
-        @imply_input_is_cur
-        def optional(input=..., *, greedy=True, possessive=False, cur=...):
-            """ Match `input` if it's there. This also accepts `greedy` and `possessive` parameters
+        @imply_pattern_is_cur
+        def optional(pattern=..., *, greedy=True, possessive=False, cur=...):
+            """ Match `pattern` if it's there. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
                 see https://docs.python.org/3/library/re.html for more help
             """
             s = cur
-            if len(input) > 1:
-                s += fr'(?:{input})?'
+            if len(pattern) > 1:
+                s += fr'(?:{pattern})?'
             else:
-                if len(input) == 1:
-                    s += fr'{input}?'
+                if len(pattern) == 1:
+                    s += fr'{pattern}?'
             if not greedy:
                 s += r'?'
             if possessive:
                 s += r'+'
             return s
 
-        def any_of(*inputs, chars=None, split=None, cur=...):
-            """ Match any of the given `inputs`. Note that `inputs` can be multiple parameters,
+        def any_of(*patterns, chars=None, split=None, cur=...):
+            """ Match any of the given `patterns`. Note that `patterns` can be multiple parameters,
                 or a single string. Can also accept parameters chars and split. If char is set
-                to True, then `inputs` must only be a single string, it interprets `inputs`
+                to True, then `patterns` must only be a single string, it interprets `patterns`
                 as characters, and splits it up to find any of the chars in the string. If
                 split is set to true, it forces the ?(...) regex syntax instead of the [...]
                 syntax. It should act the same way, but your output regex will look different.
                 By default, it just optimizes it for you.
             """
-            chars, inputs = _parse_any_of_params(*inputs, chars=chars, split=split)
+            chars, patterns = _parse_any_of_params(*patterns, chars=chars, split=split)
 
             if chars:
                 cur += r'['
-                for i in inputs:
+                for i in patterns:
                     cur += i
                 cur += r']'
             else:
                 cur += r'(?:'
-                for i in inputs:
+                for i in patterns:
                     cur += i
                     cur += '|'
                 cur = cur[:-1]
                 cur += r')'
             return cur
 
-        def any_char_except(*inputs, cur=...):
-            """ This matches any char that is NOT in `inputs`. `inputs` can be multiple parameters,
+        def any_char_except(*patterns, cur=...):
+            """ This matches any char that is NOT in `patterns`. `patterns` can be multiple parameters,
                 or a single string of chars to split.
             """
 
             # If it's just a string, split it up
-            if len(inputs) == 1 and len(inputs[0]) > 1:
-                inputs = list(inputs[0])
+            if len(patterns) == 1 and len(patterns[0]) > 1:
+                patterns = list(patterns[0])
 
             cur += r'[^'
-            for i in inputs:
+            for i in patterns:
                 cur += i
             cur += r']'
             return cur
@@ -258,59 +258,59 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             raise_if_empty(and_char, 'any_between', 'and_char')
             return cur + r'[' + char + r'-' + and_char + r']'
 
-        @imply_input_is_cur
-        def either(or_input, input=..., cur=...):
-            """ Match either `input` or `or_input`. To choose between more than 2 things,
+        @imply_pattern_is_cur
+        def either(or_pattern, pattern=..., cur=...):
+            """ Match either `pattern` or `or_pattern`. To choose between more than 2 things,
                 you can either chain multiple `either` calls, or use `any_of`
             """
-            return cur + rf'(?:{input}|{or_input})'
+            return cur + rf'(?:{pattern}|{or_pattern})'
 
         # Amounts
-        @imply_input_is_cur
-        def match_max(input=..., *, cur=...):
-            """ Match as many of `input` in the string as you can. This is equivelent to using the unary + operator.
-            If `input` is not provided, it works on the previous regex pattern. That's not recommended for
+        @imply_pattern_is_cur
+        def match_max(pattern=..., *, cur=...):
+            """ Match as many of `pattern` in the string as you can. This is equivelent to using the unary + operator.
+            If `pattern` is not provided, it works on the previous regex pattern. That's not recommended for
             clarity's sake though
             """
-            return cur + r'(?:' + input + r')' + r'+'
+            return cur + r'(?:' + pattern + r')' + r'+'
 
-        @imply_input_is_cur
-        def match_num(num:int, input=..., *, cur=...):
-            """ Match `num` amount of `input` in the string """
-            return cur + r'(?:' + input + r')' + r'{' + str(num) + r'}'
+        @imply_pattern_is_cur
+        def match_num(num:int, pattern=..., *, cur=...):
+            """ Match `num` amount of `pattern` in the string """
+            return cur + r'(?:' + pattern + r')' + r'{' + str(num) + r'}'
 
-        @imply_input_is_cur
-        def match_more_than(min:int, input=..., *, cur=...):
-            """ Match more than `min` sequences of `input` in the string """
-            return cur + r'(?:' + input + r')' + r'{' + str(int(min) + 1) + r',}'
+        @imply_pattern_is_cur
+        def match_more_than(min:int, pattern=..., *, cur=...):
+            """ Match more than `min` sequences of `pattern` in the string """
+            return cur + r'(?:' + pattern + r')' + r'{' + str(int(min) + 1) + r',}'
 
-        @imply_input_is_cur
-        def match_at_least(min:int, input=..., *, cur=...):
-            """ Match at least `min` sequences of `input` in the string """
-            return cur + r'(?:' + input + r')' + r'{' + str(min) + r',}'
+        @imply_pattern_is_cur
+        def match_at_least(min:int, pattern=..., *, cur=...):
+            """ Match at least `min` sequences of `pattern` in the string """
+            return cur + r'(?:' + pattern + r')' + r'{' + str(min) + r',}'
 
-        @imply_input_is_cur
-        def match_at_most(max:int, input=..., *, cur=...):
-            """ Match at most `max` sequences of `input` in the string """
-            return cur + r'(?:' + input + r')' + r'{0,' + str(max) + r'}'
+        @imply_pattern_is_cur
+        def match_at_most(max:int, pattern=..., *, cur=...):
+            """ Match at most `max` sequences of `pattern` in the string """
+            return cur + r'(?:' + pattern + r')' + r'{0,' + str(max) + r'}'
 
         @add_greedy_possessive
-        @imply_input_is_cur
-        def at_least_one(input=..., *, greedy=True, possessive=False, cur=...):
-            """ Match at least one of `input` in the string. This also accepts `greedy` and `possessive` parameters
+        @imply_pattern_is_cur
+        def at_least_one(pattern=..., *, greedy=True, possessive=False, cur=...):
+            """ Match at least one of `pattern` in the string. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
                 see https://docs.python.org/3/library/re.html for more help
             """
-            raise_if_empty(input, 'at_least_one')
+            raise_if_empty(pattern, 'at_least_one')
 
             s = cur
-            if len(input) > 1:
-                s += fr'(?:{input})+'
+            if len(pattern) > 1:
+                s += fr'(?:{pattern})+'
             else:
-                if len(input) == 1:
-                    s += fr'{input}+'
+                if len(pattern) == 1:
+                    s += fr'{pattern}+'
             if not greedy:
                 s += '?'
             if possessive:
@@ -318,22 +318,22 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             return s
 
         @add_greedy_possessive
-        @imply_input_is_cur
-        def at_least_none(input=..., *, greedy=True, possessive=False, cur=...):
-            """ Match 0 or more sequences of `input`. This also accepts `greedy` and `possessive` parameters
+        @imply_pattern_is_cur
+        def at_least_none(pattern=..., *, greedy=True, possessive=False, cur=...):
+            """ Match 0 or more sequences of `pattern`. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
                 see https://docs.python.org/3/library/re.html for more help
             """
-            raise_if_empty(input, 'at_least_none')
+            raise_if_empty(pattern, 'at_least_none')
 
             s = cur
-            if len(input) > 1:
-                s += fr'(?:{input})*'
+            if len(pattern) > 1:
+                s += fr'(?:{pattern})*'
             else:
-                if len(input) == 1:
-                    s += fr'{input}*'
+                if len(pattern) == 1:
+                    s += fr'{pattern}*'
             if not greedy:
                 s += '?'
             if possessive:
@@ -344,7 +344,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
 def GroupsMixin(*,
     advanced=False,
-    named_group=lambda input, name, cur=...: f'{cur}(?P<{name}>{input})',
+    named_group=lambda pattern, name, cur=...: f'{cur}(?P<{name}>{pattern})',
     earlier_numbered_group=lambda num, cur=...: f'{cur}\\{num}',
     earlier_named_group=lambda name, cur=...: f'{cur}(?P={name})'
 ):
@@ -352,23 +352,23 @@ def GroupsMixin(*,
         specify how to handle named groups.
     """
     class _GroupsMixin:
-        @imply_input_is_cur
-        def group(input, *, name=None, cur=...):
-            """ Causes `input` to be captured as a group. Specify `name` only as a keyword argument.
+        @imply_pattern_is_cur
+        def group(pattern, *, name=None, cur=...):
+            """ Causes `pattern` to be captured as a group. Specify `name` only as a keyword argument.
                 Only useful when replacing regexs
             """
-            raise_if_empty(input, 'group')
+            raise_if_empty(pattern, 'group')
             if name is not None:
                 if named_group is None:
                     raise ValueError(f'Named groups are not implemented in this dialect')
                 raise_if_empty(name, 'group', 'name')
-            return f'{cur}({input})' if name is None else named_group(input, name, cur=cur)
+            return f'{cur}({pattern})' if name is None else named_group(pattern, name, cur=cur)
 
-        @imply_input_is_cur
-        def passive_group(input, *, cur=...):
+        @imply_pattern_is_cur
+        def passive_group(pattern, *, cur=...):
             "As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is"
-            raise_if_empty(input, 'passive_group')
-            return f'{cur}(?:{input})'
+            raise_if_empty(pattern, 'passive_group')
+            return f'{cur}(?:{pattern})'
 
         if advanced:
             def earlier_group(num_or_name, cur=...):
@@ -392,60 +392,60 @@ def AssertionsMixin():
 
     # TODO: enforce these only being at the end or beginning of a chain -- maybe
     class _AssertionsMixin:
-        def any_except(input, type='.*', cur=...):
-            """ Matches anything other than `input`, which must be a single string or EZRegex chain, **not** a list. Also
-            optionally accepts the `type` parameter, which works like this: \"Match any `type` other than `input`\". For example,
+        def any_except(pattern, type='.*', cur=...):
+            """ Matches anything other than `pattern`, which must be a single string or EZRegex chain, **not** a list. Also
+            optionally accepts the `type` parameter, which works like this: \"Match any `type` other than `pattern`\". For example,
             \"match any word which is not foo\". Do note that this function is new, and I'm still working out the kinks.
             """
-            raise_if_empty(input, 'any_except')
-            return cur + f'(?!{input}){type}'
+            raise_if_empty(pattern, 'any_except')
+            return cur + f'(?!{pattern}){type}'
 
-        @imply_input_is_cur
-        def if_proceded_by(input, *, cur=...):
-            """ Matches the pattern if it has `input` coming after it. Can only be used once in a given pattern,
+        @imply_pattern_is_cur
+        def if_proceded_by(pattern, *, cur=...):
+            """ Matches the pattern if it has `pattern` coming after it. Can only be used once in a given pattern,
                 as it only applies to the end
             """
-            return fr'{cur}(?={input})'
+            return fr'{cur}(?={pattern})'
 
-        def each(*inputs, cur=...):
-            "Matches if the next part of the string can match all of the given inputs. Like the + operator, but out of order."
-            inputs = list(inputs)
-            last = inputs.pop()
+        def each(*patterns, cur=...):
+            "Matches if the next part of the string can match all of the given patterns. Like the + operator, but out of order."
+            patterns = list(patterns)
+            last = patterns.pop()
             s = cur
-            for i in inputs:
+            for i in patterns:
                 s += fr'(?={i})'
             s += last
             return s
 
-        @imply_input_is_cur
-        def if_not_proceded_by(input, *, cur=...):
-            """ Matches the pattern if it does **not** have `input` coming after it. Can only be used once in
+        @imply_pattern_is_cur
+        def if_not_proceded_by(pattern, *, cur=...):
+            """ Matches the pattern if it does **not** have `pattern` coming after it. Can only be used once in
                 a given pattern, as it only applies to the end
             """
-            return fr'{cur}(?!{input})'
+            return fr'{cur}(?!{pattern})'
 
-        @imply_input_is_cur
-        def if_preceded_by(input, *, cur=...):
-            """ Matches the pattern if it has `input` coming before it. Can only be used once in a given pattern,
+        @imply_pattern_is_cur
+        def if_preceded_by(pattern, *, cur=...):
+            """ Matches the pattern if it has `pattern` coming before it. Can only be used once in a given pattern,
                 as it only applies to the beginning
             """
-            return fr'(?<={input}){cur}'
+            return fr'(?<={pattern}){cur}'
 
-        @imply_input_is_cur
-        def if_not_preceded_by(input, *, cur=...):
-            """ Matches the pattern if it does **not** have `input` coming before it. Can only be used once
+        @imply_pattern_is_cur
+        def if_not_preceded_by(pattern, *, cur=...):
+            """ Matches the pattern if it does **not** have `pattern` coming before it. Can only be used once
                 in a given pattern, as it only applies to the beginning
             """
-            return fr'(?<!{input}){cur}'
+            return fr'(?<!{pattern}){cur}'
 
-        @imply_input_is_cur
-        def if_enclosed_with(open, close=..., input=..., *, cur=...):
+        @imply_pattern_is_cur
+        def if_enclosed_with(open, close=..., pattern=..., *, cur=...):
             """ Matches if the string has `open`, then `stuff`, then `close`, but only \"matches\"
                 stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
             """
             if close is Ellipsis:
                 close = open
-            return fr'((?<={open}){input}(?={close}))'
+            return fr'((?<={open}){pattern}(?={close}))'
 
     return _AssertionsMixin
 
@@ -453,26 +453,26 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
     """ String anchors, where string/line/word starts/ends. You can disable specific ones via parameters"""
     class _AnchorsMixin:
         if string:
-            string_starts_with = lambda input='', cur=...: r'\A' + input + cur
-            string_ends_with   = lambda input='', cur=...: input + string_end + cur
-            is_exactly = imply_input_is_cur(lambda input=..., cur=...: r"\A" + input + string_end)
-            "This matches the string if and only if the entire string is exactly equal to `input`"
+            string_starts_with = lambda pattern='', cur=...: r'\A' + pattern + cur
+            string_ends_with   = lambda pattern='', cur=...: pattern + string_end + cur
+            is_exactly = imply_pattern_is_cur(lambda pattern=..., cur=...: r"\A" + pattern + string_end)
+            "This matches the string if and only if the entire string is exactly equal to `pattern`"
 
         if line:
             # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
-            line_starts_with   = lambda input='', cur=...: r'^' + input + cur, {'flags':'m'}
-            line_ends_with     = lambda input='', cur=...: cur + input + r'$', {'flags':'m'}
+            line_starts_with   = lambda pattern='', cur=...: r'^' + pattern + cur, {'flags':'m'}
+            line_ends_with     = lambda pattern='', cur=...: cur + pattern + r'$', {'flags':'m'}
 
         if word_boundaries:
-            word_boundary      = lambda input='', cur=...: r'\b' + input + cur
+            word_boundary      = lambda pattern='', cur=...: r'\b' + pattern + cur
             "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string"
-            not_word_boundary  = lambda input='', cur=...: cur + input + r'\B'
+            not_word_boundary  = lambda pattern='', cur=...: cur + pattern + r'\B'
             "The opposite of `word_boundary`"
 
 
         if word:
-            word_starts_with   = lambda input='', cur=...: r'\<' + input + cur
-            word_ends_with     = lambda input='', cur=...: input + r'\>' + cur
+            word_starts_with   = lambda pattern='', cur=...: r'\<' + pattern + cur
+            word_ends_with     = lambda pattern='', cur=...: pattern + r'\>' + cur
 
     return _AnchorsMixin
 
@@ -523,7 +523,7 @@ def ReplacementsMixin(*,
     formatter = CustomFormatter()
 
     class _ReplacementsMixin:
-        rliteral = lambda input, cur=...: cur + input, {'replacement': True}
+        rliteral = lambda pattern, cur=...: cur + pattern, {'replacement': True}
         """ Exactly like literal, but for replacement regexs """
 
         @EZRegex.exclude

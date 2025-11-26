@@ -1,6 +1,6 @@
 # Operators
 
-- `+`, `<<`, `>>`
+- `+`, `.`, `<<`, `>>`
 	- These all do the same thing: combine expressions. Feel free to use whichever makes most sense to you
 - `*`
 	- Multiplies an expression a number of times. `expr * 3` is equivelent to `expr + expr + expr`. Can also be used like `expr * ...` (using the Ellipsis object), which is equivalent to `any_amt(expr)`

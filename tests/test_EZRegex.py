@@ -70,11 +70,11 @@ def test_parameters_to_chains_lazy():
         digit.word(6).str()
 
     with pytest.raises(TypeError):
-        digit + word(input=6).str()
+        digit + word(pattern=6).str()
     with pytest.raises(TypeError):
-        word(input=6).str()
+        word(pattern=6).str()
     with pytest.raises(TypeError):
-        digit.word(input=6).str()
+        digit.word(pattern=6).str()
 
     assert any_between('a', 'j').str() == r'[a-j]'
     with pytest.raises(TypeError):
@@ -99,11 +99,11 @@ def test_parameters_to_chains_lazy():
         digit.word(6).str()
 
     with pytest.raises(TypeError):
-        digit + word(input=6).str()
+        digit + word(pattern=6).str()
     with pytest.raises(TypeError):
-        word(input=6).str()
+        word(pattern=6).str()
     with pytest.raises(TypeError):
-        digit.word(input=6).str()
+        digit.word(pattern=6).str()
 
     assert any_between('a', 'j').str() == r'[a-j]'
     assert any_between(1.2, 3.4).str()
@@ -141,11 +141,11 @@ def test_parameters_to_chains_eager():
         digit.word(6)
 
     with pytest.raises(TypeError):
-        digit + word(input=6)
+        digit + word(pattern=6)
     with pytest.raises(TypeError):
-        word(input=6)
+        word(pattern=6)
     with pytest.raises(TypeError):
-        digit.word(input=6)
+        digit.word(pattern=6)
 
     assert any_between('a', 'j').str() == r'[a-j]'
     with pytest.raises(TypeError):
@@ -226,7 +226,7 @@ def test_imply_input_is_cur():
         assert digit.if_preceded_by(input) == if_preceded_by(input) + digit
         assert digit.if_not_proceded_by(input) == digit + if_not_proceded_by(input)
         assert digit.if_proceded_by(input) == digit + if_proceded_by(input)
-        assert digit.if_enclosed_with('|') == if_enclosed_with('|', '|', digit) == if_enclosed_with('|', input=digit)
+        assert digit.if_enclosed_with('|') == if_enclosed_with('|', '|', digit) == if_enclosed_with('|', pattern=digit)
         assert digit.at_least(min) == at_least(min, digit)
         assert digit.more_than(min) == more_than(min, digit)
         assert digit.amt(2) == match_num(2, digit)
@@ -250,7 +250,7 @@ def test_imply_input_is_cur():
         assert options('multiline') + digit.if_preceded_by(input) == if_preceded_by(input) + options('multiline') + digit
         assert options('multiline') + digit.if_not_proceded_by(input) == digit + if_not_proceded_by(input) + options('multiline')
         assert options('multiline') + digit.if_proceded_by(input) == digit + if_proceded_by(input) + options('multiline')
-        assert options('multiline') + digit.if_enclosed_with('|') == if_enclosed_with('|', '|', digit) + options('multiline') == if_enclosed_with('|', input=digit) + options('multiline')
+        assert options('multiline') + digit.if_enclosed_with('|') == if_enclosed_with('|', '|', digit) + options('multiline') == if_enclosed_with('|', pattern=digit) + options('multiline')
         assert options('multiline') + digit.at_least(min) == at_least(min, digit) + options('multiline')
         assert options('multiline') + digit.more_than(min) == more_than(min, digit) + options('multiline')
         assert options('multiline') + digit.amt(2) == match_num(2, digit) + options('multiline')
@@ -307,6 +307,8 @@ def test_append_prepend():
     assert (digit + whitespace.opt).str() == r'\d(?:\s+)?'
     assert digit.whitespace.opt.str() == r'(?:\d\s+)?'
 
+    assert (digit + whitespace.optional).str() == str(digit + optional(whitespace))
+    assert digit.whitespace.optional.str() == str(optional(digit.whitespace))
 
 def test_no_duplicate_flags():
     r = lineStart + word + '/' + '/' + lineEnd
@@ -351,7 +353,6 @@ def test_accurate_types():
     assert type(ez.letter_num) is ez.PythonEZRegex
     assert type(letter_num) is ez.PythonEZRegex
     assert type(ez.python.letter_num) is ez.PythonEZRegex
-
 
 def test_proper_sanitation():
     assert literal(r'\A').str() == r'\\A'

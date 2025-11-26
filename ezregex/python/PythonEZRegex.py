@@ -9,7 +9,6 @@ from .. import EZRegex
 from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
 from sys import version_info
-from ..inject_parts import inject_parts
 
 # TODO: make all the flag functions here also accept re.FLAG types (internally they should work the same though)
 

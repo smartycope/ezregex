@@ -4,7 +4,6 @@ __version__ = '1.1.0'
 from .. import EZRegex
 from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
-from ..inject_parts import inject_parts
 
 class JavascriptEZRegex(
     BaseMixin(allow_greedy=True, allow_possessive=True),
