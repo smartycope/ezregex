@@ -22,6 +22,8 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # TODO: consider changing add_flags to "outer" or "end" or something
 # TODO: a lot of the raised ValueErrors should probably a custom Exception. Something like UnimplementedDialect or something
 
+class
+
 # Because we have a method named str, some of the typing thinks we mean it instead of the type
 _str = str
 

@@ -1,5 +1,4 @@
 # Developer Documentation
-*Note: this page hasn't been updated in a while*
 ## The EZRegex class
 Everything relies on the EZRegex class. The EZRegex class is an abstract class, and each dialect subclasses the EZRegex class to define their own elements specific to that dialect (more on that later). The EZRegex class is not technically a metaclass, but functions similarly: at define time (not at instantiation time), it does a number of things:
 1. Add variables to the class (more on that later)
@@ -10,20 +9,18 @@ Everything relies on the EZRegex class. The EZRegex class is an abstract class, 
 
 Step 2 is probably the most confusing part. There are 2 reasons for doing it this way, generally. Firstly, I wanted to support chain-like syntax, like `word.anyof('123').digit`. But mainly, I wanted a more object-oriented way of defining dialects, instead of the hodge-podge pile of global functions I had before. The original operator syntax, `word + anyof('123') + digit`, still functions, because at the end of each dialect I simply have a function that puts all the singleton members into the global scope. This is much cleaner than the other way around.
 
-<!-- TODO: autogenerate snakeCase versions, while still keeping the other psuedonyms -->
-The psuedonyms are simply alternate names for most of the functions. Internally, each singleton member has 1 name (lowercase, camel_case), but because this library is intended to be used by people writing in other languages, there's also snakeCase versions of each of them. Also, for many of the concepts, either there's multiple sensible names for them, or different dialects tend to call them different things (`letter` vs `alpha`, `at_least_none` vs `any_amt` vs `zero_or_more`, etc).
+The psuedonyms are simply alternate names for most of the functions. Internally, each singleton member has 1 name (lowercase, snake_case), but because this library is intended to be used by people writing in other languages, there's also snakeCase versions of each of them. Also, for many of the concepts, either there's multiple sensible names for them, or different dialects tend to call them different things (`letter` vs `alpha`, `at_least_none` vs `any_amt` vs `zero_or_more`, etc). Note that camelCase versions are auto-generated from both the cannonical names and psuedonyms at define time as well.
 
 Each `singleton member` (and their associated global version) represents a fundamental part of the Regular Expression syntax for that language, as well as less-fundemental common combinations for convenience (like email and float).
 
-## Mixins
-~90% of each regex dialect is exactly the same. \w always is a word character, ...? is always optional, etc.
-
 ## Creating a New Dialect
+New dialects are implemented in their own submodule, and are imported into the main module. They should have a single class that inherits from EZRegex. The submodule naming convention is all lowercase, using non-acronyms where it makes sense to (e.g. `javascript` instead of `js`, but `pcre2` is still `pcre2`).
+
 An example is worth a thousand explanations, so here's an example dialect:
 
 ```python
 from .. import EZRegex
-from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
+from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin, AdvancedGroupsMixin, AdvancedReplacementsMixin, imply_pattern_is_cur, raise_if_empty)
 from ..flag_docs import common_flag_docs
 
 # This is the naming convention
@@ -170,6 +167,8 @@ from ..inject_parts import inject_parts
 globals().update(inject_parts(DialectEZRegex))
 ```
 This will inject all the members into the module, and make them available as attributes of the module.
+
+When adding a new dialect, you can do it incrementally, adding parts at a time, but try to keep all the tests passing.
 
 ## Inverting
 There's actually 2 algorithms implemented for "inverting" regexs. The old algorithm regexs the regexs in a specific order to replace parts one at a time. This is just as nasty and horrifying as it sounds. Dispite it being a terrible, *terrible* solution, I actually got it to work decently well.

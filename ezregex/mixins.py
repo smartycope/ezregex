@@ -13,7 +13,10 @@ from string import Formatter
 
 from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 # TODO: add typing to all of these
-# TODO: rename "pattern" to "pattern"
+
+# NOTE: the docstrings are added manually, which I hate. They SHOULD be below the variable
+# and auto-parsed, but that's difficult for a number of reasons, one of which being my
+# weird, non-standard structure. Adding manually works for now.
 
 # NOTE: when writing mixins, keep in mind that parameters which are None or bools will be passed as-is,
 # ints will be cast to strings, and strings will be escaped based on the dialect's _escape_chars. Any
@@ -89,15 +92,15 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         return rtn
 
     class _BaseMixin:
-        literal = lambda pattern, cur=...: cur + pattern
-        "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
+        literal = lambda pattern, cur=...: cur + pattern, {'docstring':
+        "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"}
 
         # Not technically a variable, but it's accepted by EZRegex.__init__(), so it works
-        raw = lambda regex, cur=...: cur + regex, {'_is_raw': True}
+        raw = lambda regex, cur=...: cur + regex, {'_is_raw': True, 'docstring':
         """ If you already have some regular regex written and you want to incorperate
             it, this will allow you to include it without sanitizing all the backslashes
             and such, which all the other EZRegexs do automatically
-        """
+        """}
 
         # Positional
         word_boundary      = r'\b'
@@ -109,8 +112,8 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         space_or_tab       = r'[ \t]'
         new_line           = r'\n'
         carriage_return    = r'\r'
-        quote              = r'(?:\'|"|`)'
-        "Matches ', \", and `"
+        quote              = r'(?:\'|"|`)', {'docstring':
+        "Matches ', \", and `"}
         vertical_tab       = r'\v'
         form_feed          = r'\f'
         comma              = r'\,'
@@ -124,22 +127,22 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         # Catagories
         white_char         = r'\s'
-        whitechunk         = r'\s+'
-        "A \"chunk\" of whitespace. Just any amount of whitespace together"
+        whitechunk         = r'\s+', {'docstring':
+        "A \"chunk\" of whitespace. Just any amount of whitespace together"}
         digit              = r'\d'
-        number             = r'\d+'
-        "Matches multiple digits next to each other. Does not match negatives or decimals"
+        number             = r'\d+', {'docstring':
+        "Matches multiple digits next to each other. Does not match negatives or decimals"}
         word               = r'\w+'
-        word_char          = r'\w'
-        "Matches just a single \"word character\", defined as any letter, number, or _"
-        anything           = r'.'
-        "Matches any single character, except a newline. To also match a newline, use literally_anything"
-        chunk              = r'.+'
-        "A \"chunk\": Any clump of characters up until the next newline"
+        word_char          = r'\w', {'docstring':
+        "Matches just a single \"word character\", defined as any letter, number, or _"}
+        anything           = r'.', {'docstring':
+        "Matches any single character, except a newline. To also match a newline, use literally_anything"}
+        chunk              = r'.+', {'docstring':
+        "A \"chunk\": Any clump of characters up until the next newline"}
         uppercase          = r'[A-Z]'
         lowercase          = r'[a-z]'
-        letter             = r'[A-Za-z]'
-        "Matches just a letter -- not numbers or _ like word_char"
+        letter             = r'[A-Za-z]', {'docstring':
+        "Matches just a letter -- not numbers or _ like word_char"}
         hex_digit          = r'[0-9a-fA-F]'
         oct_digit          = r'[0-7]'
         # TODO: is there a more formal definition of this or something?
@@ -147,32 +150,32 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         # current class's.
         # However, getting access to the current class here is sorta impossible, so I'm ignoring it until
         # it starts to cause problems
-        punctuation        = r'[' + escape(']`~!@#$%^&*()-_=+[{}\\|;:\'",<.>/?¢]') + r']'
-        controller         = r'[\x00-\x1F\x7F]'
-        "Matches a metadata ASCII characters"
-        printable          = r'[\x21-\x7E]'
-        "Matches printable ASCII characters"
-        printable_and_space= r'[\x20-\x7E]'
+        punctuation         = r'[' + escape(']`~!@#$%^&*()-_=+[{}\\|;:\'",<.>/?¢]') + r']'
+        controller          = r'[\x00-\x1F\x7F]', {'docstring':
+        "Matches a metadata ASCII characters"}
+        printable           = r'[\x21-\x7E]', {'docstring':
+        "Matches printable ASCII characters"}
+        printable_and_space = r'[\x20-\x7E]'
         letter_num          = r'[A-Za-z0-9_]'
-        unicode            = lambda name, cur=...: fr'\N{name}'
-        "Matches a unicode character by name"
+        unicode             = lambda name, cur=...: fr'\N{name}', {'docstring':
+        "Matches a unicode character by name"}
 
         # Premade
         # TODO: a chunk of literally anything/chunk of literally anything except ...
-        literally_anything = r'(?:.|\n)'
-        "*Any* character, include newline"
-        signed             = r'(?:(?:\-|\+))?\d+'
-        "a signed number, including 123, -123, and +123"
-        unsigned           = r'\d+'
-        "Same as number. Will not match +123"
-        plain_float        = r'(?:(?:\-|\+))?\d+\.(?:\d+)?'
-        "Will match 123.45 and 123."
-        full_float         = r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?'
-        "Will match plain_float as well as things like 1.23e-10 and 1.23e+10"
-        int_or_float       = r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?(?:\-)?\d+(?:\.(?:\d+)?)?'
-        "Will match a full float, as well as a signed (and unsigned) integer"
-        ow                 = r'\s*'
-        "\"Optional Whitechunk\""
+        literally_anything = r'(?:.|\n)', {'docstring':
+        "*Any* character, include newline"}
+        signed             = r'(?:(?:\-|\+))?\d+', {'docstring':
+        "a signed number, including 123, -123, and +123"}
+        unsigned           = r'\d+', {'docstring':
+        "Same as number. Will not match +123"}
+        plain_float        = r'(?:(?:\-|\+))?\d+\.(?:\d+)?', {'docstring':
+        "Will match 123.45 and 123."}
+        full_float         = r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?', {'docstring':
+        "Will match plain_float as well as things like 1.23e-10 and 1.23e+10"}
+        int_or_float       = r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?(?:\-)?\d+(?:\.(?:\d+)?)?', {'docstring':
+        "Will match a full float, as well as a signed (and unsigned) integer"}
+        ow                 = r'\s*', {'docstring':
+        "\"Optional Whitechunk\""}
 
         @add_greedy_possessive
         @imply_pattern_is_cur
@@ -465,8 +468,8 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
         if string:
             string_starts_with = lambda pattern='', cur=...: r'\A' + pattern + cur
             string_ends_with   = lambda pattern='', cur=...: pattern + string_end + cur
-            is_exactly = imply_pattern_is_cur(lambda pattern=..., cur=...: r"\A" + pattern + string_end)
-            "This matches the string if and only if the entire string is exactly equal to `pattern`"
+            is_exactly = imply_pattern_is_cur(lambda pattern=..., cur=...: r"\A" + pattern + string_end), {'docstring':
+            "This matches the string if and only if the entire string is exactly equal to `pattern`"}
 
         if line:
             # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
@@ -474,10 +477,10 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
             line_ends_with     = lambda pattern='', cur=...: cur + pattern + r'$', {'flags':'m'}
 
         if word_boundaries:
-            word_boundary      = lambda pattern='', cur=...: r'\b' + pattern + cur
-            "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string"
-            not_word_boundary  = lambda pattern='', cur=...: cur + pattern + r'\B'
-            "The opposite of `word_boundary`"
+            word_boundary      = lambda pattern='', cur=...: r'\b' + pattern + cur, {'docstring':
+            "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string"}
+            not_word_boundary  = lambda pattern='', cur=...: cur + pattern + r'\B', {'docstring':
+            "The opposite of `word_boundary`"}
 
         if word:
             word_starts_with   = lambda pattern='', cur=...: r'\<' + pattern + cur
@@ -523,8 +526,8 @@ def ReplacementsMixin(*,
     formatter = CustomFormatter()
 
     class _ReplacementsMixin:
-        rliteral = lambda pattern, cur=...: cur + pattern, {'replacement': True}
-        """ Exactly like literal, but for replacement regexs """
+        rliteral = lambda pattern, cur=...: cur + pattern, {'replacement': True, 'docstring':
+        """ Exactly like literal, but for replacement regexs """}
 
         @EZRegex.exclude
         @classmethod
@@ -550,8 +553,8 @@ def ReplacementsMixin(*,
             return string if compile else cls([lambda cur=...: cur + string], replacement=True)
 
         rgroup = _rgroup, {'replacement': True}
-        replace_entire = entire_match, {'replacement': True}
-        "Puts in its place the entire match"
+        replace_entire = entire_match, {'replacement': True, 'docstring':
+        "Puts in its place the entire match"}
 
     return _ReplacementsMixin
 
