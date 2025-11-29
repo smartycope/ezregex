@@ -7,13 +7,9 @@ from ..mixins import (BaseMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin, _
 
 class REZRegex(
     BaseMixin(allow_greedy=False, allow_possessive=False),
-    GroupsMixin(
-        advanced=False,
-        named_group=None,
-    ),
+    GroupsMixin(named_group=None),
     AnchorsMixin(string=False),
     ReplacementsMixin(
-        advanced=False,
         numbered_group=lambda num, cur=...: fr'{cur}\{num}',
         named_group=None,
     ),

@@ -22,20 +22,154 @@ Each `singleton member` (and their associated global version) represents a funda
 An example is worth a thousand explanations, so here's an example dialect:
 
 ```python
+from .. import EZRegex
+from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
+from ..flag_docs import common_flag_docs
 
-There used to be a beautiful example here, which accidentally got deleted. I'm too frustrated to fix it right now. Better documentation to come.
+# This is the naming convention
+class PythonEZRegex(
+    # Note that for clarity, all mixins only take named parameters
+    # This is the base syntax, shared by most of the dialects. Single elements which don't fit can be removed
+    # or overriden as needed
+    # Auto-generates greedy and possessive variants where applicable
+    BaseMixin(allow_greedy=True, allow_possessive=True),
+    # Adds things like lookahead assertions
+    AssertionsMixin(),
+    # Adds groups, used for replacement regexs.
+    GroupsMixin(
+        # Some of these are specified as parameters, instead of later in the class body
+        # because it integrates it into more advanced logic internally, or it's used in multiple parts
+        named_group=lambda pattern, name, cur=...: f'{cur}(?P<{name}>{pattern})',
+    ),
+    # This adds some more advanced group syntax, like referencing earlier groups. Later, even more advanced
+    # parts will get added to this, such as branching logic
+    AdvancedGroupsMixin(
+        earlier_numbered_group=lambda num, cur=...: f'{cur}\\{num}',
+        earlier_named_group=lambda name, cur=...: f'{cur}(?P={name})'
+    ),
+    # Adds regex anchors
+    AnchorsMixin(
+        # adds start/end of string and is_exactly
+        string=True,
+        # adds start/end of line
+        line=True,
+        # adds word/not word boundary
+        word_boundaries=True,
+        # adds word starts/ends with
+        word=True,
+        # The default is \z, but some dialects use \Z instead
+        string_end=r'\Z'
+    ),
+    # Adds replacement syntax. These are distinct and not interoperable with regular regexs
+    ReplacementsMixin(
+        named_group=lambda name, cur=...: fr'{cur}\g<{name}>',
+        numbered_group=lambda num, cur=...: fr'{cur}\g<{num}>'
+    ),
+    # Includes defaults for entire_string, string_before_match, and string_after_match
+    AdvancedReplacementsMixin(),
+    # This needs to be last, because Python evaluates multiple inheritence from left to right,
+    # and all the mixins need to be transformed
+    EZRegex,
 
+    # These are now not inherited classes, but parameters that get passed to EZRegex.__init_subclass__
+    # These are the characters in this dialect that we want to auto-escape
+    escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',
+    # These are the flags in this dialect. The names should be lower, snake_case, like so, and the
+    # values should be the single character flag associated with it
+    flags={
+        'ascii': 'a',
+        'ignore_case': 'i',
+        'single_line': 's',
+        'locale': 'L',
+        'multiline': 'm',
+        'unicode': 'u'
+    },
+    # A lot of the dialects share flags, so I've provided a common set of flag docs
+    flags_docs_map={**common_flag_docs, 'locale': '''Try not to use this, and rely on unicode matching instead'''},
+    # A link to the official docs for the flags. This is purely optional, and used to
+    # dynamically generate the options() docstring
+    flags_docs_link='https://docs.python.org/3/library/re.html#flags',
+
+    # This is also optional. This is a dict of variables that get added to the class.
+    # The keys are the names of the variables, and the values are (default_value, combine_function)
+    # The default_value can be a callable, which will be called with the object in question
+    # (which may or may not be an EZRegex instance). If it's not callable, it uses that as the default value
+    # The combine_function takes 2 arguments, l and r, for left and right, and returns the combined value
+    # In this case, we have a function below which caches the compiled regex. If we add anything to the
+    # EZRegex chain, we need to invalidate the cache, so the default value is `None` (uncompiled), and
+    # the combine function always returns None
+    variables={
+        '_compiled': (None, lambda l, r: None),
+    }
+):
+    # It's polite to link to the official docs
+    """
+    Official docs:
+    https://docs.python.org/3/library/re.html
+    """
+
+    # If you want to add methods specific to this dialect, you can by decorating them with
+    # EZRegex.exclude. This prevents them from being transformed into EZRegex objects.
+    @EZRegex.exclude
+    def compile(self, add_flags=True):
+        return re.compile(self._compile(add_flags=add_flags))
+
+    # There are 5 ways to define parts of the dialect:
+    # 1. As a string. This just adds the string to the end of the current complied regex
+    white_char = r'\s'
+
+    # 2. A lambda. It can take any parameters, but must take cur=... as a keyword parameter,
+    # and it must have ... as the default value. cur gets passed as the current complied regex string,
+    # and what the lambda returns becomes the new complied regex string. Note that cur is guranteed to
+    # be a string. Other parameters are sanatized: None and bools are passed as-is, ints are cast to strings,
+    # and strings are escaped based on the dialect's escape_chars. Any other types are auto-cast to strings,
+    # special characters are not escaped, and a warning is thrown. See EZRegex._sanitize_param for more info
+    literal = lambda pattern, cur=...: cur + pattern
+
+    # 3. A callable. It functions exactly the same as the lambda
+    def any_between(char:str, and_char:str, cur=...):
+        """Match any char between `char` and `and_char`, using the ASCII table for reference"""
+        # You can use raise_if_empty() to raise a ValueError if a parameter is and empty string
+        raise_if_empty(char, 'any_between', 'char')
+        raise_if_empty(and_char, 'any_between', 'and_char')
+        return cur + r'[' + char + r'-' + and_char + r']'
+
+    # 4. A tuple of (lambda, dict). The lambda functions as above, and the dict is a dictionary of variables
+    # to add to the class. This sets the default value for this instance, and then they propagate as
+    # defined in the variables parameter to the class
+    line_starts_with = lambda pattern='', cur=...: r'^' + pattern + cur, {'flags':'m'}
+
+    # 5. A function decorated with add_vars. This does the same as #4, but in case you need
+    # more complex logic, you can use this
+    @add_vars(replacement=True)
+    def rliteral(pattern, cur=...):
+        return cur + pattern
+
+    # There's also another helpful decorator, imply_pattern_is_cur
+    # If `pattern` is Ellipsis, it will use `cur` instead, and `cur` will be set to an empty string.
+    # This is useful for functions that want to allow both inline and operator style chaining
+    # i.e. digit.amt(2) and amt(2, digit)
+    # NOTE: `pattern` must be a keyword parameter, and it must be the last parameter able to be
+    # provided as a positional argument. Don't use *args.
+    @imply_pattern_is_cur
+    def match_max(pattern=..., *, cur=...):
+        """ Match as many of `pattern` in the string as you can. This is equivelent to using the unary + operator. """
+        return cur + r'(?:' + pattern + r')' + r'+'
+
+    # Feel free to add raw regexs for this dialect here.
+    version = r"(?P<major>0|[1-9]\d*) ..."
+    """The *official* regex for matching version numbers from https://semver.org/."""
+    # Docstrings immediately after members are used as the docstring. This will be added in a later version
 ```
 
-EZRegex can a
-- make a note in GOTCHAS aboud the difference between
-digit + whitespace.opt
-and
-digit.whitespace.opt
-    - also note that whitespace == whitechunk, and not white_char
+The __init__ file in the submodule must look like this:
+```python
+from .DialectEZRegex import DialectEZRegex
+from ..inject_parts import inject_parts
 
-
-- make a note in GOTCHAS that linting, types, and docstrings are fickleccept a string or a function to define how it's supposed to interact with the current "chain" of elements. If it's a string, it just adds it to the end. If it's a function, it can accept any positional or named parameters, but has to accept `cur=...` as the last parameter (it's complicated). The `cur` parameter is the currently compiled regular expression chain, as a string. What's returned becomes the new `cur` parameter of the next element, or, if there is no next element, the final regex. That way you can add to the front or back of an expression, and you can change what exactly gets added to the current expression based on other parameters.
+globals().update(inject_parts(DialectEZRegex))
+```
+This will inject all the members into the module, and make them available as attributes of the module.
 
 ## Inverting
 There's actually 2 algorithms implemented for "inverting" regexs. The old algorithm regexs the regexs in a specific order to replace parts one at a time. This is just as nasty and horrifying as it sounds. Dispite it being a terrible, *terrible* solution, I actually got it to work decently well.
@@ -46,6 +180,7 @@ Along the way, I also discovered, deep in the corners of the internet, 2 other P
 
 ## Documentation
 Docs are hosted on readthedocs, built by mkdocs, and the dialect docs are assisted by pdoc.
+<!-- TODO: more details here -->
 
 ## Tests
 Tests are run using GitHub Actions, and are run in a Docker container. The Dockerfile is in the `tests` directory, and the manager script is in the same directory. The manager script is run using `bash manager.sh`

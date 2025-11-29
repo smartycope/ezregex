@@ -6,7 +6,7 @@ import re
 import sys
 
 from .. import EZRegex
-from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
+from ..mixins import (AdvancedGroupsMixin, BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
 from sys import version_info
 
@@ -15,11 +15,11 @@ from sys import version_info
 class PythonEZRegex(
     BaseMixin(allow_greedy=True, allow_possessive=version_info >= (3, 11)),
     AssertionsMixin(),
-    GroupsMixin(advanced=True),
+    GroupsMixin(),
+    AdvancedGroupsMixin(),
     # only 3.14+ has support for \z
     AnchorsMixin(word=False, string_end=r'\Z'),
     ReplacementsMixin(
-        advanced=False,
         named_group=lambda name, cur=...: fr'{cur}\g<{name}>',
         numbered_group=lambda num, cur=...: fr'{cur}\g<{num}>'
     ),

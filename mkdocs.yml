@@ -1,9 +1,10 @@
-site_name: EZRegex
-
+site_name: EZRegex Docs
+use_directory_urls: false
 theme: readthedocs
 
 plugins:
   - search
+  - include-markdown
   - mkdocstrings:
       default_handler: python
       handlers:
@@ -11,3 +12,6 @@ plugins:
           options:
             docstring_style: google
             show_source: false
+  - gen-files:
+      scripts:
+        - generate_docs.py

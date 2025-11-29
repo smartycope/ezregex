@@ -2,18 +2,17 @@
 __version__ = '1.1.0'
 
 from ..EZRegex import EZRegex
-from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
+from ..mixins import (AdvancedGroupsMixin, AdvancedReplacementsMixin, BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
 
 class PCRE2EZRegex(
     BaseMixin(allow_greedy=True, allow_possessive=True),
     AssertionsMixin(),
-    GroupsMixin(advanced=True),
+    GroupsMixin(),
+    AdvancedGroupsMixin(),
     AnchorsMixin(string=False),
-    ReplacementsMixin(
-        advanced=True,
-        entire_match='$&',
-    ),
+    ReplacementsMixin(entire_match='$&'),
+    AdvancedReplacementsMixin(),
     EZRegex,
 
     escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',

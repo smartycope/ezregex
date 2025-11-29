@@ -2,21 +2,19 @@
 __version__ = '1.1.0'
 
 from .. import EZRegex
-from ..mixins import (BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
+from ..mixins import (AdvancedGroupsMixin, BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
 from ..flag_docs import common_flag_docs
 
 class JavascriptEZRegex(
     BaseMixin(allow_greedy=True, allow_possessive=True),
     AssertionsMixin(),
-    GroupsMixin(
-        advanced=True,
-        named_group=lambda input, name, cur=...: f'{cur}(?<{name}>{input})',
+    GroupsMixin(named_group=lambda input, name, cur=...: f'{cur}(?<{name}>{input})'),
+    AdvancedGroupsMixin(
         earlier_numbered_group=lambda num, cur=...: fr'{cur}\{num}',
         earlier_named_group=lambda name, cur=...: fr'{cur}\k<{name}>'
     ),
     AnchorsMixin(),
     ReplacementsMixin(
-        advanced=False,
         named_group=lambda name, cur=...: fr'{cur}$<{name}>',
         numbered_group=lambda num, cur=...: fr'{cur}${num}',
         entire_match='$&',

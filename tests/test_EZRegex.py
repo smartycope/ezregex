@@ -370,3 +370,11 @@ def test_proper_sanitation():
     with pytest.raises(TypeError):
         digit.raw.word.str()
     # TODO: this could use some more tests in it
+
+def test_replacements_not_interoperable():
+    assert (rgroup(1) + 'foo').str() == r'\g<1>foo'
+    assert (rgroup('bar') + 'foo').str() == r'\g<bar>foo'
+    with pytest.raises(TypeError):
+        (rgroup('bar') + literal('foo'))
+    with pytest.raises(TypeError):
+        (rgroup('bar') + word)

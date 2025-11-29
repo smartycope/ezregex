@@ -9,6 +9,7 @@ from typing import Callable, Dict, List, Set
 try:
     from typing import Unpack
 except ImportError:
+    # This is wrong
     Unpack = dict
 
 from .api import api
@@ -20,18 +21,30 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # TODO: Seperate EZRegex into a "bytes" mode vs "string" mode
 # TODO: consider changing add_flags to "outer" or "end" or something
 # TODO: a lot of the raised ValueErrors should probably a custom Exception. Something like UnimplementedDialect or something
-def raise_(ex): raise ex
+
+# Because we have a method named str, some of the typing thinks we mean it instead of the type
+_str = str
+
+# TODO: this should be a custom error
+def _raise_replacement_interoperable_error():
+    raise TypeError('Dont mix replacement EZRegexs with non-replacement EZRegexs')
+
 # These are here because having it be a class member as part of the parent and child classes
 # seems to cause problems
-initial_variables = {
+_initial_variables = {
     # Cast to sets so it can accept strings
     'flags'             : (set(), lambda l, r: set(l) | set(r)),
-    'replacement'       : (False, lambda l, r: l or r),
+    # None means it works with both. If the instance is a str (like rgroup(1) + 'foo'), it can be either
+    'replacement'       : (lambda obj: None if isinstance(obj, str) else False, lambda l, r: l if l == r or l is None or r is None else _raise_replacement_interoperable_error()),
     '_options_specified': (False, lambda l, r: l or r),
 }
 """ These propagate through the EZRegex chain, in ways defined by the lambda.
-    The first value is the default, the second is the function to use to combine the values.
-    The 2nd value takes 2 arguments, the left and right values, and returns the combined value.
+    The first value is either the default, or  a function which takes the current object
+        and returns it's default
+    The second is a function used to combine the values.
+    The first value, if a callable, takes 1 argument, the object in question (which may not be an EZRegex instance!),
+        and returns the default value for it
+    The second value takes 2 arguments, the left and right values, and returns the combined value.
 """
 
 class EZRegex(ABC):
@@ -50,8 +63,9 @@ class EZRegex(ABC):
     "If True, parameters passed to singleton methods will not be checked until the regex is compiled"
 
     # For linting's sake
-    flags: set[str]
+    flags: set[_str]
     replacement: bool
+    docstring: _str
     _options_specified: bool
     _func_list: list[EZRegexFunc]
     _is_raw: bool
@@ -71,21 +85,43 @@ class EZRegex(ABC):
             return method
         return inner
 
+    # TODO: this funciton is a stub
+    @staticmethod
+    def _get_variable_docstring(type_:type, definition:EZRegexDefinition):
+        """ Get the docstring for a variable. The proper way to do this would be
+            via ast parsing, but this works for now
+            TODO: See _pep224_docstrings in https://github.com/pdoc3/pdoc/blob/af49da6151d6e5c2b575c105693e61af87808bda/pdoc/__init__.py#L255
+        """
+        # If given the line after it's definition, this would get the docstring (the named doc group)
+        # quote = either('\'', '"')
+        # optional(whitechunk) + group(either(amt(3, quote), quote), name='y') + group(match_max(literallyAnything), name='doc') + earlier_group('y')
+        # docstring_regex = r"""(?:\s+)?(?P<y>(?:(?:(?:'|")){3}|(?:'|")))(?P<doc>(?:(?:.|\n))+)(?P=y)"""
+        return
+
     @staticmethod
     def _interpret_definition(type_:type, definition:EZRegexDefinition|list):
         """ Interpret a definition into an instantiated EZRegex subclass object of type `type_`"""
 
         if isinstance(definition, str):
-            return type_([lambda cur=...: cur + definition])
+            return type_([lambda cur=...: cur + definition], _docstring=EZRegex._get_variable_docstring(type_, definition))
 
         elif isinstance(definition, tuple):
             assert len(definition) == 2, f'Definition {definition} is not a tuple of length 2'
             assert isinstance(definition[1], dict), f'Definition {definition} is a tuple of 2, but the second element is not a dictionary'
             if type(definition[0]) is str:
                 assert all(k in type_._variables for k in definition[1].keys()), f'Definition {definition} is a tuple of 2, but not all of the keys are in the dialect\'s variables (avilable variables: {type_._variables})'
-                return type_([lambda cur=...: cur + definition[0]], **definition[1])
+                return type_([lambda cur=...: cur + definition[0]], _docstring=EZRegex._get_variable_docstring(type_, definition[0]), **definition[1])
             elif callable(definition[0]):
-                return type_([definition[0]], **definition[1])
+                try:
+                    doc = (
+                        EZRegex._get_variable_docstring(type_, definition[0])
+                        if definition[0].__name__ == '<lambda>'
+                        else definition[0].__doc__
+                    )
+                # There's a partial in one, which is callable, but doesn't have a __name__ attribute
+                except AttributeError:
+                    doc = None
+                return type_([definition[0]], _docstring=doc, **definition[1])
             else:
                 raise ValueError(f'Definition {definition} is a tuple of 2, but the first element is not a string or callable')
 
@@ -94,7 +130,7 @@ class EZRegex(ABC):
             sig = signature(definition)
             assert 'cur' in sig.parameters, f'Definition {definition} does not have cur as a keyword parameter'
             assert sig.parameters['cur'].default == ..., f'Definition {definition} does not have cur as a keyword parameter with default value of ...'
-            return type_([definition], **type_._added_vars.get(definition.__name__, {}))
+            return type_([definition], _docstring=definition.__doc__, **type_._added_vars.get(definition.__name__, {}))
 
         elif isinstance(definition, list):
             return type_(definition)
@@ -181,7 +217,7 @@ Args:
             # Make sure the callable has the right signature
             sig = signature(v[1])
             assert len(sig.parameters) == 2, f'Value {v} is a tuple of 2, but the second element is not a callable with 2 parameters'
-        cls._variables = variables | initial_variables
+        cls._variables = variables | _initial_variables
 
         # Instantiate members & methods
         for name in cls.parts(include_psuedonyms=False):
@@ -198,20 +234,6 @@ Args:
         assert isinstance(flags_docs_map, dict), f'Flags docs map {flags_docs_map} is not a dictionary'
         assert isinstance(flags_docs_link, str), f'Flags docs link {flags_docs_link} is not a string'
         cls.options = cls._generate_options_from_flags(cls, flags, True, flags_docs_map, flags_docs_link)
-
-        # Define raw
-        # We define this here instead of in a mixin for a number of reasons:
-        # 1. It's definitely the same in all dialects
-        # 2. It should be in every dialect
-        # 3. This is the only thing that needs to bypass sanitation, and if we define it
-        #    separately, we don't have to add special handling for a single singleton member
-        def raw(regex, cur=...):
-            """ If you already have some regular regex written and you want to incorperate
-                it, this will allow you to include it without sanitizing all the backslashes
-                and such, which all the other EZRegexs do automatically
-            """
-            return cur + regex
-        cls.raw = cls([raw], _is_raw=True)
 
         # For the sake of brevity, these are here. No different than being defined below
         # There's no particular reason I put these here instead of in __init__()
@@ -244,11 +266,12 @@ Args:
 
         return super().__init_subclass__(**kwargs)
 
-    def __init__(self, func_list:list[EZRegexFunc]=[], _is_raw=False, **variable_values):
+    def __init__(self, func_list:list[EZRegexFunc]=[], _is_raw=False, _docstring:str=None, **variable_values):
         # Use the defaults, which can get overriden if we're given variable values (i.e. by _combine())
-        self.__dict__.update({k: v[0] for k, v in self._variables.items()})
+        self.__dict__.update({k: (v[0](self) if callable(v[0]) else v[0]) for k, v in self._variables.items()})
         self.__dict__.update(variable_values)
         self.__dict__['_is_raw'] = _is_raw
+        self.__dict__['docstring'] = _docstring
 
         # Now that we're instantiated, we're immutable
         self.__dict__['_func_list'] = func_list
@@ -267,10 +290,24 @@ Args:
             func_list,
             # Use the combination functions to combine & propagate the variables
             **{
-                # combine_spec is (default_value, lamdba l, r: ...)
+                # combine_spec is (default_value/callable that returns default_value, lamdba l, r: ...)
+                # Call the combine function
                 var: combine_spec[1](
+                    # With the left value
                     self.__dict__[var],
-                    other.__dict__[var] if isinstance(other, type(self)) else combine_spec[0]
+                    (
+                        # And the right value, if it's an EZRegex instance (and of the same dialect, technically)
+                        other.__dict__[var]
+                        if isinstance(other, type(self))
+                        # Otherwise, the right value is the default
+                        else (
+                            # If the default is a callable, call it with the right value (the one which isn't an EZRegex instance)
+                            combine_spec[0](other)
+                            if callable(combine_spec[0])
+                            # Otherwise, just use the default value
+                            else combine_spec[0]
+                        )
+                    )
                 )
                 for var, combine_spec in
                 self._variables.items()
@@ -304,7 +341,7 @@ Args:
             except Exception as e:
                 raise ValueError(f'Incorrect type {type(i)} given to EZRegex parameter: Must be string or another EZRegex chain.') from e
 
-    def _sanitize_other(self, other:EZRegexOther, compile:bool=True) -> List[Callable[[str], str]]:
+    def _sanitize_other(self, other:EZRegexOther, compile:bool=True) -> List[Callable[[_str], _str]]:
         """ Sanitize things that are combined with the current chain (i.e. via +)
             Note that this is only called by _combine()
         """
@@ -334,7 +371,7 @@ Args:
             except Exception as e:
                 raise ValueError(f'Incorrect type {type(other)} given to EZRegex parameter: Must be string or another EZRegex chain.') from e
 
-    def _escape(self, pattern:str, replacement:bool=False):
+    def _escape(self, pattern:_str, replacement:bool=False):
         """ Available as a class method, so we can escape strings when defining singletons
             The user could use this, but I can't think of a reason they would want to.
         """
@@ -345,7 +382,7 @@ Args:
     def _raise_immutibility(self, *_args, **_kwargs):
         raise TypeError('EZRegex objects are immutable')
 
-    def _compile(self, regex:str='', add_flags:bool=True) -> str:
+    def _compile(self, regex:_str='', add_flags:bool=True) -> _str:
         for func in self._func_list:
             regex = func(cur=regex)
 
@@ -358,23 +395,23 @@ Args:
         return regex
 
     # Abstract methods
-    def _flag_func(self, final:str) -> str:
+    def _flag_func(self, final:_str) -> _str:
         """ This function is called to add the flags to the regex. It gets called even if there are no flags """
         if self.flags and not self.replacement:
             return f'(?{''.join(self.flags)}){final}'
         return final
 
-    def _final_func(self, compiled:str) -> str:
+    def _final_func(self, compiled:_str) -> _str:
         """ Gets called just before returning the compiled string to the user. Useful for adding things like
             Javascript's slashes (i.e. /regex/)
         """
         return compiled
 
-    def _escape(self, pattern:str):
+    def _escape(self, pattern:_str):
         return self.escape(pattern, self.replacement)
 
     @classmethod
-    def escape(cls, pattern:str, replacement:bool=False) -> str:
+    def escape(cls, pattern:_str, replacement:bool=False) -> _str:
         """ Available as a class method, so we can escape strings when defining singletons
             The user could use this, but I can't think of a reason they would want to.
         """
@@ -520,26 +557,26 @@ Args:
         return chain
 
     # Flag functions
-    def set_flags(self, flags:str|Set[str]):
+    def set_flags(self, flags:_str|Set[_str]):
         """ Directly sets flags in an EZRegex instance
             NOTE: you most likely don't want this, you likely want .options()
             This sets flags directly, not the names of the flags
         """
         return type(self)(self._func_list, flags=set(flags))
 
-    def add_flags(self, flags:str|Set[str]):
+    def add_flags(self, flags:_str|Set[_str]):
         """ Adds a flag to an EZRegex instance
             NOTE: you most likely don't want this, you likely want .options()
             This adds flags directly, not the names of the flags
         """
         return type(self)(self._func_list, flags=set(self.flags) | set(flags))
 
-    def remove_flags(self, flags:str|Set[str]):
+    def remove_flags(self, flags:_str|Set[_str]):
         """ Removes a flag from an EZRegex instance """
         return type(self)(self._func_list, flags=set(self.flags) - set(flags))
 
     # Magic Functions
-    def __call__(self, *args:Unpack[List[EZRegexParam]], **kwargs:Unpack[Dict[str, EZRegexParam]]):
+    def __call__(self, *args:Unpack[List[EZRegexParam]], **kwargs:Unpack[Dict[_str, EZRegexParam]]):
         """ This should be called by the user to specify the specific parameters of this instance i.e. anyof('a', 'b') """
         # Alright, buckle up
         # Firstly, the following are true:

@@ -72,7 +72,6 @@ def _parse_any_of_params(*patterns, chars=None, split=None):
 
     return chars, patterns
 
-
 def BaseMixin(*, allow_greedy=False, allow_possessive=False):
     """ The basics of regex syntax. Almost all dialects have these. You almost certainly
         want to inherit from this class, even if you need to overload a few of it's members.
@@ -92,6 +91,13 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
     class _BaseMixin:
         literal = lambda pattern, cur=...: cur + pattern
         "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"
+
+        # Not technically a variable, but it's accepted by EZRegex.__init__(), so it works
+        raw = lambda regex, cur=...: cur + regex, {'_is_raw': True}
+        """ If you already have some regular regex written and you want to incorperate
+            it, this will allow you to include it without sanitizing all the backslashes
+            and such, which all the other EZRegexs do automatically
+        """
 
         # Positional
         word_boundary      = r'\b'
@@ -343,10 +349,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
     return _BaseMixin
 
 def GroupsMixin(*,
-    advanced=False,
     named_group=lambda pattern, name, cur=...: f'{cur}(?P<{name}>{pattern})',
-    earlier_numbered_group=lambda num, cur=...: f'{cur}\\{num}',
-    earlier_named_group=lambda name, cur=...: f'{cur}(?P={name})'
 ):
     """ A function which returns a class with the group and passive_group methods. Optionally
         specify how to handle named groups.
@@ -370,22 +373,29 @@ def GroupsMixin(*,
             raise_if_empty(pattern, 'passive_group')
             return f'{cur}(?:{pattern})'
 
-        if advanced:
-            def earlier_group(num_or_name, cur=...):
-                """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
-                    group which would match `num_or_name`
-                """
-                raise_if_empty(num_or_name, 'earlier_group', num_or_name)
-                return earlier_numbered_group(num_or_name, cur=cur) \
-                    if isinstance(num_or_name, int) or num_or_name in digits \
-                    else earlier_named_group(num_or_name, cur=cur)
-
-            def if_exists(num_or_name, does_pattern, doesnt_pattern=None, cur=...):
-                """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` """
-                raise_if_empty(num_or_name, 'earlier_group', num_or_name)
-                return f'{cur}(?({num_or_name}){does_pattern}{("|" + str(doesnt_pattern)) if doesnt_pattern is not None else ""})'
-
     return _GroupsMixin
+
+def AdvancedGroupsMixin(*,
+        earlier_numbered_group=lambda num, cur=...: f'{cur}\\{num}',
+        earlier_named_group=lambda name, cur=...: f'{cur}(?P={name})'
+    ):
+    class _AdvancedGroupsMixin:
+        def earlier_group(num_or_name, cur=...):
+            """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
+                group which would match `num_or_name`
+            """
+            raise_if_empty(num_or_name, 'earlier_group', num_or_name)
+            return earlier_numbered_group(num_or_name, cur=cur) \
+                if isinstance(num_or_name, int) or num_or_name in digits \
+                else earlier_named_group(num_or_name, cur=cur)
+
+        def if_exists(num_or_name, does_pattern, doesnt_pattern=None, cur=...):
+            """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` """
+            raise_if_empty(num_or_name, 'earlier_group', num_or_name)
+            return f'{cur}(?({num_or_name}){does_pattern}{("|" + str(doesnt_pattern)) if doesnt_pattern is not None else ""})'
+
+    return _AdvancedGroupsMixin
+
 
 def AssertionsMixin():
     """ Also called "lookahead"/"lookbehind". Adds associated singleton members which use them """
@@ -469,7 +479,6 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
             not_word_boundary  = lambda pattern='', cur=...: cur + pattern + r'\B'
             "The opposite of `word_boundary`"
 
-
         if word:
             word_starts_with   = lambda pattern='', cur=...: r'\<' + pattern + cur
             word_ends_with     = lambda pattern='', cur=...: pattern + r'\>' + cur
@@ -480,19 +489,10 @@ def ReplacementsMixin(*,
     named_group:None|Callable[[str,str],str]=lambda name, cur=...: f"{cur}${{{name}}}",
     numbered_group:None|Callable[[int,str],str]=lambda num, cur=...: f"{cur}${{{num}}}",
     entire_match:None|EZRegexFunc=None,
-    advanced=False,
-    entire_string:None|EZRegexFunc='$_',
-    string_before_match:None|EZRegexFunc='$`',
-    string_after_match:None|EZRegexFunc="$'",
 ):
     # if entire_match isn't specified, most of the time the 0th number group is the same thing
     if entire_match is None:
         entire_match = partial(numbered_group, 0)
-
-    # Weird scope error I guess
-    _entire_string = entire_string
-    _string_before_match = string_before_match
-    _string_after_match = string_after_match
 
     def _rgroup(num_or_name, cur=...):
         """ Puts in its place the group specified, either by group number (for unnamed
@@ -553,13 +553,12 @@ def ReplacementsMixin(*,
         replace_entire = entire_match, {'replacement': True}
         "Puts in its place the entire match"
 
-
-        if advanced:
-            if _entire_string:
-                entire_string = _entire_string, {'replacement': True}
-            if _string_before_match:
-                string_before_match = _string_before_match, {'replacement': True}
-            if _string_after_match:
-                string_after_match = _string_after_match, {'replacement': True}
-
     return _ReplacementsMixin
+
+def AdvancedReplacementsMixin():
+    class _AdvancedReplacementsMixin:
+        entire_string = '$_', {'replacement': True}
+        string_before_match = '$`', {'replacement': True}
+        string_after_match = "$'", {'replacement': True}
+
+    return _AdvancedReplacementsMixin
