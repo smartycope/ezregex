@@ -102,7 +102,9 @@ function test_dialect() {
 # Run most of the pytests
 function run_pytests() {
     echo "Running pytests..."
-    pytest -k "not generate and not invert"
+    # shift off the first argument
+    shift
+    pytest -k "not generate and not invert" "$@"
     if [ $? -ne 0 ]; then
         echo "Failed."
         exit 1
@@ -165,7 +167,7 @@ elif [ "$1" == "invert" ]; then
 elif [ "$1" == "dialect" ]; then
     test_dialect "$2"
 elif [ "$1" == "pytests" ]; then
-    run_pytests
+    run_pytests "$@"
 else
     echo "Usage: $0 all | most | generate | invert | dialect <dialect> | pytests"
     exit 1

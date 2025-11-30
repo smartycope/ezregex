@@ -19,7 +19,7 @@ try:
     }
     r_special_chars_regex = re.compile(r'\\([abtnvfr])')
 
-    langs = {'py': ez.python, 'js': ez.javascript, 'r': ez.R, 'pcre2': ez.PCRE2}
+    langs = {'py': ez.python, 'js': ez.javascript, 'r': ez.r, 'pcre2': ez.pcre2}
 
     with open('data/regexs.jsonc') as f:
         regexs = jstyleson.load(f)

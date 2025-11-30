@@ -12,31 +12,32 @@ import re
 # remove empty spans
 
 # These functions comprise the color algorithm
-def toHtml(r, g, b):
+def _toHtml(r, g, b):
     return f'#{r:02x}{g:02x}{b:02x}'
 
-def toRgb(html: str) -> tuple:
+def _toRgb(html: str) -> tuple:
     hex_color = html.lstrip('#')
     rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     return rgb
 
-def generate_colors(amt, s:float=1, v:float=1, offset:int=0):
+def _generate_colors(amt, s:float=1, v:float=1, offset:int=0):
     """ Generate `amt` number of colors evenly spaced around the color wheel
         with a given saturation and value
     """
     amt += 1
-    return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
+    return [_toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
 
-def furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
+def _furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
     """ Gets the `amt` number of colors evenly spaced around the color wheel from the given color
         `v_bias` and `s_bias` are between 0-1 and offset the colors
     """
     amt += 1
-    h, s, v = colorsys.rgb_to_hsv(*map(lambda c: c/255, toRgb(html)))
+    h, s, v = colorsys.rgb_to_hsv(*map(lambda c: c/255, _toRgb(html)))
 
-    return [toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
+    return [_toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
 
 
+# TODO: Better docs, and an example of the output in the docstring
 def api(pattern, replacement_pattern=None, test_string=None, *,
         replacement_count=0,
         split_count=0,
@@ -78,7 +79,7 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
     global_cursor = 0
     all_matches = [m.span() for m in matches]
     # Map match spans to unique colors
-    _colors = generate_colors(len(all_matches), s=foreground_saturation, v=foreground_value)
+    _colors = _generate_colors(len(all_matches), s=foreground_saturation, v=foreground_value)
     match_colors = dict(zip(all_matches, _colors))
 
     for match in matches:
@@ -98,7 +99,7 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
         # Map group spans to unique colors
         # This gets equally spaced colors from the given color, so they're differentiable
         # and readable on a dark background
-        colors = dict(zip(all_groups, furthest_colors(
+        colors = dict(zip(all_groups, _furthest_colors(
             match_colors[match.span()],
             amt=len(all_groups),
             v_bias=background_value_bias,

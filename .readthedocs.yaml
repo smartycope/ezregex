@@ -8,9 +8,11 @@ build:
   # Install dependencies
   jobs:
     pre_build:
-      - pip install mkdocs mkdocstrings mkdocstrings-python
+      - pip install pdoc mkdocs mkdocs-material mkdocs-gen-files mkdocstrings mkdocstrings-python mkdocs-include-markdown-plugin
       # - pip install mkdocs-theme-readthedocs
       - cp README.md docs/index.md
+      - rm "docs/Other Utilities/index.md"
 
 mkdocs:
   configuration: mkdocs.yml
+

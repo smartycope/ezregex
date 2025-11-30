@@ -110,8 +110,8 @@ def test_correct_output():
 
     for i in regexs:
         regex_str = i['re']
-        match = i['should']
-        dontmatch = i['shouldnt']
+        # match = i['should']
+        # dontmatch = i['shouldnt']
         if 'worksIn' in i and 'py' not in i['worksIn']:
             continue
         if 'doesntWorkIn' in i and 'py' in i['doesntWorkIn']:
@@ -126,7 +126,10 @@ def test_correct_output():
         except NotImplementedError as err:
             warning(err)
         except Exception as err:
-            raise AssertionError(f"Failed on pattern `{regex_str}` -> `{regex}`") from err
+            try:
+                raise AssertionError(f"Failed on pattern `{regex_str}` -> `{regex}`") from err
+            except Exception as err:
+                raise AssertionError(f"Failed to compile pattern `{regex_str}`") from err
         try:
             TypeAdapter(APIStructure).validate_python(resp)
         except ValidationError as err:

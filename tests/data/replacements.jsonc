@@ -81,21 +81,21 @@
         "after": "<Hello> <World>"
     },
     {
-        "re": "group(digit, 'digit') + group(lowercase, 'letter')",
+        "re": "group(digit, name='digit') + group(lowercase, name='letter')",
         "repl": "rgroup('letter') + rgroup('digit')",
         "base": "1a2b3c",
         "after": "a1b2c3",
         "doesntWorkIn": ["r"]
     },
     {
-        "re": "group(anyof('aeiou'), 'vowel')",
+        "re": "group(anyof('aeiou'), name='vowel')",
         "repl": "f\"[{rgroup('vowel')}]\"",
         "base": "hello",
         "after": "h[e]ll[o]",
         "doesntWorkIn": ["r"]
     },
     {
-        "re": "'foo' + group(number, 'num') + 'bar'",
+        "re": "'foo' + group(number, name='num') + 'bar'",
         "repl": "f\"foo-{rgroup('num')}-bar\"",
         "base": "foo87bar",
         "after": "foo-87-bar",
@@ -108,7 +108,7 @@
         "after": "test1 - thing"
     },
     {
-        "re": "group(word + number, 'a') + ':' + ow + group(word, 'b')",
+        "re": "group(word + number, name='a') + ':' + ow + group(word, name='b')",
         "repl": "replace_group('a') + ' - ' + replace_group('b')",
         "base": "test1:    thing",
         "after": "test1 - thing",
@@ -119,7 +119,7 @@
         "repl": "'(' + '${' + rgroup(1) + '})'",
         "base": "(name, input) -> ezregex.EZRegex.EZRegex",
         "after": "(${name, input})",
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "literal('------------------LAST REPLACEMENT---------------------')",

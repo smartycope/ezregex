@@ -1,3 +1,0 @@
-# Options
-
-::: ezregex.options

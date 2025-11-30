@@ -6,12 +6,12 @@ This file gets run by pytest
 
 import pytest
 import ezregex.javascript as js
-import ezregex.R as r
+import ezregex.r as r
 
 def test_js_string_anchor_throws_errors():
-    assert js.string_starts_with.string_anchor_used is True
-    assert js.string_ends_with.string_anchor_used is True
-    assert js.digit.string_anchor_used is False
+    assert js.string_starts_with._string_anchor_used is True
+    assert js.string_ends_with._string_anchor_used is True
+    assert js.digit._string_anchor_used is False
     with pytest.raises(ValueError):
         (js.string_starts_with + js.options('multiline')).str()
     with pytest.raises(ValueError):
@@ -35,11 +35,22 @@ def test_r_no_named_groups():
     with pytest.raises(ValueError):
         r.group('test', name='test').str()
     with pytest.raises(ValueError):
-        r.group('test', 'test').str()
+        r.group('test', name='test').str()
     with pytest.raises(ValueError):
-        r.group('test', '1').str()
+        r.group('test', name='1').str()
 
 def test_r_no_flags():
+    # This is fine, actually
+    # with pytest.raises(ValueError):
+        # r.options()
+
     with pytest.raises(ValueError):
-        r.options()
+        r.options('multiline')
+
+    with pytest.raises(ValueError):
+        r.digit + r.options('multiline')
+
+    with pytest.raises(ValueError):
+        (r.digit + r.options('multiline')).str()
+
 

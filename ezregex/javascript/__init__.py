@@ -1,5 +1,4 @@
-""" Support for the JavaScript dialect of regular expressions"""
-__version__ = '1.0.0'
+from .JavascriptEZRegex import JavascriptEZRegex
+from ..inject_parts import inject_parts
 
-from .elements import *
-from .JavaScriptEZRegex import JavaScriptEZRegex
+globals().update(inject_parts(JavascriptEZRegex))

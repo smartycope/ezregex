@@ -12,8 +12,8 @@ offset = 2
 
 
 def test_invert():
-    import ezregex as er
-    regex = (er.digit + er.word)
+    import ezregex as ez
+    regex = (ez.digit + ez.word)
     assert re.search(regex.str(), ~regex)
 
 # TODO: Finish this
@@ -52,7 +52,10 @@ def test_imul():
 
 def test_mul():
     assert 2 * digit == digit * 2
+    assert (2 * digit).str() == r'\d\d'
+    assert (digit * 2).str() == r'\d\d'
 
+# TODO: URGENT: this needs more tests
 def test_mod():
     assert digit % 'sldkj' is None, f'{digit % "sldkj"} != None'
     assert digit % '77sdsf88' == re.search('77sdsf88', digit.str())

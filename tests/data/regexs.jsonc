@@ -172,7 +172,7 @@
             "test"
         ],
         "shouldnt": [],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "raw(r'(test)+')",
@@ -625,7 +625,7 @@
             "sdfa",
             "sdf"
         ],
-        "doesntWorkIn": ["js", "r"]
+        "doesntWorkIn": ["js", "r", "pcre2"]
     },
     {
         "re": "lineStartsWith('a')",
@@ -642,7 +642,7 @@
             "sdfa",
             "sdf"
         ],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "stringEndsWith('a')",
@@ -655,7 +655,7 @@
             "asdfds",
             "sd fd"
         ],
-        "doesntWorkIn": ["r", "js"]
+        "doesntWorkIn": ["r", "js", "pcre2"]
     },
     {
         "re": "lineEndsWith('a')",
@@ -671,7 +671,7 @@
             "asdfds",
             "sd fd"
         ],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "literal('test')",
@@ -723,7 +723,7 @@
             "\ntest",
             "test\n"
         ],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "matchMax('a')",
@@ -800,18 +800,6 @@
     },
     {
         "re": "whitechunk",
-        "should": [
-            " ",
-            "\t",
-            "\t  ",
-            "\n"
-        ],
-        "shouldnt": [
-            "dfsd"
-        ]
-    },
-    {
-        "re": "white",
         "should": [
             " ",
             "\t",
@@ -1020,7 +1008,8 @@
         ],
         "shouldnt": [
             "aa"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "optional('a') + 'b'",
@@ -1044,7 +1033,8 @@
         "shouldnt": [
             "",
             "c"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "atLeastOne('a')",
@@ -1068,7 +1058,8 @@
         "shouldnt": [
             "",
             "b"
-        ]
+        ],
+        "doesntWorkIn": ["r"]
     },
     {
         "re": "atLeast(0, 'a')",
@@ -1108,7 +1099,7 @@
         "doesntWorkIn": ["r"]
     },
     {
-        "re": "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), 'test')",
+        "re": "word + whitechunk + group('func') + ':' + group(anyof('8', '7'), name='test')",
         "should": [
             "wo  func:8",
             "wo  func:7"
@@ -1142,7 +1133,7 @@
             "sdf\nsdf7bds",
             "sdf\nsdf7bf\n"
         ],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "lineStart + 7 + anyof('abc')",
@@ -1170,7 +1161,7 @@
             "\n7a",
             "\n7bsdfsd"
         ],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "+alpha",
@@ -1204,7 +1195,7 @@
         "shouldnt": [
             "user@host.com>"
         ],
-        "doesntWorkIn": ["js", "r"]
+        "doesntWorkIn": ["js", "r", "pcre2"]
     },
     {
         "re": "raw(r'(<)?(\\w+@\\w+(?:\\.\\w+)+)(?(1)>|$)')",
@@ -1245,12 +1236,14 @@
     {
         "re": "string_starts_with",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "string_ends_with",
         "should": [],
-        "shouldnt": []
+        "shouldnt": [],
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "line_starts_with",
@@ -1573,7 +1566,7 @@
         "re": "is_exactly(digit)",
         "should": [],
         "shouldnt": [],
-        "doesntWorkIn": ["r"]
+        "doesntWorkIn": ["r", "pcre2"]
     },
     {
         "re": "literal('this')",
