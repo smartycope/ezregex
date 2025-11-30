@@ -92,14 +92,22 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         return rtn
 
     class _BaseMixin:
-        literal = lambda pattern, cur=...: cur + pattern, {'docstring':
-        "This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`"}
+        # replacement = None means it can work with both replacement and non-replacement EZRegex chains
+        literal = lambda pattern, cur=...: cur + pattern, {'replacement': None, 'docstring':
+        """This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
+
+            Args:
+                pattern: the pattern to add
+        """}
 
         # Not technically a variable, but it's accepted by EZRegex.__init__(), so it works
-        raw = lambda regex, cur=...: cur + regex, {'_is_raw': True, 'docstring':
+        raw = lambda regex, cur=...: cur + regex, {'_is_raw': True, 'replacement': None, 'docstring':
         """ If you already have some regular regex written and you want to incorperate
             it, this will allow you to include it without sanitizing all the backslashes
             and such, which all the other EZRegexs do automatically
+
+            Args:
+                regex: the regex to add directly
         """}
 
         # Positional
@@ -158,7 +166,11 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         printable_and_space = r'[\x20-\x7E]'
         letter_num          = r'[A-Za-z0-9_]'
         unicode             = lambda name, cur=...: fr'\N{name}', {'docstring':
-        "Matches a unicode character by name"}
+        """ Matches a unicode character by name
+
+            Args:
+                name: the name of the unicode character
+        """}
 
         # Premade
         # TODO: a chunk of literally anything/chunk of literally anything except ...
@@ -185,7 +197,14 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
-                see https://docs.python.org/3/library/re.html for more help
+                see your specific dialect docs for more help
+
+                Args:
+                    min (int): minimum number of instances of the pattern to match
+                    max (int): maximum number of instances of the pattern to match
+                    pattern: the pattern to match
+                    greedy (bool): whether to match greedily (default: True)
+                    possessive (bool): whether to match possessively (default: False)
             """
             raise_if_empty(pattern, 'match_range')
 
@@ -207,7 +226,12 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
-                see https://docs.python.org/3/library/re.html for more help
+                see your specific dialect docs for more help
+
+                Args:
+                    pattern: the pattern to match
+                    greedy (bool): whether to match greedily (default: True)
+                    possessive (bool): whether to match possessively (default: False)
             """
             s = cur
             if len(pattern) > 1:
@@ -229,6 +253,11 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 split is set to true, it forces the ?(...) regex syntax instead of the [...]
                 syntax. It should act the same way, but your output regex will look different.
                 By default, it just optimizes it for you.
+
+                Args:
+                    patterns: any of the patterns to match
+                    chars (bool): whether to interpret patterns as characters (default: auto)
+                    split (bool): whether to split patterns into characters (default: auto)
             """
             chars, patterns = _parse_any_of_params(*patterns, chars=chars, split=split)
 
@@ -246,32 +275,52 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 cur += r')'
             return cur
 
-        def any_char_except(*patterns, cur=...):
-            """ This matches any char that is NOT in `patterns`. `patterns` can be multiple parameters,
+        def any_char_except(*chars, cur=...):
+            """ This matches any char that is NOT in `chars`. `chars` can be multiple parameters,
                 or a single string of chars to split.
+
+                Args:
+                    chars (str): any of the characters to match
             """
 
             # If it's just a string, split it up
-            if len(patterns) == 1 and len(patterns[0]) > 1:
-                patterns = list(patterns[0])
+            if len(chars) == 1 and len(chars[0]) > 1:
+                chars = list(chars[0])
 
             cur += r'[^'
-            for i in patterns:
+            for i in chars:
                 cur += i
             cur += r']'
             return cur
 
         def any_between(char:str, and_char:str, cur=...):
-            """Match any char between `char` and `and_char`, using the ASCII table for reference"""
+            """ Match any char between `char` and `and_char`, using the ASCII table for reference
+
+                Args:
+                    char (str): the first character
+                    and_char (str): the second character
+            """
             raise_if_empty(char, 'any_between', 'char')
             raise_if_empty(and_char, 'any_between', 'and_char')
             return cur + r'[' + char + r'-' + and_char + r']'
 
-        @imply_pattern_is_cur
-        def either(or_pattern, pattern=..., cur=...):
+        # TODO: the order of these parameters actually does matter, as sometime it needs
+        # to match the first thing before it tries the 2nd.
+        # @imply_pattern_is_cur
+        def either(pattern, or_pattern=..., cur=...):
             """ Match either `pattern` or `or_pattern`. To choose between more than 2 things,
-                you can either chain multiple `either` calls, or use `any_of`
+                you can either chain multiple `either` calls, or use `any_of`. Note that
+                the order here matters: it first tries `pattern`, and if that doesn't
+                match, then it tries `or_pattern`.
+
+                Args:
+                    pattern: a pattern to match
+                    or_pattern: a pattern to match if the first one fails
             """
+            # Manually handle implicit chains, instead of using imply_pattern_is_cur,
+            # just because the order actually does matter
+            if or_pattern is Ellipsis:
+                return rf'(?:{cur}|{pattern})'
             return cur + rf'(?:{pattern}|{or_pattern})'
 
         # Amounts
@@ -280,27 +329,50 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             """ Match as many of `pattern` in the string as you can. This is equivelent to using the unary + operator.
             If `pattern` is not provided, it works on the previous regex pattern. That's not recommended for
             clarity's sake though
+
+            Args:
+                pattern: the pattern to match
             """
             return cur + r'(?:' + pattern + r')' + r'+'
 
         @imply_pattern_is_cur
         def match_num(num:int, pattern=..., *, cur=...):
-            """ Match `num` amount of `pattern` in the string """
+            """ Match `num` amount of `pattern` in the string
+
+            Args:
+                num (int): the number of times to match the pattern
+                pattern: the pattern to match
+            """
             return cur + r'(?:' + pattern + r')' + r'{' + str(num) + r'}'
 
         @imply_pattern_is_cur
         def match_more_than(min:int, pattern=..., *, cur=...):
-            """ Match more than `min` sequences of `pattern` in the string """
+            """ Match more than `min` sequences of `pattern` in the string
+
+            Args:
+                min (int): the minimum number of times to match the pattern
+                pattern: the pattern to match
+            """
             return cur + r'(?:' + pattern + r')' + r'{' + str(int(min) + 1) + r',}'
 
         @imply_pattern_is_cur
         def match_at_least(min:int, pattern=..., *, cur=...):
-            """ Match at least `min` sequences of `pattern` in the string """
+            """ Match at least `min` sequences of `pattern` in the string
+
+            Args:
+                min (int): the minimum number of times to match the pattern
+                pattern: the pattern to match
+            """
             return cur + r'(?:' + pattern + r')' + r'{' + str(min) + r',}'
 
         @imply_pattern_is_cur
         def match_at_most(max:int, pattern=..., *, cur=...):
-            """ Match at most `max` sequences of `pattern` in the string """
+            """ Match at most `max` sequences of `pattern` in the string
+
+            Args:
+                max (int): the maximum number of times to match the pattern
+                pattern: the pattern to match
+            """
             return cur + r'(?:' + pattern + r')' + r'{0,' + str(max) + r'}'
 
         @add_greedy_possessive
@@ -310,7 +382,12 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
-                see https://docs.python.org/3/library/re.html for more help
+                see your specific dialect docs for more help
+
+                Args:
+                    pattern: the pattern to match
+                    greedy (bool): whether to match greedily (default: True)
+                    possessive (bool): whether to match possessively (default: False)
             """
             raise_if_empty(pattern, 'at_least_one')
 
@@ -333,7 +410,12 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
                 `possessive` means it won't backtrack to try to find any repitions
-                see https://docs.python.org/3/library/re.html for more help
+                see your specific dialect docs for more help
+
+                Args:
+                    pattern: the pattern to match
+                    greedy (bool): whether to match greedily (default: True)
+                    possessive (bool): whether to match possessively (default: False)
             """
             raise_if_empty(pattern, 'at_least_none')
 
@@ -362,6 +444,11 @@ def GroupsMixin(*,
         def group(pattern, *, name=None, cur=...):
             """ Causes `pattern` to be captured as a group. Specify `name` only as a keyword argument.
                 Only useful when replacing regexs
+
+                Args:
+                    pattern: the pattern to match
+                    name (str): the name of the group. Specifying this turns it into a named group,
+                        instead of an unnamed group
             """
             raise_if_empty(pattern, 'group')
             if name is not None:
@@ -372,7 +459,11 @@ def GroupsMixin(*,
 
         @imply_pattern_is_cur
         def passive_group(pattern, *, cur=...):
-            "As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is"
+            """ As all regexs in EZRegex capture passively, this is entirely useless. But if you really want to, here it is
+
+                Args:
+                    pattern: the pattern to match
+            """
             raise_if_empty(pattern, 'passive_group')
             return f'{cur}(?:{pattern})'
 
@@ -386,6 +477,9 @@ def AdvancedGroupsMixin(*,
         def earlier_group(num_or_name, cur=...):
             """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
                 group which would match `num_or_name`
+
+                Args:
+                    num_or_name (int | str): either the number or name of the previous group
             """
             raise_if_empty(num_or_name, 'earlier_group', num_or_name)
             return earlier_numbered_group(num_or_name, cur=cur) \
@@ -393,22 +487,33 @@ def AdvancedGroupsMixin(*,
                 else earlier_named_group(num_or_name, cur=cur)
 
         def if_exists(num_or_name, does_pattern, doesnt_pattern=None, cur=...):
-            """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt` """
-            raise_if_empty(num_or_name, 'earlier_group', num_or_name)
+            """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
+
+                Args:
+                    num_or_name (int | str): either the number or name of the previous group
+                    does_pattern: the pattern to match if the group exists
+                    doesnt_pattern: the pattern to match if the group doesn't exist
+            """
+            raise_if_empty(num_or_name, 'if_exists', num_or_name)
             return f'{cur}(?({num_or_name}){does_pattern}{("|" + str(doesnt_pattern)) if doesnt_pattern is not None else ""})'
 
     return _AdvancedGroupsMixin
-
 
 def AssertionsMixin():
     """ Also called "lookahead"/"lookbehind". Adds associated singleton members which use them """
 
     # TODO: enforce these only being at the end or beginning of a chain -- maybe
     class _AssertionsMixin:
+        # TODO: this needs more tests
         def any_except(pattern, type='.*', cur=...):
-            """ Matches anything other than `pattern`, which must be a single string or EZRegex chain, **not** a list. Also
-            optionally accepts the `type` parameter, which works like this: \"Match any `type` other than `pattern`\". For example,
-            \"match any word which is not foo\". Do note that this function is new, and I'm still working out the kinks.
+            """ Matches anything other than `pattern`, which must be a single string
+            or EZRegex chain. Optionally accepts the `type` parameter,
+            which works like this: "Match any `type` other than `pattern`". For example,
+            "match any word which is not foo".
+
+            Args:
+                pattern: the pattern to match
+                type: the type of pattern to match
             """
             raise_if_empty(pattern, 'any_except')
             return cur + f'(?!{pattern}){type}'
@@ -417,11 +522,20 @@ def AssertionsMixin():
         def if_proceded_by(pattern, *, cur=...):
             """ Matches the pattern if it has `pattern` coming after it. Can only be used once in a given pattern,
                 as it only applies to the end
+
+                Args:
+                    pattern: the pattern to match
             """
             return fr'{cur}(?={pattern})'
 
+        # TODO: this needs more tests
         def each(*patterns, cur=...):
-            "Matches if the next part of the string can match all of the given patterns. Like the + operator, but out of order."
+            """ Matches if the next part of the string can match all of the given patterns.
+                Like the + operator, but out of order.
+
+                Args:
+                    patterns: the patterns to match
+            """
             patterns = list(patterns)
             last = patterns.pop()
             s = cur
@@ -430,10 +544,14 @@ def AssertionsMixin():
             s += last
             return s
 
+        # TODO: is this description correct?
         @imply_pattern_is_cur
         def if_not_proceded_by(pattern, *, cur=...):
             """ Matches the pattern if it does **not** have `pattern` coming after it. Can only be used once in
                 a given pattern, as it only applies to the end
+
+                Args:
+                    pattern: the pattern to match
             """
             return fr'{cur}(?!{pattern})'
 
@@ -441,6 +559,9 @@ def AssertionsMixin():
         def if_preceded_by(pattern, *, cur=...):
             """ Matches the pattern if it has `pattern` coming before it. Can only be used once in a given pattern,
                 as it only applies to the beginning
+
+                Args:
+                    pattern: the pattern to match
             """
             return fr'(?<={pattern}){cur}'
 
@@ -448,13 +569,21 @@ def AssertionsMixin():
         def if_not_preceded_by(pattern, *, cur=...):
             """ Matches the pattern if it does **not** have `pattern` coming before it. Can only be used once
                 in a given pattern, as it only applies to the beginning
+
+                Args:
+                    pattern: the pattern to match
             """
             return fr'(?<!{pattern}){cur}'
 
         @imply_pattern_is_cur
         def if_enclosed_with(open, close=..., pattern=..., *, cur=...):
-            """ Matches if the string has `open`, then `stuff`, then `close`, but only \"matches\"
-                stuff. Just a convenience combination of ifProceededBy and ifPreceededBy.
+            """ Matches if the string has `open`, then `pattern`, then `close`, but only \"matches\"
+                `pattern`. Just a convenience combination of if_proceded_by and if_preceded_by.
+
+                Args:
+                    open: the pattern to match before the stuff
+                    close: the pattern to match after the stuff. If unspecified, assumes it's the same as `open`
+                    pattern: the pattern to match
             """
             if close is Ellipsis:
                 close = open
@@ -466,25 +595,65 @@ def AnchorsMixin(*, string=True, line=True, word_boundaries=True, word=True, str
     """ String anchors, where string/line/word starts/ends. You can disable specific ones via parameters"""
     class _AnchorsMixin:
         if string:
-            string_starts_with = lambda pattern='', cur=...: r'\A' + pattern + cur
-            string_ends_with   = lambda pattern='', cur=...: pattern + string_end + cur
+            string_starts_with = lambda pattern='', cur=...: r'\A' + pattern + cur, {'docstring':
+            """ Matches the string if it starts with `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
+
+            string_ends_with = lambda pattern='', cur=...: pattern + string_end + cur, {'docstring':
+            """ Matches the string if it ends with `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
             is_exactly = imply_pattern_is_cur(lambda pattern=..., cur=...: r"\A" + pattern + string_end), {'docstring':
-            "This matches the string if and only if the entire string is exactly equal to `pattern`"}
+            """ This matches the string if and only if the entire string is exactly equal to `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
 
         if line:
             # Always use the multiline flag, so as to distinguish between start of a line vs start of the string
-            line_starts_with   = lambda pattern='', cur=...: r'^' + pattern + cur, {'flags':'m'}
-            line_ends_with     = lambda pattern='', cur=...: cur + pattern + r'$', {'flags':'m'}
+            line_starts_with = lambda pattern='', cur=...: r'^' + pattern + cur, {'flags':'m', 'docstring':
+            """ Matches at a line if it starts with `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
+            line_ends_with = lambda pattern='', cur=...: cur + pattern + r'$', {'flags':'m', 'docstring':
+            """ Matches at a line if it ends with `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
 
         if word_boundaries:
-            word_boundary      = lambda pattern='', cur=...: r'\b' + pattern + cur, {'docstring':
-            "Matches the boundary of a word, i.e. the empty space between a word character and not a word character, or the end of a string"}
-            not_word_boundary  = lambda pattern='', cur=...: cur + pattern + r'\B', {'docstring':
-            "The opposite of `word_boundary`"}
+            word_boundary = r'\b', {'docstring':
+            """ Matches at a word boundary, i.e. the empty space between a word
+                character and not a word character, or the end of a string
+            """}
+            not_word_boundary = r'\B', {'docstring':
+            """ Matches at anything other than a word boundary, i.e. the empty
+                space between a word character and not a word character, or the
+                end of a string
+            """}
 
         if word:
-            word_starts_with   = lambda pattern='', cur=...: r'\<' + pattern + cur
-            word_ends_with     = lambda pattern='', cur=...: pattern + r'\>' + cur
+            word_starts_with = lambda pattern='', cur=...: r'\<' + pattern + cur, {'docstring':
+            """ Matchs a word if it starts with `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
+            word_ends_with = lambda pattern='', cur=...: pattern + r'\>' + cur, {'docstring':
+            """ Matchs a word if it ends with `pattern`
+
+                Args:
+                    pattern: the pattern to match
+            """}
 
     return _AnchorsMixin
 
@@ -503,6 +672,9 @@ def ReplacementsMixin(*,
             number, check your specific dialect docs for details.
             Group 0 is handled specially by this function, so it calls for the entire match,
             even if 0 doesn't mean the entire match in your dialect.
+
+            Args:
+                num_or_name (int | str): the number or name of the group you want to insert here
         """
         raise_if_empty(num_or_name, 'rgroup', num_or_name)
         is_num = isinstance(num_or_name, int) or num_or_name in digits
@@ -533,6 +705,10 @@ def ReplacementsMixin(*,
         @classmethod
         def replace(cls, string, compile=True):
             """ Generates a valid regex replacement string, using Python f-string like syntax.
+
+                Args:
+                    string (str): the templated replacement string
+                    compile (bool): whether to compile the string into an EZRegex subclass instance (default: True)
 
                 Example:
                     ``` replace("named: {group}, numbered: {1}, entire: {0}") ```

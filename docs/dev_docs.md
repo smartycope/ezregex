@@ -153,6 +153,9 @@ class PythonEZRegex(
         """ Match as many of `pattern` in the string as you can. This is equivelent to using the unary + operator. """
         return cur + r'(?:' + pattern + r')' + r'+'
 
+    # If you override an existing member/method with None, it will be removed from the class
+    if_exists = None
+
     # Feel free to add raw regexs for this dialect here.
     version = r"(?P<major>0|[1-9]\d*) ..."
     """The *official* regex for matching version numbers from https://semver.org/."""
@@ -179,7 +182,9 @@ Along the way, I also discovered, deep in the corners of the internet, 2 other P
 
 ## Documentation
 Docs are hosted on readthedocs, built by mkdocs, and the dialect docs are assisted by pdoc.
-<!-- TODO: more details here -->
+
+Note that as part of the readthedocs upload build process, the README is copied over in /docs as the index file, so when serving locally, the index will throw a 404 error, and that's fine.
+<!-- TODO: add commands -->
 
 ## Tests
 Tests are run using GitHub Actions, and are run in a Docker container. The Dockerfile is in the `tests` directory, and the manager script is in the same directory. The manager script is run using `bash manager.sh`

@@ -7,7 +7,9 @@ import pytest
 import ezregex as ez
 from ezregex import *
 
-# TODO: tests to check (and define) how raw() interacts with replacement groups
+ALL_DIALECTS = [ez.python.PythonEZRegex, ez.r.REZRegex, ez.javascript.JavascriptEZRegex, ez.pcre2.PCRE2EZRegex]
+
+# TODO: tests to check how raw() interacts with replacement groups
 
 def test_basic():
     assert literal('test').str() == 'test'
@@ -240,9 +242,10 @@ def test_imply_input_is_cur():
         assert digit.at_least_none() == at_least_none(digit)
         assert digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False)
         assert digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True)
-        assert digit.or_(input) == or_(input, digit)
-        assert digit.either(input) == either(input, digit)
-        assert digit.or_(input) == either(input, digit)
+        # Order *does* matter
+        assert digit.or_(input) == or_(digit, input)
+        assert digit.either(input) == either(digit, input)
+        assert digit.or_(input) == either(digit, input)
 
         assert options('multiline') + digit.group() == group(digit) + options('multiline')
         assert options('multiline') + digit.group(name='test') == group(digit, name='test') + options('multiline')
@@ -264,11 +267,9 @@ def test_imply_input_is_cur():
         assert options('multiline') + digit.at_least_none() == at_least_none(digit) + options('multiline')
         assert options('multiline') + digit.at_least_none(greedy=False) == at_least_none(digit, greedy=False) + options('multiline')
         assert options('multiline') + digit.at_least_none(possessive=True) == at_least_none(digit, possessive=True) + options('multiline')
-        assert options('multiline') + digit.or_(input) == or_(input, digit) + options('multiline')
-        assert options('multiline') + digit.either(input) == either(input, digit) + options('multiline')
-        assert options('multiline') + digit.or_(input) == either(input, digit) + options('multiline')
-    # I usually run tests in Python3.12, so I'm just gonna disable all these tests for Python3.10 (since I have automated
-    # tests run in Python3.10, and 3.10 doesn't support possessive or greedy regex operators)
+        assert options('multiline') + digit.or_(input) == or_(digit, input) + options('multiline')
+        assert options('multiline') + digit.either(input) == either(digit, input) + options('multiline')
+        assert options('multiline') + digit.or_(input) == either(digit, input) + options('multiline')
     except Exception as err:
         if 'require at least Python3.11' not in str(err):
             raise
@@ -281,8 +282,7 @@ def test_imply_input_is_cur():
     assert digit.prepend(input) == input + digit
 
     assert 'foo' + number + optional(whitespace) + word == number.append(whitespace.optional).prepend('foo').append(word)
-    # Because either sometimes inverts the order (and that's okay)
-    ans = (r'(?:\s+)?((?:b|(?:a)+))(?=\w+)', r'(?:\s+)?((?:(?:a)+|b))(?=\w+)')
+    ans = r'(?:\s+)?((?:(?:a)+|b))(?=\w+)'
     assert (optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word)).str() in ans
     assert whitespace.optional.append(literal('a').repeat.or_('b').group).if_followed_by(word).str() in ans
     assert (whitespace.optional + repeat('a').or_('b').group + if_followed_by(word)).str() in ans
@@ -374,7 +374,59 @@ def test_proper_sanitation():
 def test_replacements_not_interoperable():
     assert (rgroup(1) + 'foo').str() == r'\g<1>foo'
     assert (rgroup('bar') + 'foo').str() == r'\g<bar>foo'
-    with pytest.raises(TypeError):
-        (rgroup('bar') + literal('foo'))
+    assert (rgroup('bar') + literal('foo')).str() == r'\g<bar>foo'
+    assert (rgroup('bar') + raw('foo')).str() == r'\g<bar>foo'
     with pytest.raises(TypeError):
         (rgroup('bar') + word)
+
+
+def test_all_parts_are_correct_type():
+    for dialect in ALL_DIALECTS:
+        for part_name in dialect.parts(include_options=False):
+            assert isinstance(getattr(dialect, part_name), EZRegex)
+            assert isinstance(getattr(dialect, part_name), dialect)
+        print(f'{dialect.__name__} passed')
+
+# Wouldn't it be awkward if these failed
+def test_README_examples():
+    assert 'foo' + number + optional(whitespace) + group(word).str() == r'foo\d(?:\s+)?(\w+)'
+    # Or if you prefer the method syntax (they can be mixed)
+    assert number.append(whitespace.optional).prepend('foo').append(word.group()).str() == r'foo\d(?:\s+)?(\w+)'
+
+    # These match `foo123abc` and `foo123 abc`
+    # but not `abc123foo` or  `foo bar`
+
+
+
+    import ezregex as ez
+
+    # ow is part of ez already as "optional chunk of whitespace" (`\s*`)
+    params = ez.group(ez.at_least_none(ez.ow + ez.word + ez.ow + ez.optional(',') + ez.ow))
+    # Seperate parts as variables for cleaner patterns
+    function = ez.word + ez.ow + '(' + params + ')'
+
+    # Automatically calls the re.search() function for you
+    assert function % 'some string containing func( param1 , param2)' == 'func(param1, param2)'
+
+    # The test() method is helpful for debugging, and color codes groups for you
+    function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
+
+
+
+    # Element functions
+    assert (
+        optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word) ==
+        # Elemental methods
+        whitespace.optional.append(literal('a').repeat.or_('b').unnamed).if_followed_by(word) ==
+        # Mixed
+        whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
+    )
+
+
+
+
+
+    import ezregex as ez # The python dialect is the defualt dialect
+    assert repr(ez.group(digit, 'name') + ez.earlier_group('name')) == 'PythonEZRegex("(?P<name>\d)(?P=name)")'
+    import ezregex.pcre2 as ez
+    assert repr(ez.group(digit, 'name') + ez.earlier_group('name')) == 'PCRE2EZRegex("(?P<name>\d)(\g<name>")'

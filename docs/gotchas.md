@@ -14,3 +14,7 @@
 - `whitespace` is an alias for `whitechunk` (`\s+`), and not `white_char` (`\s`)
 - Due to the code structure of the library types hints and docstrings are impossible. Refer to the documentation for details.
 - EZRegexs are immutible
+
+
+## lazy_check_params
+The EZRegex class has a class member called `lazy_check_params` which, when enabled, delays parameter checking until the regex is compiled. Usually, all parameters are checked against their functions using inspect.signature. Turning this on can be useful for performance, in theory, but I can't think of a practical situation you would legitimately need to use it. But it's there if you want it.

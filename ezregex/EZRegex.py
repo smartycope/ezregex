@@ -22,8 +22,6 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # TODO: consider changing add_flags to "outer" or "end" or something
 # TODO: a lot of the raised ValueErrors should probably a custom Exception. Something like UnimplementedDialect or something
 
-class
-
 # Because we have a method named str, some of the typing thinks we mean it instead of the type
 _str = str
 
@@ -38,6 +36,7 @@ _initial_variables = {
     'flags'             : (set(), lambda l, r: set(l) | set(r)),
     # None means it works with both. If the instance is a str (like rgroup(1) + 'foo'), it can be either
     'replacement'       : (lambda obj: None if isinstance(obj, str) else False, lambda l, r: l if l == r or l is None or r is None else _raise_replacement_interoperable_error()),
+    # TODO: I think I removed this, try removing it and see if it breaks anything
     '_options_specified': (False, lambda l, r: l or r),
 }
 """ These propagate through the EZRegex chain, in ways defined by the lambda.
@@ -48,6 +47,9 @@ _initial_variables = {
         and returns the default value for it
     The second value takes 2 arguments, the left and right values, and returns the combined value.
 """
+
+def _to_camel_case(s):
+    return ''.join((word.capitalize() if cnt else word) for cnt, word in enumerate(s.split('_')))
 
 class EZRegex(ABC):
     """ Represents a part of regular expression syntax.
@@ -63,6 +65,9 @@ class EZRegex(ABC):
 
     lazy_check_params = False
     "If True, parameters passed to singleton methods will not be checked until the regex is compiled"
+
+    _deleted: set[_str] = set()
+    "Because we can't actually delete inherited class members, we keep track of deleted members here"
 
     # For linting's sake
     flags: set[_str]
@@ -105,25 +110,23 @@ class EZRegex(ABC):
         """ Interpret a definition into an instantiated EZRegex subclass object of type `type_`"""
 
         if isinstance(definition, str):
-            return type_([lambda cur=...: cur + definition], _docstring=EZRegex._get_variable_docstring(type_, definition))
+            return type_([lambda cur=...: cur + definition], docstring=EZRegex._get_variable_docstring(type_, definition))
 
         elif isinstance(definition, tuple):
             assert len(definition) == 2, f'Definition {definition} is not a tuple of length 2'
             assert isinstance(definition[1], dict), f'Definition {definition} is a tuple of 2, but the second element is not a dictionary'
             if type(definition[0]) is str:
-                assert all(k in type_._variables for k in definition[1].keys()), f'Definition {definition} is a tuple of 2, but not all of the keys are in the dialect\'s variables (avilable variables: {type_._variables})'
-                return type_([lambda cur=...: cur + definition[0]], _docstring=EZRegex._get_variable_docstring(type_, definition[0]), **definition[1])
+                assert all(k in (*type_._variables, 'docstring', '_is_raw') for k in definition[1].keys()), f'Definition {definition} is a tuple of 2, but not all of the keys are `docstring`, `_is_raw`, or in the dialect\'s variables (avilable variables: {type_._variables})'
+                return type_([lambda cur=...: cur + definition[0]], **definition[1])
             elif callable(definition[0]):
+                d = definition[1].copy()
                 try:
-                    doc = (
-                        EZRegex._get_variable_docstring(type_, definition[0])
-                        if definition[0].__name__ == '<lambda>'
-                        else definition[0].__doc__
-                    )
+                    if definition[0].__name__ != '<lambda>':
+                        d['docstring'] = definition[0].__doc__
                 # There's a partial in one, which is callable, but doesn't have a __name__ attribute
                 except AttributeError:
-                    doc = None
-                return type_([definition[0]], _docstring=doc, **definition[1])
+                    pass
+                return type_([definition[0]], **d)
             else:
                 raise ValueError(f'Definition {definition} is a tuple of 2, but the first element is not a string or callable')
 
@@ -132,7 +135,7 @@ class EZRegex(ABC):
             sig = signature(definition)
             assert 'cur' in sig.parameters, f'Definition {definition} does not have cur as a keyword parameter'
             assert sig.parameters['cur'].default == ..., f'Definition {definition} does not have cur as a keyword parameter with default value of ...'
-            return type_([definition], _docstring=definition.__doc__, **type_._added_vars.get(definition.__name__, {}))
+            return type_([definition], docstring=definition.__doc__, **type_._added_vars.get(definition.__name__, {}))
 
         elif isinstance(definition, list):
             return type_(definition)
@@ -202,9 +205,6 @@ Args:
         variables:Unpack[Dict[str, EZRegexDefinition]]={},
         **kwargs
     ):
-        def to_camel_case(s):
-            return ''.join((word.capitalize() if cnt else word) for cnt, word in enumerate(s.split('_')))
-
         # Validate & set escape_chars
         assert isinstance(escape_chars, bytes), f'Escape chars {escape_chars} is not bytes'
         assert isinstance(repl_escape_chars, bytes), f'Replacement escape chars {repl_escape_chars} is not bytes'
@@ -222,14 +222,23 @@ Args:
         cls._variables = variables | _initial_variables
 
         # Instantiate members & methods
-        for name in cls.parts(include_psuedonyms=False):
+        # psuedonyms don't exist yet, so we're fine
+        for name in cls.parts():
             value = getattr(cls, name)
             if value is None:
-                delattr(cls, name)
+                # Apparently del and delattr(), when applied to class members, only
+                # delete from the current class, if you try to delete a class
+                # member which is inherited, it will still exist.
+                # This is actually good, because we don't want to delete from a Mixin,
+                # then later try to use that Mixin for a different dialect and have
+                # it be gone.
+                # Instead we keep track of what's "deleted" and prevent it from being
+                # accessed via __get_attribute__
+                cls._deleted.add(name)
             else:
                 to = EZRegex._interpret_definition(cls, value)
                 setattr(cls, name, to)
-                setattr(cls, to_camel_case(name), to)
+                setattr(cls, _to_camel_case(name), to)
 
         # Validate flag params, and generate the options function
         assert isinstance(flags, dict), f'Flags {flags} is not a dictionary'
@@ -258,22 +267,22 @@ Args:
                 for p in ps:
                     setattr(cls, p, value)
                     # also add camelCase versions of the psuedonyms
-                    setattr(cls, to_camel_case(p), value)
+                    setattr(cls, _to_camel_case(p), value)
 
         # Make the subclass immutable
         cls.__setattr__ = cls._raise_immutibility
         cls.__delattr__ = cls._raise_immutibility
-        cls.__set__ = cls._raise_immutibility
         cls.__delete__ = cls._raise_immutibility
+        cls.__set__ = cls._raise_immutibility
 
         return super().__init_subclass__(**kwargs)
 
-    def __init__(self, func_list:list[EZRegexFunc]=[], _is_raw=False, _docstring:str=None, **variable_values):
+    def __init__(self, func_list:list[EZRegexFunc]=[], _is_raw=False, docstring:str=None, **variable_values):
         # Use the defaults, which can get overriden if we're given variable values (i.e. by _combine())
         self.__dict__.update({k: (v[0](self) if callable(v[0]) else v[0]) for k, v in self._variables.items()})
         self.__dict__.update(variable_values)
         self.__dict__['_is_raw'] = _is_raw
-        self.__dict__['docstring'] = _docstring
+        self.__dict__['docstring'] = docstring
 
         # Now that we're instantiated, we're immutable
         self.__dict__['_func_list'] = func_list
@@ -423,17 +432,29 @@ Args:
 
     # Regular functions
     @classmethod
-    def parts(cls, include_psuedonyms=True):
+    def parts(cls, include_psuedonyms=True, include_options=True):#, include_replacement=True, _check_replacement=True):
         """ A utility function that lists all the names of all singleton methods in this dialect
             This excludes dunder methods, abstract methods, and any methods marked with @exclude
+            _check_replacement is just for internal use.
         """
+        parent_members = dir(EZRegex)
         return [i
             for i in dir(cls)
             if (
-                i not in dir(EZRegex) and
+                i not in parent_members and
                 not i.startswith('__') and
                 i not in cls._exclusions and
-                (include_psuedonyms or i not in all_psuedonyms)
+                i not in cls._deleted and
+                # (include_psuedonyms or i not in all_psuedonyms) and
+                (include_psuedonyms or i in psuedonyms) and
+                (include_options or i != 'options')
+                # Because we use this before singleton members are instantiated, getattr().replacement will fail
+                # So in that case, we just skip it
+                # (
+                #     not _check_replacement or
+                #     i == 'options' or
+                #     include_replacement == (getattr(cls, i).replacement in (True, None))
+                # )
             )
         ]
 
@@ -639,11 +660,13 @@ Args:
         # This means if we do digit.raw('foo'), it goes digit._combine(raw)('foo').
         return instance._combine(self, owner, compile=False, propogate_raw=True)
 
-    def __eq__(self, other:EZRegexOther) -> bool:
-        """ NOTE: This will return True for equivelent EZRegex expressions of different dialects
-            ALSO NOTE: This checks flags as well
+    def __eq__(self, other:EZRegexType) -> bool:
+        """ NOTE: This will return False for equivelent EZRegex expressions of different dialects
+            NOTE: This checks flags as well
         """
         if not isinstance(other, type(self)):
+            return False
+        if other.replacement != self.replacement and other.replacement is not None and self.replacement is not None:
             return False
         return other._compile() == self._compile()
 
@@ -783,64 +806,11 @@ Args:
         return self._compile()
 
     def __repr__(self):
-        d = {k: v for k, v in self.__dict__.items() if k != "_func_list"}
+        exclude_vars = ('_func_list', '_options_specified', '_is_raw', 'docstring', '_deleted')
+        d = {k: v for k, v in self.__dict__.items() if k not in exclude_vars}
         return f'{type(self).__name__}({self._compile()}, {d})'
 
-if __name__ == "__main__":
-    # Mixins are plain classes (they don't need to inherit from EZRegex)
-    class Mixin:
-        # The members and methods of the mixin will be added to the subclass (see below)
-        mixin_member = 'Mixin member'
-        def mixin_method(cur=...):
-            # print('mixin method called!')
-            return cur + 'Mixin method'
-
-    # Mixins, then EZRegex. EZRegex should be last
-    class Subclass(Mixin, EZRegex,
-        # escape_chars must be specified
-        escape_chars=b'',
-        # repl_escape_chars is optional (defaults to b'')
-        repl_escape_chars=b'',
-        # Variables -- the first one is the default value, the second is the combination function.
-        # the 2nd value must be a callable that takes 2 arguments: the left and right values
-        next_to_each_other=(False, lambda l, r: l and r),
-    ):
-        # While defining __init__() is techincally possible, keep in mind that after definition,
-        # the class made immutable, so it's not recommended. There's also no real reason to do it.
-
-        # These are what I'm calling "singleton members". They get interpreted by EZRegex._interpret_definition()
-        # at define time, and get instantiated as the current type. They can either be a sting, a tuple of
-        # (string, dict_of_parameters), or a callable. Lambdas are allowed, they get treated the same as the methods
-        subclass_member = 'Subclass member'
-        subclass_flags = 'Subclass flags', {'flags': 'i'}
-        subclass_flags2 = 'Subclass flags2', {'flags': 'k'}
-        subclass_rep = 'Subclass replacement', {'replacement': True}
-
-        # Methods (and member lambdas) must have cur as a keyword parameter with default value of ...
-        # cur is the current regex string that's being built. Note that self is *not* a parameter.
-        # Just like class members, these get instantiated into singleton members
-        def subclass_method(cur=...):
-            print('subclass method called with "', cur, '"')
-            return cur + 'Subclass method'
-            # return 'Subclass method' + cur
-
-        # If you want a method to not be instantiated, and instead just act like a regular method,
-        # use @EZRegex.exclude
-        # All members will be instantiated, there's not a similar way to exclude them
-        @EZRegex.exclude
-        def do_normal_thing(self):
-            print('normal thing called on', self)
-
-    s = Subclass()
-    mixin_member = s.mixin_member
-    subclass_member = s.subclass_member
-    subclass_flags = s.subclass_flags
-    subclass_flags2 = s.subclass_flags2
-    subclass_rep = s.subclass_rep
-    subclass_method = s.subclass_method
-    # s.mixin_method()
-    # s.subclass_method()
-    # s.mixin_member.mixin_member.mixin_member, s.subclass_member, s.meta_member, s.value
-
-    s.subclass_flags2.subclass_rep.subclass_flags.subclass_method._compile()
-
+    def __getattribute__(self, name):
+        if name in super().__getattribute__('_deleted'):
+            raise NameError(f'name {name} is not defined')
+        return super().__getattribute__(name)

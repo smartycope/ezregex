@@ -59,6 +59,8 @@ def test_any_of():
     assert ez.anyof(*list('aiLmsux'), split=None, chars=None)._compile(add_flags=False) == "[aiLmsux]", \
         f"Was supposed to be '[aiLmsux]', was actually '{ez.anyof(*list('aiLmsux'), split=None, chars=None)._compile(add_flags=False)}'"
 
+    assert ez.anyof('foo', word, 'bar', digit)._compile(add_flags=False) == r'(?:foo|\w+|bar|\d)'
+
 
 def test_any_char_except():
     # """ _any_char_except_func """

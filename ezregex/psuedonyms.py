@@ -3,6 +3,7 @@
 # If there is the same name on both sides (key and value), it causes complex issues
 # The keys must be the cannonical names (i.e. the name that is used in the mixin or subclass)
 # Don't forget that the values must be tuples, even if there is only one psuedonym
+# TODO: more complete tests testing all of these
 
 psuedonyms = {
     'match_max'          : ('repeat',),
@@ -25,7 +26,7 @@ psuedonyms = {
     'hex_digit'          : ('hex',),
     'new_line'           : ('newline',),
     'period'             : ('dot',),
-    'any_of'             : ('anyof', 'one_of',),
+    'any_of'             : ('anyof', 'one_of', 'oneof',),
     'any_char_except'    : ('any_except', 'anything_except',),
     'if_proceded_by'     : ('if_followed_by',),
     'if_not_proceded_by' : ('if_not_followed_by',),
@@ -41,6 +42,7 @@ psuedonyms = {
     'either'             : ('or_',),
 }
 
+# TODO: this likely can be deleted, I don't think it's used anywhere anymore
 all_psuedonyms = set()
 for psuedonym in psuedonyms.values():
     all_psuedonyms.update(psuedonym)
