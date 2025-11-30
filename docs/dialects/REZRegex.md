@@ -5,8 +5,19 @@
     https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/regex
     
 
+## options
+
+Usage:
+    word + options(ignore_case=True)
+    word + options('ignore_case')
+    word + options('ignore_case', 'multiline')
+    word + options('ignore_case', multiline=True)
+
+Args:
+
+
 ## any_between
-<span style='font-style: italic; font-size: small;'>Aliases: amt_between, numBetween, num_between, anyBetween, amtBetween</span>
+<span style='font-style: italic; font-size: small;'>Aliases: amt_between, anyBetween, amtBetween, num_between, numBetween</span>
 
  Match any char between `char` and `and_char`, using the ASCII table for reference
 
@@ -16,7 +27,7 @@
             
 
 ## any_char_except
-<span style='font-style: italic; font-size: small;'>Aliases: any_except, anything_except, anythingExcept, anyExcept, anyCharExcept</span>
+<span style='font-style: italic; font-size: small;'>Aliases: anythingExcept, any_except, anyExcept, anything_except, anyCharExcept</span>
 
  This matches any char that is NOT in `chars`. `chars` can be multiple parameters,
                 or a single string of chars to split.
@@ -26,18 +37,18 @@
             
 
 ## any_of
-<span style='font-style: italic; font-size: small;'>Aliases: anyof, oneof, anyOf, one_of, oneOf</span>
+<span style='font-style: italic; font-size: small;'>Aliases: oneOf, oneof, anyOf, one_of, anyof</span>
 
 ## anything
-<span style='font-style: italic; font-size: small;'>Aliases: char, anychar, anyChar, any_char</span>
+<span style='font-style: italic; font-size: small;'>Aliases: any_char, char, anychar, anyChar</span>
 
 Matches any single character, except a newline. To also match a newline, use literally_anything
 
 ## at_least_none
-<span style='font-style: italic; font-size: small;'>Aliases: any_amt, anyAmt, zeroOrMore, atLeastNone, atLeast0, zero_or_more, at_least_0, noneOrMore, none_or_more</span>
+<span style='font-style: italic; font-size: small;'>Aliases: noneOrMore, atLeastNone, none_or_more, zeroOrMore, zero_or_more, any_amt, at_least_0, anyAmt, atLeast0</span>
 
 ## at_least_one
-<span style='font-style: italic; font-size: small;'>Aliases: atLeast1, at_least_1, one_or_more, oneOrMore, atLeastOne</span>
+<span style='font-style: italic; font-size: small;'>Aliases: atLeast1, atLeastOne, one_or_more, oneOrMore, at_least_1</span>
 
 ## chunk
 <span style='font-style: italic; font-size: small;'>Aliases: stuff</span>
@@ -64,10 +75,10 @@ Matches any single character, except a newline. To also match a newline, use lit
 Matches just a letter -- not numbers or _ like word_char
 
 ## letter_num
-<span style='font-style: italic; font-size: small;'>Aliases: alpha_num, alphaNum, alphanum, letterNum</span>
+<span style='font-style: italic; font-size: small;'>Aliases: letterNum, alpha_num, alphanum, alphaNum</span>
 
 ## line_ends_with
-<span style='font-style: italic; font-size: small;'>Aliases: lineEnd, lineEndsWith, line_end</span>
+<span style='font-style: italic; font-size: small;'>Aliases: line_end, lineEndsWith, lineEnd</span>
 
  Matches at a line if it ends with `pattern`
 
@@ -76,7 +87,7 @@ Matches just a letter -- not numbers or _ like word_char
             
 
 ## line_starts_with
-<span style='font-style: italic; font-size: small;'>Aliases: lineStart, lineStartsWith, line_start</span>
+<span style='font-style: italic; font-size: small;'>Aliases: lineStartsWith, lineStart, line_start</span>
 
  Matches at a line if it starts with `pattern`
 
@@ -85,42 +96,42 @@ Matches just a letter -- not numbers or _ like word_char
             
 
 ## match_at_least
-<span style='font-style: italic; font-size: small;'>Aliases: match_min, matchAtLeast, atLeast, at_least, matchMin</span>
+<span style='font-style: italic; font-size: small;'>Aliases: atLeast, at_least, match_min, matchMin, matchAtLeast</span>
 
 ## match_at_most
-<span style='font-style: italic; font-size: small;'>Aliases: matchAtMost, atMost, at_most</span>
+<span style='font-style: italic; font-size: small;'>Aliases: matchAtMost, at_most, atMost</span>
 
 ## match_max
 <span style='font-style: italic; font-size: small;'>Aliases: repeat, matchMax</span>
 
 ## match_more_than
-<span style='font-style: italic; font-size: small;'>Aliases: more_than, match_greater_than, moreThan, matchGreaterThan, matchMoreThan</span>
+<span style='font-style: italic; font-size: small;'>Aliases: matchGreaterThan, more_than, moreThan, match_greater_than, matchMoreThan</span>
 
 ## match_num
-<span style='font-style: italic; font-size: small;'>Aliases: matchNum, match_amt, amt, num, matchAmt</span>
+<span style='font-style: italic; font-size: small;'>Aliases: num, matchNum, matchAmt, match_amt, amt</span>
 
 ## match_range
-<span style='font-style: italic; font-size: small;'>Aliases: matchBetween, matchRange, match_between, between</span>
+<span style='font-style: italic; font-size: small;'>Aliases: matchBetween, between, matchRange, match_between</span>
 
 ## new_line
 <span style='font-style: italic; font-size: small;'>Aliases: newLine, newline</span>
 
 ## optional
-<span style='font-style: italic; font-size: small;'>Aliases: opt, oneOrNone, one_or_none</span>
+<span style='font-style: italic; font-size: small;'>Aliases: one_or_none, opt, oneOrNone</span>
 
 ## period
 <span style='font-style: italic; font-size: small;'>Aliases: dot</span>
 
 ## signed
-<span style='font-style: italic; font-size: small;'>Aliases: signed_int, integer, signedInt, signedInteger, signed_integer</span>
+<span style='font-style: italic; font-size: small;'>Aliases: signedInt, signed_int, integer, signedInteger, signed_integer</span>
 
 a signed number, including 123, -123, and +123
 
 ## white_char
-<span style='font-style: italic; font-size: small;'>Aliases: whiteChar, whitechar</span>
+<span style='font-style: italic; font-size: small;'>Aliases: whitechar, whiteChar</span>
 
 ## whitechunk
-<span style='font-style: italic; font-size: small;'>Aliases: white_space, whiteSpace, whiteChunk, white_chunk, whitespace</span>
+<span style='font-style: italic; font-size: small;'>Aliases: white_space, white_chunk, whiteSpace, whiteChunk, whitespace</span>
 
 A "chunk" of whitespace. Just any amount of whitespace together
 
@@ -131,12 +142,12 @@ A "chunk" of whitespace. Just any amount of whitespace together
 ## Replacement EZRegexs
 
 ## replace_entire
-<span style='font-style: italic; font-size: small;'>Aliases: replaceEntire, replace_all, replaceAll</span>
+<span style='font-style: italic; font-size: small;'>Aliases: replace_all, replaceAll, replaceEntire</span>
 
 Puts in its place the entire match
 
 ## rgroup
-<span style='font-style: italic; font-size: small;'>Aliases: replace_group, replaceGroup</span>
+<span style='font-style: italic; font-size: small;'>Aliases: replaceGroup, replace_group</span>
 
  Puts in its place the group specified, either by group number (for unnamed
             groups) or group name (for named groups). Named groups are typically also counted by
@@ -147,4 +158,28 @@ Puts in its place the entire match
             Args:
                 num_or_name (int | str): the number or name of the group you want to insert here
         
+
+## replace
+
+ Generates a valid regex replacement string, using Python f-string like syntax.
+
+                Args:
+                    string (str): the templated replacement string
+                    compile (bool): whether to compile the string into an EZRegex subclass instance (default: True)
+
+                Example:
+                    ``` replace("named: {group}, numbered: {1}, entire: {0}") ```
+
+                Like Python f-strings, use {{ and }} to specify { and }
+
+                Set the `compile` parameter to False to have it return an EZRegex subclass instance instead of a string
+
+                Note: 0 is handled specially by this function, so it calls for the entire match,
+                    even if 0 doesn't mean the entire match in your dialect.
+
+                There's a few of advantages to using this instead of just the regular regex replacement syntax:
+                - It's consistent between dialects
+                - It's closer to Python f-string syntax, which is cleaner and more familiar
+                - It handles numbered, named, and entire replacement types the same
+            
 

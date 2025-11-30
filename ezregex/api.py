@@ -37,6 +37,7 @@ def _furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
     return [_toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
 
 
+# TODO: Better docs, and an example of the output in the docstring
 def api(pattern, replacement_pattern=None, test_string=None, *,
         replacement_count=0,
         split_count=0,

@@ -29,8 +29,11 @@ dialects.mkdir(parents=True, exist_ok=True)
 for dialect in [ez.r.REZRegex, ez.javascript.JavascriptEZRegex, ez.pcre2.PCRE2EZRegex, ez.python.PythonEZRegex]:
     doc = ''
     doc += f"# {dialect.__name__}\n\n{dialect.__doc__}\n\n"
+
+    doc += f"## options\n\n{dialect.options.__doc__}\n\n"
+
     for repl in (False, True):
-        for part_name in dialect.parts(include_psuedonyms=False, include_options=False):
+        for part_name in dialect.parts(include_psuedonyms=False, include_functions=False):
             if getattr(dialect, part_name).replacement != repl:
                 continue
             doc += f"## {part_name}\n"
@@ -46,8 +49,12 @@ for dialect in [ez.r.REZRegex, ez.javascript.JavascriptEZRegex, ez.pcre2.PCRE2EZ
                 doc += f"{d}\n\n"
         if not repl:
             doc += '\n\n---\n\n## Replacement EZRegexs\n\n'
+    # Add docs for the replace() function at the end
+    doc += f"## replace\n\n{dialect.replace.__doc__}\n\n"
 
     (dialects / f"{dialect.__name__}.md").write_text(doc)
 
-import pdoc
-pdoc.pdoc('invert', 'api', 'generate', output_directory=here / 'docs')
+
+
+import subprocess
+subprocess.run(["gendocs", "--config", "mkgendocs.yml"])

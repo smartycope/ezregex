@@ -1,0 +1,18 @@
+sources_dir: "docs/Other Utilities"
+# templates_dir: docs/templates
+# repo: https://github.com/davidenunes/tensorx  #link to sources on github
+# version: master                               #link to sources on github
+
+pages:
+  - page: "api.md"
+    source: "ezregex/api.py"
+    functions:
+      - api
+  - page: invert.md
+    source: "ezregex/invert.py"
+    functions:
+      - invert
+  - page: generate.md
+    source: "ezregex/generate.py"
+    functions:
+      - findregex

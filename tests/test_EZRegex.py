@@ -382,7 +382,7 @@ def test_replacements_not_interoperable():
 
 def test_all_parts_are_correct_type():
     for dialect in ALL_DIALECTS:
-        for part_name in dialect.parts(include_options=False):
+        for part_name in dialect.parts(include_functions=False):
             assert isinstance(getattr(dialect, part_name), EZRegex)
             assert isinstance(getattr(dialect, part_name), dialect)
         print(f'{dialect.__name__} passed')

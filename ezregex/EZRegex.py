@@ -432,10 +432,14 @@ Args:
 
     # Regular functions
     @classmethod
-    def parts(cls, include_psuedonyms=True, include_options=True):#, include_replacement=True, _check_replacement=True):
+    def parts(cls, include_psuedonyms=True, include_functions=True):#, include_replacement=True, _check_replacement=True):
         """ A utility function that lists all the names of all singleton methods in this dialect
             This excludes dunder methods, abstract methods, and any methods marked with @exclude
-            _check_replacement is just for internal use.
+
+            Args:
+                include_functions (bool): If False, it will exclude options and replace, both of which are
+                    technically functions and not EZRegex instances.
+                include_psuedonyms (bool): If False, it only return the canonical names
         """
         parent_members = dir(EZRegex)
         return [i
@@ -447,7 +451,7 @@ Args:
                 i not in cls._deleted and
                 # (include_psuedonyms or i not in all_psuedonyms) and
                 (include_psuedonyms or i in psuedonyms) and
-                (include_options or i != 'options')
+                (include_functions or i not in ('options', 'replace'))
                 # Because we use this before singleton members are instantiated, getattr().replacement will fail
                 # So in that case, we just skip it
                 # (

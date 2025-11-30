@@ -10,3 +10,4 @@ mkdocs-gen-files
 pdoc
 mkdocstrings
 mkdocs-include-markdown-plugin
+mkgendocs

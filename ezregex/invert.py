@@ -41,10 +41,6 @@ def invert(
     random_numbers=False,
     alot=8,
 ) -> str:
-    return Inverter(expr,tries, backend, words, random_numbers, alot).invert()
-
-
-class Inverter:
     """ "Inverts" a regular expression by returning an example of something which is guaruanteed to
         match the passed expression.
         NOTE: This only works on valid Python regular expressions.
@@ -69,6 +65,10 @@ class Inverter:
                 `sre_yield` imports the `sre_yield` package and uses it instead. I don't think this works
                     right now, and may be significantly slower.
     """
+    return Inverter(expr,tries, backend, words, random_numbers, alot).invert()
+
+
+class Inverter:
     def __init__(self,
         expr:Union[str, 'EZRegex'],
         tries:int=10,

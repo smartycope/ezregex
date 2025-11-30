@@ -181,7 +181,7 @@ Later, when I was reading up on abstract syntax trees, and scrolling around on P
 Along the way, I also discovered, deep in the corners of the internet, 2 other Python libraries which do almost the same thing: `xeger` (regex backwards), and `sre_yield`. `xeger` technically works, however it tends to include unprintable characters, so it's output isn't very readable. `sre_yeild` is better, but it can be very slow, and is not quite the use case I'm going for. My invert algorithm is meant to be a debugging tool (though it doubles well for a testing tool), so it does things like detecting words (as opposed to seperate word characters) and inserts actual words, and doing the same for numbers and inserting `12345...`, as well as a couple other enhancements.
 
 ## Documentation
-Docs are hosted on readthedocs, built by mkdocs, and the dialect docs are assisted by pdoc.
+Docs are hosted on readthedocs, built by mkdocs, and the dialect docs are assisted by pdoc. For now. It's now working how I want, so I'm probably moving to mkgendocs.
 
 Note that as part of the readthedocs upload build process, the README is copied over in /docs as the index file, so when serving locally, the index will throw a 404 error, and that's fine.
 <!-- TODO: add commands -->
