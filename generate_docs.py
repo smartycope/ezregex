@@ -48,3 +48,6 @@ for dialect in [ez.r.REZRegex, ez.javascript.JavascriptEZRegex, ez.pcre2.PCRE2EZ
             doc += '\n\n---\n\n## Replacement EZRegexs\n\n'
 
     (dialects / f"{dialect.__name__}.md").write_text(doc)
+
+import pdoc
+pdoc.pdoc('invert', 'api', 'generate', output_directory=here / 'docs')

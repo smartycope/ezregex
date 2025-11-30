@@ -471,6 +471,7 @@ Args:
         else:
             copy(self._compile(add_flags=add_flags))
 
+    # TODO: this should use the api function instead
     def test(self, testString:str=None, show:bool=True, context:bool=True) -> bool:
         """ Tests the current regex expression to see if it's in @param testString.
             Returns the match objects (None if there was no match)
@@ -518,7 +519,7 @@ Args:
                 gt.append('Unnamed Groups:\n')
             for id, group in m['unnamed groups'].items():
                 gt.append(f'\t{id}: "')
-                gt.append(['string'], style=group['color'])
+                gt.append(group['string'], style=group['color'])
                 gt.append('" ')
                 gt.append(f"({group['start']}:{group['end']})", style='italic bright_black')
                 gt.append('\n')

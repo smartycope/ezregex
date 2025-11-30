@@ -433,6 +433,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
     return _BaseMixin
 
+# TODO: if group is called with 2 positional params, it raises an error. That error should be more helpful.
 def GroupsMixin(*,
     named_group=lambda pattern, name, cur=...: f'{cur}(?P<{name}>{pattern})',
 ):

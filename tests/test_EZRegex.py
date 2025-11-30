@@ -388,10 +388,10 @@ def test_all_parts_are_correct_type():
         print(f'{dialect.__name__} passed')
 
 # Wouldn't it be awkward if these failed
-def test_README_examples():
-    assert 'foo' + number + optional(whitespace) + group(word).str() == r'foo\d(?:\s+)?(\w+)'
+def test_README_examples(capsys):
+    assert ('foo' + number + optional(whitespace) + group(word)).str() == r'foo\d+(?:\s+)?(\w+)'
     # Or if you prefer the method syntax (they can be mixed)
-    assert number.append(whitespace.optional).prepend('foo').append(word.group()).str() == r'foo\d(?:\s+)?(\w+)'
+    assert number.append(whitespace.optional).prepend('foo').append(word.group()).str() == r'foo\d+(?:\s+)?(\w+)'
 
     # These match `foo123abc` and `foo123 abc`
     # but not `abc123foo` or  `foo bar`
@@ -405,11 +405,46 @@ def test_README_examples():
     # Seperate parts as variables for cleaner patterns
     function = ez.word + ez.ow + '(' + params + ')'
 
-    # Automatically calls the re.search() function for you
-    assert function % 'some string containing func( param1 , param2)' == 'func(param1, param2)'
+    assert function.search('some string containing func( param1 , param2)')
+
+    # Boolean test
+    assert 'some string containing func( param1 , param2)' in function
+
+    test_ouptut = r"""\
+╭─────────────────────────────── Testing Regex ────────────────────────────────╮
+│ Testing expression:                                                          │
+│         \w+\s*\(((?:\s*\w+\s*,?\s*)*)\)                                      │
+│ for matches in:                                                              │
+│         this should match func(param1,  param2 ), foo(), and bar( foo,)      │
+│                                                                              │
+│ Match = "func(param1,   param2 )" (18:39)                                    │
+│ Unnamed Groups:                                                              │
+│         1: "param1,     param2 " (23:38)                                     │
+│                                                                              │
+│ Match = "foo()" (41:46)                                                      │
+│ Unnamed Groups:                                                              │
+│         1: "" (45:45)                                                        │
+│                                                                              │
+│ Match = "bar( foo,)" (52:62)                                                 │
+│ Unnamed Groups:                                                              │
+│         1: " foo," (56:61)                                                   │
+│                                                                              │
+│                                                                              │
+╰─────────────────────────────────── Found  ───────────────────────────────────╯
+"""
 
     # The test() method is helpful for debugging, and color codes groups for you
-    function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
+    assert function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
+    captured = capsys.readouterr().out
+    # it's hard to test whole, because the width is dynamic to the terminal size
+    assert 'Testing expression:' in captured
+    assert 'for matches in:' in captured
+    assert 'Match = "func(param1,   param2 )" (18:39)' in captured
+    assert 'Unnamed Groups:' in captured
+    assert 'Match = "foo()" (41:46)' in captured
+    assert 'Unnamed Groups:' in captured
+    assert 'Match = "bar( foo,)" (52:62)' in captured
+    assert 'Unnamed Groups:' in captured
 
 
 
@@ -417,9 +452,9 @@ def test_README_examples():
     assert (
         optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word) ==
         # Elemental methods
-        whitespace.optional.append(literal('a').repeat.or_('b').unnamed).if_followed_by(word) ==
+        whitespace.optional.append(literal('a').repeat.or_('b').group).if_followed_by(word) ==
         # Mixed
-        whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
+        whitespace.optional + repeat('a').or_('b').group + if_followed_by(word)
     )
 
 
@@ -427,6 +462,6 @@ def test_README_examples():
 
 
     import ezregex as ez # The python dialect is the defualt dialect
-    assert repr(ez.group(digit, 'name') + ez.earlier_group('name')) == 'PythonEZRegex("(?P<name>\d)(?P=name)")'
-    import ezregex.pcre2 as ez
-    assert repr(ez.group(digit, 'name') + ez.earlier_group('name')) == 'PCRE2EZRegex("(?P<name>\d)(\g<name>")'
+    assert repr(ez.group(digit, name='name') + ez.earlier_group('name')) == r"PythonEZRegex((?P<name>\d)(?P=name), {'_compiled': None, 'flags': set(), 'replacement': False})"
+    import ezregex.javascript as ez
+    assert repr(ez.group(digit, name='name') + ez.earlier_group('name')) == r"JavascriptEZRegex(/(?<name>\d)\k<name>/, {'_string_anchor_used': False, 'flags': set(), 'replacement': False})"

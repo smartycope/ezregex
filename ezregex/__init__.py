@@ -9,9 +9,10 @@ from .EZRegex import EZRegex
 from .generate import generate_regex
 from .invert import invert
 
-# Python is the default
 from . import python
 from . import javascript
 from . import r
 from . import pcre2
+
+# Python is the default
 from .python import *

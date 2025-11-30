@@ -43,6 +43,8 @@ A readable and intuitive way to write Regular Expressions without having to know
 * [Dialects](#dialects)
 * [Documentation](https://ezregex.readthedocs.io/en/latest/)
 * [Developer Docs](https://ezregex.readthedocs.io/en/latest/dev_docs/)
+* [Utilities](#utilities)
+* [Aliases](#aliases)
 * [Installation](#installation)
 * [Todos](https://github.com/smartycope/ezregex/issues)
 * [License](#license)
@@ -74,8 +76,10 @@ params = ez.group(ez.at_least_none(ez.ow + ez.word + ez.ow + ez.optional(',') + 
 # Seperate parts as variables for cleaner patterns
 function = ez.word + ez.ow + '(' + params + ')'
 
-# Automatically calls the re.search() function for you
-function % 'some string containing func( param1 , param2)'
+function.search('some string containing func( param1 , param2)')
+
+# Boolean test
+'some string containing func( param1 , param2)' in function
 
 # The test() method is helpful for debugging, and color codes groups for you
 function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
@@ -83,26 +87,26 @@ function.test('this should match func(param1,\tparam2 ), foo(), and bar( foo,)')
 .test() will print all the matches, color coded to match and group (colors not shown here):
 
 ```
-╭───────────────────────────── Testing Regex ──────────────────────────────╮
-│ Testing expression:                                                      │
-│         \w+(?:\s+)?\(((?:(?:\s+)?\w+(?:\s+)?,?(?:\s+)?)*)\)              │
-│ for matches in:                                                          │
-│         this should match func(param1,  param2 ), foo(), and bar( foo,)  │
-│                                                                          │
-│ Match = "func(param1,  param2 )" (18:39)                                 │
-│ Unnamed Groups:                                                          │
-│         1: "param1, param2 " (23:38)                                     │
-│                                                                          │
-│ Match = "foo()" (41:46)                                                  │
-│ Unnamed Groups:                                                          │
-│         1: "" (45:45)                                                    │
-│                                                                          │
-│ Match = "bar( foo,)" (52:62)                                             │
-│ Unnamed Groups:                                                          │
-│         1: " foo," (56:61)                                               │
-│                                                                          │
-│                                                                          │
-╰───────────────────────────────── Found  ─────────────────────────────────╯
+╭─────────────────────────────── Testing Regex ────────────────────────────────╮
+│ Testing expression:                                                          │
+│         \w+\s*\(((?:\s*\w+\s*,?\s*)*)\)                                      │
+│ for matches in:                                                              │
+│         this should match func(param1,  param2 ), foo(), and bar( foo,)      │
+│                                                                              │
+│ Match = "func(param1,   param2 )" (18:39)                                    │
+│ Unnamed Groups:                                                              │
+│         1: "param1,     param2 " (23:38)                                     │
+│                                                                              │
+│ Match = "foo()" (41:46)                                                      │
+│ Unnamed Groups:                                                              │
+│         1: "" (45:45)                                                        │
+│                                                                              │
+│ Match = "bar( foo,)" (52:62)                                                 │
+│ Unnamed Groups:                                                              │
+│         1: " foo," (56:61)                                                   │
+│                                                                              │
+│                                                                              │
+╰─────────────────────────────────── Found  ───────────────────────────────────╯
 ```
 
 <!-- This is all colored properly, if anything supported it
@@ -146,26 +150,26 @@ For example, these are all equivelent:
 # Element functions
 optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word)
 # Elemental methods
-whitespace.optional.append(literal('a').repeat.or_('b').unnamed).if_followed_by(word)
+whitespace.optional.append(literal('a').repeat.or_('b').group).if_followed_by(word)
 # Mixed
-whitespace.optional + repeat('a').or_('b').unnamed + if_followed_by(word)
+whitespace.optional + repeat('a').or_('b').group + if_followed_by(word)
 ```
 
 ## Dialects
 As of version v1.6.0, the concepts of *dialects* was introduced. Different languages often have slight variations on the regular expression syntax. As this library is meant to be language independent (even though it's written in Python), you should be able to compile regular expressions to work with other languages as well. To do that, you can simply import all the elements as a sub-package, and they should work identically, although some languages may not have the same features as others.
 ```python
 >>> import ezregex as ez # The python dialect is the defualt dialect
->>> ez.group(digit, 'name') + ez.earlier_group('name')
-PythonEZRegex("(?P<name>\d)(?P=name)")
->>> import ezregex.pcre2 as ez
->>> ez.group(digit, 'name') + ez.earlier_group('name')
-PCRE2EZRegex("?P<name>\d)(\g<name>")
+>>> ez.group(digit, name='name') + ez.earlier_group('name')
+PythonEZRegex((?P<name>\d)(?P=name), {...})
+>>> import ezregex.javascript as ez
+>>> ez.group(digit, name='name') + ez.earlier_group('name')
+JavascriptEZRegex(/(?<name>\d)\k<name>/, {...})
 ```
 
 The currently implemented dialects are:
 | Dialect    | Completeness | Tests pass |
 |------------|--------------|------------|
-| Python     | ~99%         | Yes        |
+| Python     | ~100%        | Yes        |
 | JavaScript | ~90%         | Yes        |
 | PCRE2      | ~60%         | Yes        |
 | R          | 100%         | Yes        |
@@ -180,6 +184,9 @@ If you know a particular flavor of regex and would like to contribute, feel free
 All the functions in the Python `re` library (`search`, `match`, `sub`, etc.) are implemented in the Python dialect, and act identically to their equivalents. If you still want to use the Python `re` library directly, note that functions like `search` and `sub` don't accept EZRegex patterns as valid regex. Be sure to either call .str() (or cast it to a string) or .compile() (to compile to an re.Pattern) when passing to those. Using the member functions however, will be more efficient, as EZRegex caches the compiled re.Pattern internally.
 
 There's also an api function, which acts like an API endpoint for regular expressions. This is used by the EZRegex frontend, as it loads this library locally in the browser. It made sense to put it in the library itself, becasue it could be useful for other purposes.
+
+## Aliases
+A lot of the EZRegexs have multiple names, either because different names make more sense in different contexts, or simply to allow different formatting. You can see the aliases for each EZRegex in the docs. As a general rule, there are snake_case and camelCase versions for each one, where applicable.
 
 ## Installation
 EZRegex is distributed on [PyPI](https://pypi.org) as a pure-python universal wheel with no dependencies and is available on Linux, macOS and Windows and supports Python 3.10+ and PyPy.
