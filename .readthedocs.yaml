@@ -11,7 +11,7 @@ build:
       - pip install pdoc mkdocs mkdocs-material mkdocs-gen-files mkdocstrings mkdocstrings-python mkdocs-include-markdown-plugin mkgendocs
       # - pip install mkdocs-theme-readthedocs
       - cp README.md docs/index.md
-      - python -m gendocs --config mkgendocs.yml
+      - gendocs --config mkgendocs.yml
       - rm "docs/Other Utilities/index.md" || true
 
 mkdocs:
