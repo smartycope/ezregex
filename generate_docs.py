@@ -56,5 +56,5 @@ for dialect in [ez.r.REZRegex, ez.javascript.JavascriptEZRegex, ez.pcre2.PCRE2EZ
 
 
 
-import subprocess
-subprocess.run(["gendocs", "--config", "mkgendocs.yml"])
+# import subprocess
+# subprocess.run(["gendocs", "--config", "mkgendocs.yml"])
