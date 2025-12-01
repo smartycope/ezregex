@@ -409,7 +409,7 @@ Args:
     def _flag_func(self, final:_str) -> _str:
         """ This function is called to add the flags to the regex. It gets called even if there are no flags """
         if self.flags and not self.replacement:
-            return f'(?{''.join(self.flags)}){final}'
+            return f"(?{''.join(self.flags)}){final}"
         return final
 
     def _final_func(self, compiled:_str) -> _str:

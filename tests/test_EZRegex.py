@@ -271,7 +271,8 @@ def test_imply_input_is_cur():
         assert options('multiline') + digit.either(input) == either(digit, input) + options('multiline')
         assert options('multiline') + digit.or_(input) == either(digit, input) + options('multiline')
     except Exception as err:
-        if 'require at least Python3.11' not in str(err):
+        if 'require at least Python3.11' not in str(err) and \
+            'Possessive qualifiers are not allowed in this dialect' not in str(err):
             raise
 
     assert digit.optional == optional(digit)

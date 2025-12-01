@@ -1,13 +1,13 @@
-from typing import Any, Callable, Tuple, Dict, Unpack, List, Set
-from types import FunctionType
+from typing import Any, Callable, Tuple, Dict
 
 try:
     from mypy_extensions import DefaultNamedArg, VarArg
-    type EZRegexFunc = Callable[[VarArg, DefaultNamedArg("cur", str)], str]
+    EZRegexFunc = Callable[[VarArg, DefaultNamedArg("cur", str)], str]
 except ImportError:
-    type EZRegexFunc = Callable[[..., str], str]
+    EZRegexFunc = Callable[[..., str], str]
 
-type EZRegexType = 'EZRegex'
-type EZRegexDefinition = str|EZRegexFunc|Tuple[str|EZRegexFunc, Dict[str, Any]]
-type EZRegexOther = str|EZRegexType|int
-type EZRegexParam = str|EZRegexType|int|bool|None
+# Lazily evaluated types have only been added in 3.14+. Until then, this works
+EZRegexType = Any
+EZRegexDefinition = str|EZRegexFunc|Tuple[str|EZRegexFunc, Dict[str, Any]]
+EZRegexOther = str|EZRegexType|int
+EZRegexParam = str|EZRegexType|int|bool|None

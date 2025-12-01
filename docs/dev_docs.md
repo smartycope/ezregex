@@ -196,6 +196,17 @@ How it works:
     * For dialect tests, because the regexs in regexs.jsonc are EZRegexs, not regular expression strings, the file needs to be "compiled" by python in order to be used by other languages, before running individual test runner scripts. This is handled by the `compile_regexs.py` script, which is called by the manager script when appropriate.
     * Each dialect has its own test runner script, which is run by the manager script. These are written in their appropriate language.
 
+Note that because I'm now handling the container myself, it only tests against python3.12. I should probably change this to 3.10, as that's the lowest version I'm aiming to support, but that's a problem for later.
+<!-- TODO: /|\ -->
+In the meantime, to test against a lower version, switch to a different python version, however you do that (I use miniconda), then run
+```bash
+pip install -r dev-requirements.txt
+pip install -e .
+cd tests/
+pytest -k "not generate and not invert"
+```
+That just runs the pytests, which is *not* complete testing, but is good enough for now.
+
 Commands:
 (All commands should be run from the project root directory)
 * To build locally:

@@ -1,5 +1,5 @@
 """ Support for the JavaScript dialect of regular expressions"""
-__version__ = '1.1.0'
+__version__ = '1.1.1
 
 from .. import EZRegex
 from ..mixins import (AdvancedGroupsMixin, BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
@@ -54,7 +54,7 @@ class JavascriptEZRegex(
             raise ValueError('string_starts_with and string_ends_with don\'t work with the multiline flag')
         if self.replacement:
             return final
-        return f'/{final}/{''.join(self.flags)}'
+        return f"/{final}/{''.join(self.flags)}"
 
     # TODO: test this to make sure I'm right to exclude cur from the output
     is_exactly = lambda input, cur=...: r"^" + input + r"$"
