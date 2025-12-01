@@ -1,5 +1,5 @@
 """ Support for the JavaScript dialect of regular expressions"""
-__version__ = '1.1.1
+__version__ = '1.1.1'
 
 from .. import EZRegex
 from ..mixins import (AdvancedGroupsMixin, BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
