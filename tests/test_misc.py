@@ -123,6 +123,19 @@ def test_options():
 #     ):
 #         assert pickle.loads(pickle.dumps(i)) == i
 
+def test_error_on_invalid_group_names():
+    assert word.group('a').str()
+    assert word.group('a', name='a').str()
+    assert group(word, name='a').str()
+    assert group(word).str()
+    with pytest.raises(ValueError):
+        word.group('a', name='a bat').str()
+    with pytest.raises(ValueError):
+        group(word, name='a bat').str()
+    with pytest.raises(ValueError):
+        group(word, name=',ds').str()
+    with pytest.raises(ValueError):
+        word.group(word, name='-minus').str()
 
 def test_docstrings():
     shouldbe = """

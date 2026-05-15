@@ -1,5 +1,5 @@
 # pyright: reportOperatorIssue = false
-from re import escape
+from re import escape, search
 from string import digits
 from sys import version_info
 from typing import Callable
@@ -23,14 +23,23 @@ from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZ
 # other types will be auto-cast to strings, special characters will not be escaped, and a warning thrown
 # See EZRegex._sanitize_param for more info
 
+def _pretty_up_error_msg(func, param_name):
+    try:
+        func_names = psuedonyms[func]
+    except KeyError:
+        func_names = False
+    return f'Parameter {param_name} in {func} {"(aka " + ", ".join(func_names) + ")" if func_names else ""}'
+
 def raise_if_empty(param, func, param_name='pattern'):
     if not len(str(param)):
-        try:
-            func_names = psuedonyms[func]
-        except KeyError:
-            func_names = False
-        raise ValueError(f'Parameter {param_name} in {func} {"(aka " + ", ".join(func_names) + ")" if func_names else ""} cannot be empty')
+        raise ValueError(f'{_pretty_up_error_msg(func, param_name)} cannot be empty')
 
+def validate_group_name(name, func, param_name):
+    raise_if_empty(name, func, param_name)
+    if name is None:
+        raise ValueError(f'{_pretty_up_error_msg(func, param_name)} cannot be None')
+    if search(r'\W', name):
+        raise ValueError(f'{_pretty_up_error_msg(func, param_name)} cannot contain special characters')
 
 def imply_pattern_is_cur(func):
     """ If `pattern` is Ellipsis, it will use `cur` instead, and `cur` will be set to an empty string.
@@ -454,8 +463,8 @@ def GroupsMixin(*,
             raise_if_empty(pattern, 'group')
             if name is not None:
                 if named_group is None:
-                    raise ValueError(f'Named groups are not implemented in this dialect')
-                raise_if_empty(name, 'group', 'name')
+                    raise ValueError('Named groups are not implemented in this dialect')
+                validate_group_name(name, 'group', 'name')
             return f'{cur}({pattern})' if name is None else named_group(pattern, name, cur=cur)
 
         @imply_pattern_is_cur
@@ -482,7 +491,7 @@ def AdvancedGroupsMixin(*,
                 Args:
                     num_or_name (int | str): either the number or name of the previous group
             """
-            raise_if_empty(num_or_name, 'earlier_group', num_or_name)
+            validate_group_name(num_or_name, 'earlier_group', num_or_name)
             return earlier_numbered_group(num_or_name, cur=cur) \
                 if isinstance(num_or_name, int) or num_or_name in digits \
                 else earlier_named_group(num_or_name, cur=cur)
@@ -495,7 +504,7 @@ def AdvancedGroupsMixin(*,
                     does_pattern: the pattern to match if the group exists
                     doesnt_pattern: the pattern to match if the group doesn't exist
             """
-            raise_if_empty(num_or_name, 'if_exists', num_or_name)
+            validate_group_name(num_or_name, 'if_exists', num_or_name)
             return f'{cur}(?({num_or_name}){does_pattern}{("|" + str(doesnt_pattern)) if doesnt_pattern is not None else ""})'
 
     return _AdvancedGroupsMixin
