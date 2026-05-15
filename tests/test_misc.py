@@ -114,6 +114,15 @@ def test_options():
     # I don't *think* this should raise an error
     anyof('a', 'b', 'c') + options('ignore_case') + options(IGNORE_CASE=False)
 
+# def test_pickling():
+#     import pickle
+#     for i in (
+#         word,
+#         word + options('ignore_case'),
+#         word + 'test' + anyof('abcd') + options('ignore_case'),
+#     ):
+#         assert pickle.loads(pickle.dumps(i)) == i
+
 
 def test_docstrings():
     shouldbe = """

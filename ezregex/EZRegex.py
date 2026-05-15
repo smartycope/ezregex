@@ -819,3 +819,23 @@ Args:
         if name in super().__getattribute__('_deleted'):
             raise NameError(f'name {name} is not defined')
         return super().__getattribute__(name)
+
+    # Pickling is theoretically possible, but very complicated, given _func_list
+    # def __getstate__(self) -> object:
+        # return {
+        #     "_is_raw": self._is_raw,
+        #     "docstring": self.docstring,
+        #     "_func_list": self._func_list,
+        #     "flags": self.flags,
+        #     "replacement": self.replacement,
+        #     "_options_specified": self._options_specified,
+        # }
+
+    # def __setstate__(self, state):
+        # # We're immutible, remember?
+        # self.__dict__['_is_raw'] = state['_is_raw']
+        # self.__dict__['docstring'] = state['docstring']
+        # self.__dict__['_func_list'] = state['_func_list']
+        # self.__dict__['flags'] = state['flags']
+        # self.__dict__['replacement'] = state['replacement']
+        # self.__dict__['_options_specified'] = state['_options_specified']
