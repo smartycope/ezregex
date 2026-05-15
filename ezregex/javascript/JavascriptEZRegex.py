@@ -21,7 +21,7 @@ class JavascriptEZRegex(
     ),
     EZRegex,
 
-    escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f/',
+    escape_chars=b'()[]{}?*+|^$\\.&~# \t\n\r\v\f/',
     flags={
         'global': 'g',
         'has_indicies': 'd',
