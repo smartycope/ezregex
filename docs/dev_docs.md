@@ -162,7 +162,7 @@ class PythonEZRegex(
     # Docstrings immediately after members are used as the docstring. This will be added in a later version
 ```
 
-The __init__ file in the submodule must look like this:
+The \_\_init__ file in the submodule must look like this:
 ```python
 from .DialectEZRegex import DialectEZRegex
 from ..inject_parts import inject_parts
@@ -190,6 +190,7 @@ Note that as part of the readthedocs upload build process, the README is copied 
 Tests are run using GitHub Actions, and are run in a Docker container. The Dockerfile is in the `tests` directory, and the manager script is in the same directory. The manager script is run using `bash manager.sh`
 
 How it works:
+
 1. The docker container is built, either locally, or by GitHub Actions
 2. The manager script is run inside the docker container, given the arguments passed to the docker run command
 3. The manager script runs the appropriate tests
@@ -208,7 +209,9 @@ pytest -k "not generate and not invert"
 That just runs the pytests, which is *not* complete testing, but is good enough for now.
 
 Commands:
+
 (All commands should be run from the project root directory)
+
 * To build locally:
     * `docker build -f ./tests/Dockerfile -t ezregex-test .`
     * Note: the first time building takes a while

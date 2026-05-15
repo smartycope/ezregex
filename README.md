@@ -42,7 +42,7 @@ A readable and intuitive way to write Regular Expressions without having to know
 * [Functions vs Methods](#functions-vs-methods)
 * [Dialects](#dialects)
 * [Documentation](https://ezregex.readthedocs.io/en/latest/)
-* [Developer Docs](https://ezregex.readthedocs.io/en/latest/dev_docs/)
+* [Developer Docs](https://ezregex.readthedocs.io/en/latest/dev_docs.html)
 * [Utilities](#utilities)
 * [Aliases](#aliases)
 * [Installation](#installation)
