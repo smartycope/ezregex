@@ -24,10 +24,8 @@ if __name__ != '__main__':
 else:
     from ezregex.invert_old import invertRegex
 
-# TODO: add an option to put the matching string inside stuff that doesn't match
-# TODO: add an option to include multiple matching strings inside stuff that doesn't match
 
-# TODO: inverting r"(?P<first>(?:(?:\w|\-))+) (?:(?P<initial>[A-Za-z])(?:\.|\w+) )?(?P<last>\w+),.+" doesn't seem to ever put a - in the first word
+
 
 with open(Path(__file__).parent / 'assets' / 'common_sorted_words.json') as f:
     words = json.load(f)
@@ -484,4 +482,3 @@ if __name__ == '__main__':
     print(invert(r'(?:(<))?(\w+@\w+(?:\.\w+)+)(?(1)>|\Z)'))
 
     # print(invert(r'\w+test\d+', _verbose=True))
-    # TODO: I think this will fail if given [^.\\n] (or anyExcept(literallyAnything)),

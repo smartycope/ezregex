@@ -9,7 +9,6 @@ from ezregex import *
 
 ALL_DIALECTS = [ez.python.PythonEZRegex, ez.r.REZRegex, ez.javascript.JavascriptEZRegex, ez.pcre2.PCRE2EZRegex]
 
-# TODO: tests to check how raw() interacts with replacement groups
 
 def test_basic():
     assert literal('test').str() == 'test'
@@ -370,7 +369,6 @@ def test_proper_sanitation():
     # I'm not sure what this will do... it should raise an error?
     with pytest.raises(TypeError):
         digit.raw.word.str()
-    # TODO: this could use some more tests in it
 
 def test_replacements_not_interoperable():
     assert (rgroup(1) + 'foo').str() == r'\g<1>foo'
