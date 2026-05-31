@@ -11,18 +11,18 @@ from typing import Literal, Union
 import logging
 
 
-from . import *
-
 if version_info.minor <= 10:
     from re import sre_parse as sre  # type: ignore
 else:
     from re import _parser as sre  # type: ignore
 
 # So I can debug this function directly
-if __name__ != '__main__':
-    from .invert_old import invertRegex
-else:
+if __name__ == '__main__':
     from ezregex.invert_old import invertRegex
+    from ezregex import *
+else:
+    from . import *
+    from .invert_old import invertRegex
 
 
 
@@ -478,7 +478,8 @@ if __name__ == '__main__':
     # print(invert(r'(?=AB)(?!CD)DC AB(?<=CD) AB(?<!CD)'))
 
     # print(invert(r'[ABC]+(?=D).*$ <.*?>'))
-    print(invert(r'(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)'))
-    print(invert(r'(?:(<))?(\w+@\w+(?:\.\w+)+)(?(1)>|\Z)'))
+    # print(invert(r'(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)'))
+    # print(invert(r'(?:(<))?(\w+@\w+(?:\.\w+)+)(?(1)>|\Z)'))
+    print(invert(email))
 
     # print(invert(r'\w+test\d+', _verbose=True))
