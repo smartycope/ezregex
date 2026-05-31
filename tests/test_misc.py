@@ -6,15 +6,7 @@ from ezregex import EZRegex, python
 from ezregex.mixins import *
 
 
-def test_deleteme():
-    assert True
-    # assert '-' not in unsigned_integer.str()
-    # assert '-' not in unsigned.str()
-
 def test_literal_tab_doesnt_get_escaped():
-    import re
-    assert re.search(space_or_tab.str(), r' \t')
-
     _tab = chr(9)
     backslash_t = r'\t'
     assert tab.str() == backslash_t
@@ -42,7 +34,6 @@ def test_compound_aliases_exist_in_class():
 def test_compound_elements_exist():
     assert type(python.ow) is PythonEZRegex
     assert python.ow.docstring == "Optional Whitechunk"
-    # This is it's current implementation
     assert python.ow.str() == r'\s*'
     assert (python.ow + python.ow).str() == r'\s*'*2
 
@@ -153,7 +144,7 @@ def test_misc():
 
     a = str(PythonEZRegex([lambda cur=...: cur + r'\s+']))
     with pytest.raises(TypeError):
-         b = str(PythonEZRegex(raw(r'\s+')))
+        b = str(PythonEZRegex(raw(r'\s+')))
     c = r'\s+'
     d = str(raw(r'\s+'))
     # e = str(whitespace + matchMax)
