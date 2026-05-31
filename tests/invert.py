@@ -43,6 +43,7 @@ table.add_column("Regex", justify="right", style="green")#, max_width=40)
 table.add_column("Inverse", justify="left", style="dim green")
 table.add_column("Status", justify="center")
 
+# TODO: this is about 2 lines away from being multithreaded, so why not?
 res = [i['regex'] for i in regexs + replacements]
 failures = []
 for r in track(res, total=len(res)):
@@ -51,6 +52,7 @@ for r in track(res, total=len(res)):
         # TODO: at some point in the future, try removing this and see if it magically started working
         # For SOME REASON this one AND ONLY THIS ONE doesn't work INSIDE the docker container, but
         # works OUTSIDE of it. I have no idea why. They've each been tested manually.
+        # Later note: this may be because of the strictness level in this script (e.g. it fails ~1/20th of the time)
         if r in (
             r'(<)?(\w+@\w+(?:\.\w+)+)(?(1)>|$)',
             r'(?:(<))?(\w+@\w+(?:\.\w+)+)(?(1)>|\Z)',
@@ -67,6 +69,7 @@ for r in track(res, total=len(res)):
             failures.append((r, str(err), 'error'))
             raise err
 
+    # For debugging, if something gets stuck
     # print(r, end='\n')
     thread = threading.Thread(target=do_test, args=(r,))
     thread.start()
@@ -75,6 +78,8 @@ for r in track(res, total=len(res)):
     if thread.is_alive():
         failures.append((r, '', 'timeout'))
     # Murder the thread
+    # This... doesn't seem to actually catch hung threads, which kinda defeats the purpose of using
+    # threads to begin with...
     thread._stop()
 
 # skipped = set()
