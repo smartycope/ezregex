@@ -69,7 +69,6 @@ def imply_pattern_is_cur(func):
         return func(*args, pattern=pattern, cur=cur, **kwargs)
     return rtn
 
-
 def pattern_is_single_element(pattern):
     return len(pattern) == 1 or (len(pattern) == 2 and pattern[0] == '\\')
 

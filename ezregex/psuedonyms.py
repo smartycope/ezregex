@@ -3,7 +3,7 @@
 # If there is the same name on both sides (key and value), it causes complex issues
 # The keys must be the cannonical names (i.e. the name that is used in the mixin or subclass)
 # Don't forget that the values must be tuples, even if there is only one psuedonym
-# TODO: more complete tests testing all of these
+# TODO: more complete tests testing all of these -- or better yet, automated testing of all of these
 
 psuedonyms = {
     'match_max'          : ('repeat',),
@@ -21,7 +21,8 @@ psuedonyms = {
     'white_char'         : ('whitechar',),
     'anything'           : ('anychar', 'any_char', 'char',),
     'letter'             : ('alpha',),
-    'letter_num'         : ('alphanum'  , 'alpha_num',),
+    'letter_num'         : ('alphanum', 'alpha_num',),
+    'letter_num_'        : ('alphanum_', 'alpha_num_', 'alpha_num_underscore', 'alphanum_underscore', 'letter_num_underscore',),
     'any_between'        : ('num_between', 'amt_between',),
     'hex_digit'          : ('hex',),
     'new_line'           : ('newline',),
@@ -36,10 +37,11 @@ psuedonyms = {
     'optional'           : ('one_or_none', 'opt',),
     'at_least_one'       : ('one_or_more', 'at_least_1',),
     'at_least_none'      : ('none_or_more', 'at_least_0', 'any_amt', 'zero_or_more',),
-    'signed'             : ('integer', 'signed_int', 'signed_integer',),
     'rgroup'             : ('replace_group',),
     'replace_entire'     : ('replace_all',),
     'either'             : ('or_',),
+    'signed_integer'     : ('signed_int', 'integer', 'signed'),
+    'unsigned_integer'   : ('unsigned_int', 'unsigned',),
 }
 
 # TODO: this likely can be deleted, I don't think it's used anywhere anymore
