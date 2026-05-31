@@ -3,7 +3,83 @@ import pytest
 import ezregex as ez
 from ezregex import *
 from ezregex import EZRegex, python
+from ezregex.mixins import *
 
+
+def test_deleteme():
+    assert True
+    # assert '-' not in unsigned_integer.str()
+    # assert '-' not in unsigned.str()
+
+def test_literal_tab_doesnt_get_escaped():
+    import re
+    assert re.search(space_or_tab.str(), r' \t')
+
+    _tab = chr(9)
+    backslash_t = r'\t'
+    assert tab.str() == backslash_t
+    assert group(tab).str() == f'({backslash_t})'
+    assert group('\t').str() == f'(\\{_tab})'
+    assert group(r'\t').str() == f'(\\{backslash_t})'
+    assert group(raw(r'\t')).str() == f'({backslash_t})'
+
+def test_aliases_exist_in_module():
+    assert letter_num.str() == letterNum.str()
+    assert letter_num.str() == alpha_num.str() == alphaNum.str()
+
+def test_compound_aliases_exist_in_module():
+    assert space_or_tab.str() == spaceOrTab.str()
+    assert unsigned_integer.str() == unsigned_int.str() == unsignedInt.str() == unsignedInteger.str()
+
+def test_aliases_exist_in_class():
+    assert PythonEZRegex.letter_num.str() == PythonEZRegex.letterNum.str()
+    assert PythonEZRegex.letter_num.str() == PythonEZRegex.alpha_num.str() == PythonEZRegex.alphaNum.str()
+
+def test_compound_aliases_exist_in_class():
+    assert PythonEZRegex.space_or_tab.str() == PythonEZRegex.spaceOrTab.str()
+    assert PythonEZRegex.unsigned_integer.str() == PythonEZRegex.unsigned_int.str() == PythonEZRegex.unsignedInt.str() == PythonEZRegex.unsignedInteger.str()
+
+def test_compound_elements_exist():
+    assert type(python.ow) is PythonEZRegex
+    assert python.ow.docstring == "Optional Whitechunk"
+    # This is it's current implementation
+    assert python.ow.str() == r'\s*'
+    assert (python.ow + python.ow).str() == r'\s*'*2
+
+def test_compound_elements_abide_dependancies():
+    class TestDialect(
+        GroupsMixin(),
+        EZRegex,
+        escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',
+        flags={},
+    ):
+        pass
+
+    with pytest.raises(AttributeError):
+        TestDialect.ow
+
+    with pytest.raises(AttributeError):
+        TestDialect.full_float
+
+def test_compount_elements_abide_deleted_depednacies():
+    class TestDialect(
+        BaseMixin(),
+        EZRegex,
+        escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',
+        flags={},
+    ):
+        digit = None
+
+    assert TestDialect.ow.str() == r'\s*'
+
+    with pytest.raises(AttributeError):
+        TestDialect.full_float
+
+    with pytest.raises(AttributeError):
+        TestDialect.signed_int
+
+# Currently, all compound elements are solely contained in BaseMixin. If that ever changes, another
+# test should be added to check that some compound elements work and others don't without deletion
 
 def test_no_empty_strings():
     with pytest.raises(ValueError):
@@ -77,7 +153,7 @@ def test_misc():
 
     a = str(PythonEZRegex([lambda cur=...: cur + r'\s+']))
     with pytest.raises(TypeError):
-        b = str(PythonEZRegex(raw(r'\s+')))
+         b = str(PythonEZRegex(raw(r'\s+')))
     c = r'\s+'
     d = str(raw(r'\s+'))
     # e = str(whitespace + matchMax)
