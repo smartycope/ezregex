@@ -1,5 +1,5 @@
 """ Support for the PCRE2 dialect of regular expressions"""
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 
 from ..EZRegex import EZRegex
 from ..mixins import (AdvancedGroupsMixin, AdvancedReplacementsMixin, BaseMixin, AssertionsMixin, GroupsMixin, AnchorsMixin, ReplacementsMixin)
@@ -10,7 +10,7 @@ class PCRE2EZRegex(
     AssertionsMixin(),
     GroupsMixin(),
     AdvancedGroupsMixin(),
-    AnchorsMixin(string=False),
+    AnchorsMixin(),
     ReplacementsMixin(entire_match='$&'),
     AdvancedReplacementsMixin(),
     EZRegex,
@@ -33,9 +33,9 @@ class PCRE2EZRegex(
     flags_docs_map={
         **common_flag_docs,
         'noncapturing': '''Not recomendded. Don't capture with any groups. Instead, simply don't use any groups''',
-        'extra': '''Not recomendded. Any character following a \\ that is not a valid meta sequence \
-will be faulted and raise an error. \\O, for example, will cause an \
-error, and it will not match.'''
+        'extra': "Not recomendded. Any character following a \\ that is not a valid meta sequence"
+                 " will be faulted and raise an error. \\O, for example, will cause an "
+                 " error, and it will not match."
     }
 ):
     """
