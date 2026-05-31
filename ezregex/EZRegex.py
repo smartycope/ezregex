@@ -16,7 +16,7 @@ from .api import api
 from .psuedonyms import psuedonyms, all_psuedonyms
 # from ezregex.generate import generate_regex
 from .invert import invert
-from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
+from .ezregex_types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 
 # TODO: consider changing add_flags to "outer" or "end" or something
 
@@ -219,6 +219,7 @@ Args:
             assert len(sig.parameters) == 2, f'Value {v} is a tuple of 2, but the second element is not a callable with 2 parameters'
         cls._variables = variables | _initial_variables
 
+        added = set()
         # Instantiate members & methods
         # psuedonyms don't exist yet, so we're fine
         for name in cls.parts():
@@ -234,9 +235,16 @@ Args:
                 # accessed via __get_attribute__
                 cls._deleted.add(name)
             else:
-                to = EZRegex._interpret_definition(cls, value)
-                setattr(cls, name, to)
-                setattr(cls, _to_camel_case(name), to)
+                instance = EZRegex._interpret_definition(cls, value)
+                setattr(cls, name, instance)
+                added.add(name)
+
+        # Add compound elements here, after the definitions are interpreted and variables have been deleted
+        added |= cls._add_compound_elements()
+
+        # We add arbitrary psuedonyms later, for now automatically add all camelCase versions
+        for name in added:
+            setattr(cls, _to_camel_case(name), getattr(cls, name))
 
         # Validate flag params, and generate the options function
         assert isinstance(flags, dict), f'Flags {flags} is not a dictionary'
@@ -276,6 +284,10 @@ Args:
         return super().__init_subclass__(**kwargs)
 
     def __init__(self, func_list:list[EZRegexFunc]=[], _is_raw=False, docstring:str=None, **variable_values):
+        # Make sure the user isn't trying to create an EZRegex object directly
+        if not isinstance(func_list, list):
+            raise TypeError(f'func_list must be a list, not {type(func_list)}')
+
         # Use the defaults, which can get overriden if we're given variable values (i.e. by _combine())
         self.__dict__.update({k: (v[0](self) if callable(v[0]) else v[0]) for k, v in self._variables.items()})
         self.__dict__.update(variable_values)
@@ -326,6 +338,110 @@ Args:
             # which will get called out when they try to compile, so we can ignore it
             _is_raw=other._is_raw if propogate_raw else False,
         )
+
+    # TODO: a chunk of literally anything/chunk of literally anything except ...
+    # TODO: move the ones in PythonEZRegex.py to here
+    @classmethod
+    def _add_compound_elements(cls):
+        ''' Build the compound elements, add them to the class, and return the names of what was added.
+            Conditionally builds compound elements if all their components exist.
+            Note that all the names of the component elements here must be the official names, as
+            psuedonyms aren't added at the time this is run.
+        '''
+        to_add = {}
+
+        def defined(*names):
+            # Check that they all exist, AND none of them are None
+            for name in set(names):
+                if getattr(cls, name, None) is None:
+                    return False
+            return True
+
+        if defined('any_of'):
+            to_add['quote'] = cls(cls.any_of("'", '"', "`")._func_list, docstring=
+                "Matches ', \", and `")
+
+        if defined('white_char'):
+            if defined('at_least_one'):
+                to_add['whitechunk'] = cls(cls.at_least_one(cls.white_char)._func_list, docstring=
+                    "A \"chunk\" of whitespace. Just any amount of whitespace together")
+
+            if defined('at_least_none'):
+                to_add['ow'] = cls(cls.at_least_none(cls.white_char)._func_list, docstring=
+                    "Optional Whitechunk")
+
+        if defined('either', 'anything', 'new_line'):
+            to_add['literally_anything'] = cls(cls.either(cls.anything, cls.new_line)._func_list, docstring=
+                "Either anything or a newline character")
+
+        if defined('at_least_none', 'digit', 'either', 'any_between'):
+            to_add['unpadded_number'] = unpadded_number = cls(cls.either('0', cls.any_between('1', '9') + cls.at_least_none(cls.digit))._func_list, docstring=
+                "Matches a number without a leading 0. Does not match negatives or decimals")
+
+        if defined('at_least_one'):
+            if defined('word_char'):
+                to_add['word'] = cls(cls.at_least_one(cls.word_char)._func_list)
+
+            if defined('anything'):
+                to_add['chunk'] = cls(cls.at_least_one(cls.anything)._func_list, docstring=
+                    "A \"chunk\": Any clump of characters up until the next newline")
+
+            if defined('digit'):
+                to_add['number'] = number = cls(cls.at_least_one(cls.digit)._func_list, docstring=
+                    "Matches multiple digits next to each other. Does not match negatives or decimals")
+
+                if defined('either', 'digit', 'optional', 'at_least_one'):
+                    e = cls.optional('e' + cls.either('-', '+') + number)
+
+                    to_add['signed_number'] = cls((cls.optional(cls.either('-', '+')) + number)._func_list, docstring=
+                        "A signed number, like 123, -123, or +123")
+
+                    to_add['unsigned_number'] = cls((cls.optional('+') + number)._func_list, docstring=
+                        "An unsigned number, like 123, or +123")
+
+                    to_add['signed_integer'] = signed_integer = cls((cls.optional(cls.either('-', '+')) + number + e)._func_list, docstring=
+                        "A signed integer, that also accepts e notation, like 123, -123+10, or +123e-10")
+
+                    to_add['unsigned_integer'] = cls((cls.optional('+') + number + e)._func_list, docstring=
+                        "An unsigned integer, that also accepts e notation, like 123, or +123e-10")
+
+                    if defined('at_least_none'):
+                        # We do it this way so we don't match ".", "-.", or "+.", without requiring AdvancedReplacementsMixin
+                        opt_number = cls.at_least_none(cls.digit)
+                        dot_number = opt_number + '.' + number
+                        number_dot = number + '.' + opt_number
+
+                        to_add['plain_float'] = plain_float = cls((cls.optional(cls.either('-', '+')) + cls.either(dot_number, number_dot))._func_list, docstring=
+                            "A regular float, like 123.45, -123.45, 123., or +.45")
+
+                        to_add['full_float'] = full_float = cls((plain_float + e)._func_list, docstring=
+                            "Will match plain_float as well as things like 1.23e-10 and 1.23e+10")
+
+                        to_add['int_or_float'] = cls((cls.either(full_float, signed_integer))._func_list, docstring=
+                            "Will match a full float, as well as signed (and unsigned) integers")
+
+        # TODO: finish this (and add dependencies)
+        # Source: https://semver.org/ (at the bottom)
+        # This is like, halfway there
+        # to_add['version'] = \
+        #       cls.group(unpadded_number, name='major') + '.'
+        #     + cls.group(unpadded_number, name='minor') + '.'
+        #     + cls.group(unpadded_number, name='patch')
+        #     + cls.optional(
+        #         '-' + cls.group(cls.anyof(unpadded_number, cls.at_least_none(number + cls.alphanum), '-'), name='prerelease')
+        #     )
+        # version = r"(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)" \
+        # r"(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
+        # """The *official* regex for matching version numbers from https://semver.org/. It includes 5 groups that can be
+        # matched/replaced: `major`, `minor`, `patch`, `prerelease`, and `buildmetadata`"""
+        # version_numbered = r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?"
+        # "Same as `version`, but it uses numbered groups for each version number instead of named groups"
+
+
+        for name, instance in to_add.items():
+            setattr(cls, name, instance)
+
+        return to_add.keys()
 
     def _sanitize_param(self, i:EZRegexParam, add_flags:bool=False):
         """ Sanitize things that are passed as parameters to a singleton member. """

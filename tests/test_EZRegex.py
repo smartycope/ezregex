@@ -64,18 +64,18 @@ def test_test_method():
 def test_parameters_to_chains_lazy():
     EZRegex.lazy_check_params = True
     with pytest.raises(TypeError):
-        digit + word(6).str()
+        digit + word_char(6).str()
     with pytest.raises(TypeError):
-        word(6).str()
+        word_char(6).str()
     with pytest.raises(TypeError):
-        digit.word(6).str()
+        digit.word_char(6).str()
 
     with pytest.raises(TypeError):
-        digit + word(pattern=6).str()
+        digit + word_char(pattern=6).str()
     with pytest.raises(TypeError):
-        word(pattern=6).str()
+        word_char(pattern=6).str()
     with pytest.raises(TypeError):
-        digit.word(pattern=6).str()
+        digit.word_char(pattern=6).str()
 
     assert any_between('a', 'j').str() == r'[a-j]'
     with pytest.raises(TypeError):
@@ -100,11 +100,11 @@ def test_parameters_to_chains_lazy():
         digit.word(6).str()
 
     with pytest.raises(TypeError):
-        digit + word(pattern=6).str()
+        digit + word_char(pattern=6).str()
     with pytest.raises(TypeError):
-        word(pattern=6).str()
+        word_char(pattern=6).str()
     with pytest.raises(TypeError):
-        digit.word(pattern=6).str()
+        digit.word_char(pattern=6).str()
 
     assert any_between('a', 'j').str() == r'[a-j]'
     assert any_between(1.2, 3.4).str()
@@ -125,28 +125,29 @@ def test_parameters_to_chains_lazy():
     assert word().str() == r'\w+'
     assert digit.word().str() == r'\d\w+'
     assert digit().word().str() == r'\d\w+'
-    assert match_amt(6, digit)().str() == r'(?:\d){6}'
+    assert match_amt(6, digit)().str() == r'\d{6}'
+    assert match_amt(6, word)().str() == r'(?:\w+){6}'
     assert digit().str() == r'\d'
-    assert word_char.amt(4).str() == r'(?:\w){4}'
-    assert word_char.amt(4).group(name='word').literal(' ').str() == r'(?P<word>(?:\w){4})\ '
+    assert word_char.amt(4).str() == r'\w{4}'
+    assert word_char.amt(4).group(name='word').literal(' ').str() == r'(?P<word>\w{4})\ '
 
     # Reset, just in case
     EZRegex.lazy_check_params = False
 
 def test_parameters_to_chains_eager():
     with pytest.raises(TypeError):
-        digit + word(6)
+        (digit + word_char(6)).str()
     with pytest.raises(TypeError):
-        word(6)
+        word_char(6)
     with pytest.raises(TypeError):
-        digit.word(6)
+        digit.word_char(6)
 
     with pytest.raises(TypeError):
-        digit + word(pattern=6)
+        digit + word_char(pattern=6)
     with pytest.raises(TypeError):
-        word(pattern=6)
+        word_char(pattern=6)
     with pytest.raises(TypeError):
-        digit.word(pattern=6)
+        digit.word_char(pattern=6)
 
     assert any_between('a', 'j').str() == r'[a-j]'
     with pytest.raises(TypeError):
@@ -212,8 +213,8 @@ def test_imply_input_is_cur():
     min = 1
     max = 3
 
-    assert amt(3, digit).str() == r'(?:\d){3}'
-    assert digit.amt(3).str() == r'(?:\d){3}'
+    assert amt(3, digit).str() == r'\d{3}'
+    assert digit.amt(3).str() == r'\d{3}'
     assert digit.amt(3, 'a')
     assert digit.amt('a', 3)
     assert digit.amt('a', 'b')
@@ -282,21 +283,21 @@ def test_imply_input_is_cur():
     assert digit.prepend(input) == input + digit
 
     assert 'foo' + number + optional(whitespace) + word == number.append(whitespace.optional).prepend('foo').append(word)
-    ans = r'(?:\s+)?((?:(?:a)+|b))(?=\w+)'
+    ans = r'(?:\s+)?((?:a+|b))(?=\w+)'
     assert (optional(whitespace) + group(either(repeat('a'), 'b')) + if_followed_by(word)).str() in ans
     assert whitespace.optional.append(literal('a').repeat.or_('b').group).if_followed_by(word).str() in ans
     assert (whitespace.optional + repeat('a').or_('b').group + if_followed_by(word)).str() in ans
 
 def test_append_prepend():
-    assert digit.opt.then(word).str() == r'(?:\d)?\w+'
+    assert digit.opt.then(word).str() == r'\d?\w+'
     assert (digit + 'asdf').opt.then(word).str() == r'(?:\dasdf)?\w+'
-    assert digit.opt.then(word).opt.then(word).str() == r'(?:(?:\d)?\w+)?\w+'
-    assert digit.opt.word.opt.word.str() == r'(?:(?:\d)?\w+)?\w+'
+    assert digit.opt.then(word).opt.then(word).str() == r'(?:\d?\w+)?\w+'
+    assert digit.opt.word.opt.word.str() == r'(?:\d?\w+)?\w+'
 
-    assert digit.opt.append(word).str() == r'(?:\d)?\w+'
+    assert digit.opt.append(word).str() == r'\d?\w+'
     assert (digit + 'asdf').opt.append(word).str() == r'(?:\dasdf)?\w+'
-    assert digit.opt.append(word).opt.append(word).str() == r'(?:(?:\d)?\w+)?\w+'
-    assert digit.opt.word.opt.word.str() == r'(?:(?:\d)?\w+)?\w+'
+    assert digit.opt.append(word).opt.append(word).str() == r'(?:\d?\w+)?\w+'
+    assert digit.opt.word.opt.word.str() == r'(?:\d?\w+)?\w+'
 
     assert digit.prepend('asdf').str() == r'asdf\d'
     assert digit.prepend('asdf').prepend('1234').str() == r'1234asdf\d'

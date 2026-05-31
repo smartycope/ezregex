@@ -11,7 +11,7 @@ from functools import partial
 from string import Formatter
 
 
-from .types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
+from .ezregex_types import EZRegexFunc, EZRegexType, EZRegexDefinition, EZRegexOther, EZRegexParam
 # TODO: add typing to all of these
 
 # NOTE: the docstrings are added manually, which I hate. They SHOULD be below the variable
@@ -69,6 +69,17 @@ def imply_pattern_is_cur(func):
         return func(*args, pattern=pattern, cur=cur, **kwargs)
     return rtn
 
+def pattern_is_single_element(pattern):
+    return len(pattern) == 1 or (len(pattern) == 2 and pattern[0] == '\\')
+
+def conditionally_passive_group(pattern):
+    if not pattern or pattern == ...:
+        return ''
+    if pattern_is_single_element(pattern):
+        return pattern
+    else:
+        return f'(?:{pattern})'
+
 def _parse_any_of_params(*patterns, chars=None, split=None):
     if split and len(patterns) != 1:
         raise ValueError("Please don't specifiy split and pass multiple patterns to anyof")
@@ -120,48 +131,39 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         """}
 
         # Positional
-        word_boundary      = r'\b'
-        not_word_boundary  = r'\B'
+        word_boundary     = r'\b'
+        not_word_boundary = r'\B'
 
         # Literals
-        tab                = r'\t'
-        space              = r' '
-        space_or_tab       = r'[ \t]'
-        new_line           = r'\n'
-        carriage_return    = r'\r'
-        quote              = r'(?:\'|"|`)', {'docstring':
-        "Matches ', \", and `"}
-        vertical_tab       = r'\v'
-        form_feed          = r'\f'
-        comma              = r'\,'
-        period             = r'\.'
-        underscore         = r'_'
+        tab               = r'\t'
+        space             = r' '
+        space_or_tab      = r'[ \t]'
+        new_line          = r'\n'
+        carriage_return   = r'\r'
+        vertical_tab      = r'\v'
+        form_feed         = r'\f'
+        comma             = r'\,'
+        period            = r'\.'
+        underscore        = r'_'
 
         # Not Literals
-        not_whitespace     = r'\S'
-        not_digit          = r'\D'
-        not_word           = r'\W'
+        not_whitespace    = r'\S'
+        not_digit         = r'\D'
+        not_word          = r'\W'
 
         # Catagories
-        white_char         = r'\s'
-        whitechunk         = r'\s+', {'docstring':
-        "A \"chunk\" of whitespace. Just any amount of whitespace together"}
-        digit              = r'\d'
-        number             = r'\d+', {'docstring':
-        "Matches multiple digits next to each other. Does not match negatives or decimals"}
-        word               = r'\w+'
-        word_char          = r'\w', {'docstring':
+        white_char        = r'\s'
+        digit             = r'\d'
+        word_char         = r'\w', {'docstring':
         "Matches just a single \"word character\", defined as any letter, number, or _"}
-        anything           = r'.', {'docstring':
+        anything          = r'.', {'docstring':
         "Matches any single character, except a newline. To also match a newline, use literally_anything"}
-        chunk              = r'.+', {'docstring':
-        "A \"chunk\": Any clump of characters up until the next newline"}
-        uppercase          = r'[A-Z]'
-        lowercase          = r'[a-z]'
-        letter             = r'[A-Za-z]', {'docstring':
+        uppercase         = r'[A-Z]'
+        lowercase         = r'[a-z]'
+        letter            = r'[A-Za-z]', {'docstring':
         "Matches just a letter -- not numbers or _ like word_char"}
-        hex_digit          = r'[0-9a-fA-F]'
-        oct_digit          = r'[0-7]'
+        hex_digit         = r'[0-9a-fA-F]'
+        oct_digit         = r'[0-7]'
         # TODO: is there a more formal definition of this or something?
         # NOTE: this could cause problems, as this is the *python* regex escape function, not the
         # current class's.
@@ -173,30 +175,15 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         printable           = r'[\x21-\x7E]', {'docstring':
         "Matches printable ASCII characters"}
         printable_and_space = r'[\x20-\x7E]'
-        letter_num          = r'[A-Za-z0-9_]'
+        # TODO: this would be nice, but it requires a minor rewrite of how we caluclate psuedonymns
+        # letter_num_         = r'[a-zA-Z0-9_]'
+        letter_num          = r'[a-zA-Z0-9_]'
         unicode             = lambda name, cur=...: fr'\N{name}', {'docstring':
         """ Matches a unicode character by name
 
             Args:
                 name: the name of the unicode character
         """}
-
-        # Premade
-        # TODO: a chunk of literally anything/chunk of literally anything except ...
-        literally_anything = r'(?:.|\n)', {'docstring':
-        "*Any* character, include newline"}
-        signed             = r'(?:(?:\-|\+))?\d+', {'docstring':
-        "a signed number, including 123, -123, and +123"}
-        unsigned           = r'\d+', {'docstring':
-        "Same as number. Will not match +123"}
-        plain_float        = r'(?:(?:\-|\+))?\d+\.(?:\d+)?', {'docstring':
-        "Will match 123.45 and 123."}
-        full_float         = r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?', {'docstring':
-        "Will match plain_float as well as things like 1.23e-10 and 1.23e+10"}
-        int_or_float       = r'(?:(?:\-|\+))?\d+\.(?:\d+)?(?:e(?:(?:\-|\+))?\d+)?(?:\-)?\d+(?:\.(?:\d+)?)?', {'docstring':
-        "Will match a full float, as well as a signed (and unsigned) integer"}
-        ow                 = r'\s*', {'docstring':
-        "\"Optional Whitechunk\""}
 
         @add_greedy_possessive
         @imply_pattern_is_cur
@@ -217,15 +204,13 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             """
             raise_if_empty(pattern, 'match_range')
 
-            s = cur
-            if len(pattern):
-                s += r'(?:' + pattern + r')'
-            s += r'{' + str(min) + r',' + str(max) + r'}'
+            cur += conditionally_passive_group(pattern)
+            cur += r'{' + str(min) + r',' + str(max) + r'}'
             if not greedy:
-                s += r'?'
+                cur += r'?'
             if possessive:
-                s += r'+'
-            return s
+                cur += r'+'
+            return cur
 
         # Choices
         @add_greedy_possessive
@@ -242,17 +227,12 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                     greedy (bool): whether to match greedily (default: True)
                     possessive (bool): whether to match possessively (default: False)
             """
-            s = cur
-            if len(pattern) > 1:
-                s += fr'(?:{pattern})?'
-            else:
-                if len(pattern) == 1:
-                    s += fr'{pattern}?'
+            cur += conditionally_passive_group(pattern) + '?'
             if not greedy:
-                s += r'?'
+                cur += r'?'
             if possessive:
-                s += r'+'
-            return s
+                cur += r'+'
+            return cur
 
         def any_of(*patterns, chars=None, split=None, cur=...):
             """ Match any of the given `patterns`. Note that `patterns` can be multiple parameters,
@@ -330,6 +310,11 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             # just because the order actually does matter
             if or_pattern is Ellipsis:
                 return rf'(?:{cur}|{pattern})'
+
+            # Apparently, these *aren't* the same thing
+            # if pattern_is_single_element(pattern) and pattern_is_single_element(or_pattern):
+            #     return cur + f'[{pattern}{or_pattern}]'
+
             return cur + rf'(?:{pattern}|{or_pattern})'
 
         # Amounts
@@ -342,7 +327,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             Args:
                 pattern: the pattern to match
             """
-            return cur + r'(?:' + pattern + r')' + r'+'
+            return cur + conditionally_passive_group(pattern) + '+'
 
         @imply_pattern_is_cur
         def match_num(num:int, pattern=..., *, cur=...):
@@ -352,7 +337,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 num (int): the number of times to match the pattern
                 pattern: the pattern to match
             """
-            return cur + r'(?:' + pattern + r')' + r'{' + str(num) + r'}'
+            return cur + conditionally_passive_group(pattern) + r'{' + str(num) + r'}'
 
         @imply_pattern_is_cur
         def match_more_than(min:int, pattern=..., *, cur=...):
@@ -362,7 +347,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 min (int): the minimum number of times to match the pattern
                 pattern: the pattern to match
             """
-            return cur + r'(?:' + pattern + r')' + r'{' + str(int(min) + 1) + r',}'
+            return cur + conditionally_passive_group(pattern) + r'{' + str(int(min) + 1) + r',}'
 
         @imply_pattern_is_cur
         def match_at_least(min:int, pattern=..., *, cur=...):
@@ -372,7 +357,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 min (int): the minimum number of times to match the pattern
                 pattern: the pattern to match
             """
-            return cur + r'(?:' + pattern + r')' + r'{' + str(min) + r',}'
+            return cur + conditionally_passive_group(pattern) + r'{' + str(min) + r',}'
 
         @imply_pattern_is_cur
         def match_at_most(max:int, pattern=..., *, cur=...):
@@ -382,7 +367,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 max (int): the maximum number of times to match the pattern
                 pattern: the pattern to match
             """
-            return cur + r'(?:' + pattern + r')' + r'{0,' + str(max) + r'}'
+            return cur + conditionally_passive_group(pattern) + r'{0,' + str(max) + r'}'
 
         @add_greedy_possessive
         @imply_pattern_is_cur
@@ -400,17 +385,12 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             """
             raise_if_empty(pattern, 'at_least_one')
 
-            s = cur
-            if len(pattern) > 1:
-                s += fr'(?:{pattern})+'
-            else:
-                if len(pattern) == 1:
-                    s += fr'{pattern}+'
+            cur += conditionally_passive_group(pattern) + '+'
             if not greedy:
-                s += '?'
+                cur += '?'
             if possessive:
-                s += '+'
-            return s
+                cur += '+'
+            return cur
 
         @add_greedy_possessive
         @imply_pattern_is_cur
@@ -428,17 +408,12 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
             """
             raise_if_empty(pattern, 'at_least_none')
 
-            s = cur
-            if len(pattern) > 1:
-                s += fr'(?:{pattern})*'
-            else:
-                if len(pattern) == 1:
-                    s += fr'{pattern}*'
+            cur += conditionally_passive_group(pattern) + '*'
             if not greedy:
-                s += '?'
+                cur += '?'
             if possessive:
-                s += '+'
-            return s
+                cur += '+'
+            return cur
 
     return _BaseMixin
 
@@ -548,11 +523,10 @@ def AssertionsMixin():
             """
             patterns = list(patterns)
             last = patterns.pop()
-            s = cur
             for i in patterns:
-                s += fr'(?={i})'
-            s += last
-            return s
+                cur += fr'(?={i})'
+            cur += last
+            return cur
 
         # TODO: is this description correct?
         @imply_pattern_is_cur
