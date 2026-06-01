@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """ Support for the Python dialect of regular expressions"""
-__version__ = '2.1.0'
+__version__ = '2.1.1'
 
 import re
 import sys
@@ -25,7 +25,7 @@ class PythonEZRegex(
     ),
     EZRegex,
 
-    escape_chars=b'()[]{}?*+-|^$\\.&~# \t\n\r\v\f',
+    escape_chars=bytes(re._special_chars_map.keys()),
     flags={
         'ascii': 'a',
         'ignore_case': 'i',
