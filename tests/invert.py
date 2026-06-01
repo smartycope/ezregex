@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--strictness', type=int, default=20)
 parser.add_argument('--tries', type=int, default=5)
 parser.add_argument('--timeout', type=int, default=5)
-parser.add_argument('--backend', type=str, default=...)
+parser.add_argument('--backend', type=str, default='re_parser')
 parser.add_argument('--passed', action='store_true')
 args = parser.parse_args()
 
@@ -71,16 +71,20 @@ for r in track(res, total=len(res)):
 
     # For debugging, if something gets stuck
     # print(r, end='\n')
-    thread = threading.Thread(target=do_test, args=(r,))
-    thread.start()
-    thread.join(timeout=timeout_limit)
-    # assert not thread.is_alive(), f"Invert took longer than {timeout_limit} seconds: `{r}`"
-    if thread.is_alive():
-        failures.append((r, '', 'timeout'))
+    # thread = threading.Thread(target=do_test, args=(r,))
+    # thread.start()
+    # thread.join(timeout=timeout_limit)
+    # # assert not thread.is_alive(), f"Invert took longer than {timeout_limit} seconds: `{r}`"
+    # if thread.is_alive():
+    #     failures.append((r, '', 'timeout'))
     # Murder the thread
     # This... doesn't seem to actually catch hung threads, which kinda defeats the purpose of using
     # threads to begin with...
-    thread._stop()
+    # thread._stop()
+    try:
+        do_test(r)
+    except Exception as err:
+        failures.append((r, str(err), 'error'))
 
 # skipped = set()
 for r, inv, status in failures:

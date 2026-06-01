@@ -435,6 +435,11 @@
     "doesntWorkIn": ["js"],
   },
   {
+    "re": "raw(r'(?:df){3}')",
+    "should": ["dfdfdf"],
+    "shouldnt": ["df"],
+  },
+  {
     "re": "group(+letter, name='g') + earlierGroup('g')",
     "should": ["AA", "tt"],
     "shouldnt": ["ABt", "t", "9d9", "tdt"],
@@ -1355,6 +1360,12 @@
     "shouldnt": ["that"],
   },
   {
+    "re": "chunk.group(name='OCity') + ' ' + uppercase.amt(2).group(name='OState') + whitechunk + chunk.group(name='DCity') + ' ' + uppercase.amt(2).group(name='DState') + whitechunk + chunk.group(name='Supplier') + whitechunk + letter.amt(4).group(name='SCAC') + whitechunk + '$' + newline + fullFloat.group(name='RPM') + whitechunk + '$' + newline + fullFloat.group(name='MinCharge') + whitechunk + digit.group(name='TransitTime')",
+    "should": [],
+    "shouldnt": [],
+    "doesntWorkIn": ["r"],
+  },
+  {
     "re": "group('pattern', name='i') + optional(digit) + 'test'",
     "should": [],
     "shouldnt": [],
@@ -1441,19 +1452,29 @@
     "shouldnt": ["{}-"],
     "worksIn": ["py"],
   },
-// TODO: Fix invert bug, then add this back
-//   {
-//     "re": "email",
-//     "should": ["a@b.c", "a@b.com", "a@b.com.", "a@b.com.."],
-//     "shouldnt": ["a", "@asdf", "asdf@asdf"],
-//     "worksIn": ["py"],
-//   },
+  {
+    "re": "email",
+    "should": ["a@b.c", "a@b.com", "a@b.com.", "a@b.com.."],
+    "shouldnt": ["a", "@asdf", "asdf@asdf"],
+    "worksIn": ["py"],
+  },
+  {
+    "re": "raw(r'(<)?(\\w+@\\w+(?:\\.\\w+)+)(?(1)>|$)')",
+    "should": ["<ping@fy.quad>"],
+    "shouldnt": ["g@zZf.G>"],
+    "worksIn": ["py"],
+  },
   {
     "re": "word + options('locale')",
     "should": ["word"],
     "shouldnt": ["{}-"],
     // They shouldn't be using this anyway
     "worksIn": [],
+  },
+  {
+    "re": "match_range(1, 5, word + ' ')",
+    "should": ["word ", "word word word word word "],
+    "shouldnt": ["word", " word"],
   },
   // JavaScript
   {
