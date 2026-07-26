@@ -6,6 +6,16 @@ from ezregex import EZRegex, python
 from ezregex.mixins import *
 
 
+def test_greedy_possessive_actually_do_stuff():
+    assert ez.at_least_one(ez.anything).str() == r'.+'
+    assert ez.at_least_one(ez.anything, greedy=False).str() == r'.+?'
+    assert ez.at_least_one(ez.anything, greedy=True).str() == r'.+'
+    assert ez.at_least_one(ez.anything, possessive=False).str() == r'.+'
+    assert ez.at_least_one(ez.anything, possessive=True).str() == r'.++'
+
+    with pytest.raises(ValueError):
+        ez.at_least_one(ez.anything, greedy=False, possessive=True).str()
+
 def test_literal_tab_doesnt_get_escaped():
     _tab = chr(9)
     backslash_t = r'\t'

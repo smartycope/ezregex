@@ -44,7 +44,6 @@ psuedonyms = {
     'unsigned_integer'   : ('unsigned_int', 'unsigned',),
 }
 
-# TODO: this likely can be deleted, I don't think it's used anywhere anymore
 all_psuedonyms = set()
 for psuedonym in psuedonyms.values():
     all_psuedonyms.update(psuedonym)

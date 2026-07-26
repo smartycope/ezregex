@@ -563,9 +563,14 @@ Args:
                 not i.startswith('__') and
                 i not in cls._exclusions and
                 i not in cls._deleted and
-                # (include_psuedonyms or i not in all_psuedonyms) and
-                (include_psuedonyms or i in psuedonyms) and
+                (include_psuedonyms or (
+                    i not in all_psuedonyms and
+                    # If it has an uppercase character, it's an automatically-generated camelCase psuedonym, so remove it
+                    not any(c.isupper() for c in i)
+                )) and
                 (include_functions or i not in ('options', 'replace'))
+
+                # (include_compound or i not in ())
                 # Because we use this before singleton members are instantiated, getattr().replacement will fail
                 # So in that case, we just skip it
                 # (
@@ -927,7 +932,9 @@ Args:
     def __repr__(self):
         exclude_vars = ('_func_list', '_options_specified', '_is_raw', 'docstring', '_deleted')
         d = {k: v for k, v in self.__dict__.items() if k not in exclude_vars}
-        return f'{type(self).__name__}({self._compile()}, {d})'
+        # We *don't* want to compile, because we want to be able to display invalid elements for debugging
+        # return f'{type(self).__name__}({self._compile()}, {d})'
+        return f'{type(self).__name__}(..., {d})'
 
     def __getattribute__(self, name):
         if name in super().__getattribute__('_deleted'):

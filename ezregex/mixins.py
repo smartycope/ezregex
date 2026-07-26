@@ -2,7 +2,7 @@
 from re import escape, search
 from string import digits
 from sys import version_info
-from typing import Callable
+from typing import Any, Callable
 from inspect import signature, Parameter
 
 from .psuedonyms import psuedonyms
@@ -95,20 +95,20 @@ def _parse_any_of_params(*patterns, chars=None, split=None):
 
     return chars, patterns
 
-def BaseMixin(*, allow_greedy=False, allow_possessive=False):
+def BaseMixin(*, allow_greedy:bool=False, allow_possessive:bool=False):
     """ The basics of regex syntax. Almost all dialects have these. You almost certainly
         want to inherit from this class, even if you need to overload a few of it's members.
     """
 
     def add_greedy_possessive(func):
-        def rtn(*args, greedy=True, possessive=False, cur=..., **kwargs):
+        def rtn(*args, greedy:bool=True, possessive:bool=False, cur=..., **kwargs):
             if not greedy and not allow_greedy:
                 raise ValueError('Greedy qualifiers are not allowed in this dialect')
             if possessive and not allow_possessive:
                 raise ValueError('Possessive qualifiers are not allowed in this dialect')
             if (not greedy) and possessive:
                 raise ValueError('You can\'t be both non-greedy and possessive at the same time')
-            return func(*args, cur=cur, **kwargs)
+            return func(*args, greedy=greedy, possessive=possessive, cur=cur, **kwargs)
         return rtn
 
     class _BaseMixin:
@@ -178,7 +178,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         # TODO: this would be nice, but it requires a minor rewrite of how we caluclate psuedonymns
         # letter_num_         = r'[a-zA-Z0-9_]'
         letter_num          = r'[a-zA-Z0-9_]'
-        unicode             = lambda name, cur=...: fr'\N{name}', {'docstring':
+        unicode = lambda name, cur=...: fr'\N{name}', {'docstring':
         """ Matches a unicode character by name
 
             Args:
@@ -187,7 +187,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         @add_greedy_possessive
         @imply_pattern_is_cur
-        def match_range(min, max, pattern=..., *, greedy=True, possessive=False, cur=...):
+        def match_range(min:int, max:int, pattern=..., *, greedy:bool=True, possessive:bool=False, cur=...):
             """ Match between `min` and `max` sequences of `pattern` in the string. This also accepts `greedy` and `possessive` parameters
                 Max can be an empty string to indicate no maximum
                 `greedy` means it will try to match as many repititions as possible
@@ -215,7 +215,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
         # Choices
         @add_greedy_possessive
         @imply_pattern_is_cur
-        def optional(pattern=..., *, greedy=True, possessive=False, cur=...):
+        def optional(pattern=..., *, greedy:bool=True, possessive:bool=False, cur=...):
             """ Match `pattern` if it's there. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
@@ -234,7 +234,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 cur += r'+'
             return cur
 
-        def any_of(*patterns, chars=None, split=None, cur=...):
+        def any_of(*patterns, chars:bool|None=None, split:bool|None=None, cur=...):
             """ Match any of the given `patterns`. Note that `patterns` can be multiple parameters,
                 or a single string. Can also accept parameters chars and split. If char is set
                 to True, then `patterns` must only be a single string, it interprets `patterns`
@@ -264,7 +264,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
                 cur += r')'
             return cur
 
-        def any_char_except(*chars, cur=...):
+        def any_char_except(*chars:tuple[str], cur=...):
             """ This matches any char that is NOT in `chars`. `chars` can be multiple parameters,
                 or a single string of chars to split.
 
@@ -371,7 +371,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         @add_greedy_possessive
         @imply_pattern_is_cur
-        def at_least_one(pattern=..., *, greedy=True, possessive=False, cur=...):
+        def at_least_one(pattern=..., *, greedy:bool=True, possessive:bool=False, cur=...):
             """ Match at least one of `pattern` in the string. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
@@ -394,7 +394,7 @@ def BaseMixin(*, allow_greedy=False, allow_possessive=False):
 
         @add_greedy_possessive
         @imply_pattern_is_cur
-        def at_least_none(pattern=..., *, greedy=True, possessive=False, cur=...):
+        def at_least_none(pattern=..., *, greedy:bool=True, possessive:bool=False, cur=...):
             """ Match 0 or more sequences of `pattern`. This also accepts `greedy` and `possessive` parameters
                 `greedy` means it will try to match as many repititions as possible
                 non-greedy will try to match as few repititions as possible
@@ -426,7 +426,7 @@ def GroupsMixin(*,
     """
     class _GroupsMixin:
         @imply_pattern_is_cur
-        def group(pattern, *, name=None, cur=...):
+        def group(pattern, *, name:str|None=None, cur=...):
             """ Causes `pattern` to be captured as a group. Specify `name` only as a keyword argument.
                 Only useful when replacing regexs
 
@@ -459,7 +459,7 @@ def AdvancedGroupsMixin(*,
         earlier_named_group=lambda name, cur=...: f'{cur}(?P={name})'
     ):
     class _AdvancedGroupsMixin:
-        def earlier_group(num_or_name, cur=...):
+        def earlier_group(num_or_name:str|int, cur=...):
             """ Matches whatever the group referenced by `num_or_name` matched earlier. Must be *after* a
                 group which would match `num_or_name`
 
@@ -471,7 +471,7 @@ def AdvancedGroupsMixin(*,
                 if isinstance(num_or_name, int) or num_or_name in digits \
                 else earlier_named_group(num_or_name, cur=cur)
 
-        def if_exists(num_or_name, does_pattern, doesnt_pattern=None, cur=...):
+        def if_exists(num_or_name:str|int, does_pattern, doesnt_pattern=None, cur=...):
             """ Matches `does` if the group `num_or_name` exists, otherwise it matches `doesnt`
 
                 Args:
@@ -560,7 +560,7 @@ def AssertionsMixin():
             return fr'(?<!{pattern}){cur}'
 
         @imply_pattern_is_cur
-        def if_enclosed_with(open, close=..., pattern=..., *, cur=...):
+        def if_enclosed_with(open:str, close:str|ellipsis=..., pattern=..., *, cur=...):
             """ Matches if the string has `open`, then `pattern`, then `close`, but only \"matches\"
                 `pattern`. Just a convenience combination of if_proceded_by and if_preceded_by.
 
@@ -650,7 +650,7 @@ def ReplacementsMixin(*,
     if entire_match is None:
         entire_match = partial(numbered_group, 0)
 
-    def _rgroup(num_or_name, cur=...):
+    def _rgroup(num_or_name:str|int, cur=...):
         """ Puts in its place the group specified, either by group number (for unnamed
             groups) or group name (for named groups). Named groups are typically also counted by
             number, check your specific dialect docs for details.
@@ -687,7 +687,7 @@ def ReplacementsMixin(*,
 
         @EZRegex.exclude
         @classmethod
-        def replace(cls, string, compile=True):
+        def replace(cls, string:str, compile:bool=True):
             """ Generates a valid regex replacement string, using Python f-string like syntax.
 
                 Args:
