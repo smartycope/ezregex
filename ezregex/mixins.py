@@ -7,7 +7,7 @@ from inspect import signature, Parameter
 
 from .psuedonyms import psuedonyms
 from .EZRegex import EZRegex, EZRegexFunc
-from functools import partial
+from functools import partial, wraps
 from string import Formatter
 
 
@@ -51,6 +51,7 @@ def imply_pattern_is_cur(func):
 
         NOTE: must come *after* add_greedy_possessive, not before. Don't ask me why.
     """
+    @wraps(func)
     def rtn(*args, pattern=..., cur=..., **kwargs):
         # First, check how many positional only params there are
         # parameters is an ordered mapping
@@ -101,6 +102,7 @@ def BaseMixin(*, allow_greedy:bool=False, allow_possessive:bool=False):
     """
 
     def add_greedy_possessive(func):
+        @wraps(func)
         def rtn(*args, greedy:bool=True, possessive:bool=False, cur=..., **kwargs):
             if not greedy and not allow_greedy:
                 raise ValueError('Greedy qualifiers are not allowed in this dialect')
@@ -112,6 +114,8 @@ def BaseMixin(*, allow_greedy:bool=False, allow_possessive:bool=False):
         return rtn
 
     class _BaseMixin:
+        _allow_greedy = allow_greedy
+        _allow_possessive = allow_possessive
         # replacement = None means it can work with both replacement and non-replacement EZRegex chains
         literal = lambda pattern, cur=...: cur + pattern, {'replacement': None, 'docstring':
         """This is a redundant function. You should always be able to use `... + 'stuff'` just as easily as `... + literal('stuff')`
@@ -560,7 +564,7 @@ def AssertionsMixin():
             return fr'(?<!{pattern}){cur}'
 
         @imply_pattern_is_cur
-        def if_enclosed_with(open:str, close:str|ellipsis=..., pattern=..., *, cur=...):
+        def if_enclosed_with(open:str, close:str|type(Ellipsis)=..., pattern=..., *, cur=...):
             """ Matches if the string has `open`, then `pattern`, then `close`, but only \"matches\"
                 `pattern`. Just a convenience combination of if_proceded_by and if_preceded_by.
 

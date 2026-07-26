@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Any, TypedDict
 
 from ezregex.EZRegex import EZRegex
 
@@ -52,3 +52,53 @@ def api(
     replacement_count:int=0,
     split_count:int=0
 ) -> APIStructure: ...
+
+class _ParameterDescription(TypedDict):
+    name: str
+    python_name: str
+    kind: str
+    required: bool
+    default: Any
+    variadic: bool
+    keyword_only: bool
+
+class _ElementDescription(TypedDict):
+    name: str
+    aliases: list[str]
+    documentation: str
+    origin: str
+    replacement: bool | None
+    parameters: list[_ParameterDescription]
+
+class _FlagDescription(TypedDict):
+    name: str
+    value: str
+    documentation: str
+
+class _FunctionDescription(TypedDict):
+    name: str
+    aliases: list[str]
+    documentation: str
+    parameters: list[_ParameterDescription]
+
+class _Capabilities(TypedDict):
+    greedy: bool
+    possessive: bool
+
+class _DialectDescription(TypedDict):
+    id: str
+    label: str
+    class_name: str
+    documentation_url: str
+    testing: str
+    capabilities: _Capabilities
+    flags: list[_FlagDescription]
+    elements: list[_ElementDescription]
+    functions: list[_FunctionDescription]
+
+class _DialectCatalog(TypedDict):
+    schema_version: int
+    ezregex_version: str
+    dialects: list[_DialectDescription]
+
+def _describe_dialects() -> _DialectCatalog: ...

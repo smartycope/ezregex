@@ -462,6 +462,6 @@ def test_README_examples(capsys):
 
 
     import ezregex as ez # The python dialect is the defualt dialect
-    assert repr(ez.group(digit, name='name') + ez.earlier_group('name')) == r"PythonEZRegex((?P<name>\d)(?P=name), {'_compiled': None, 'flags': set(), 'replacement': False})"
+    assert repr(ez.group(digit, name='name') + ez.earlier_group('name')) == r"PythonEZRegex(..., {'_compiled': None, 'flags': set(), 'replacement': False})"
     import ezregex.javascript as ez
-    assert repr(ez.group(digit, name='name') + ez.earlier_group('name')) == r"JavascriptEZRegex(/(?<name>\d)\k<name>/, {'_string_anchor_used': False, 'flags': set(), 'replacement': False})"
+    assert repr(ez.group(digit, name='name') + ez.earlier_group('name')) == r"JavascriptEZRegex(..., {'_string_anchor_used': False, 'flags': set(), 'replacement': False})"

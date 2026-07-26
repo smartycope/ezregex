@@ -1,7 +1,12 @@
 __version__ = '1.0.0'
 
 import colorsys
+from html import escape as _html_escape
+import inspect
+import keyword
 import re
+from types import ModuleType
+from typing import Any, get_args
 
 # TODO:
 # EZREgex todo:
@@ -110,7 +115,7 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
         cursor = match.span()[0]
 
         # First, get up until the match
-        html_string += f'{test_string[global_cursor:cursor]}</span>'
+        html_string += f'{_html_escape(test_string[global_cursor:cursor])}</span>'
         parts.append([None, None, test_string[global_cursor:cursor]])
         match_html = ''
         match_parts = []
@@ -121,14 +126,14 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
                 continue
 
             # Print the match up until the group
-            match_html += f'<span style="color: {match_colors[match.span()]};" class="{match_class}">{test_string[cursor:g[0]]}</span>'
+            match_html += f'<span style="color: {match_colors[match.span()]};" class="{match_class}">{_html_escape(test_string[cursor:g[0]])}</span>'
             match_parts.append([match_colors[match.span()], None, test_string[cursor:g[0]]])
 
             # Print the group
-            match_html += f'<span style="background-color: {colors[g]}; color: {match_colors[match.span()]};" class="{group_class}">{test_string[g[0]:g[1]]}</span>'
+            match_html += f'<span style="background-color: {colors[g]}; color: {match_colors[match.span()]};" class="{group_class}">{_html_escape(test_string[g[0]:g[1]])}</span>'
             match_parts.append([match_colors[match.span()], colors[g], test_string[g[0]:g[1]]])
             cursor = g[1]
-        match_html += f'<span style="color: {match_colors[match.span()]};" class="{match_class}">{test_string[cursor:match.span()[1]]}</span>'
+        match_html += f'<span style="color: {match_colors[match.span()]};" class="{match_class}">{_html_escape(test_string[cursor:match.span()[1]])}</span>'
         match_parts.append([match_colors[match.span()], None, test_string[cursor:match.span()[1]]])
         global_cursor = match.span()[1]
         # Don't print after the group, cause there might be another match that covers it
@@ -166,7 +171,7 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
         json['matches'].append(match_json)
 
     # Don't forget to add any bit at the end that's not part of a match
-    html_string += test_string[global_cursor:]
+    html_string += _html_escape(test_string[global_cursor:])
     parts.append([None, None, test_string[global_cursor:]])
     html_string += f'</span></{container_tag}>'
 
@@ -181,3 +186,239 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
         json['replaced'] = None
     json['split'] = re.split(pattern.str(), test_string, split_count)
     return json
+
+
+def _camel_case(name: str) -> str:
+    return ''.join(
+        word.capitalize() if index else word
+        for index, word in enumerate(name.split('_'))
+    )
+
+
+def _json_default(value: Any) -> Any:
+    if value is inspect.Parameter.empty:
+        return None
+    if value is Ellipsis:
+        return '...'
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return repr(value)
+
+
+def _parameter_kind(parameter: inspect.Parameter) -> str:
+    """Normalize Python signatures into the small set the browser understands."""
+    name = parameter.name
+    annotation = parameter.annotation
+    annotation_args = set(get_args(annotation))
+
+    if name == 'num_or_name':
+        return 'name_or_number'
+    if name in ('greedy', 'possessive') or annotation is bool:
+        return 'boolean'
+    if bool in annotation_args and type(None) in annotation_args:
+        return 'auto_boolean'
+    if annotation is int or name in ('min', 'max', 'num'):
+        return 'integer'
+    if name in ('patterns', 'inputs') and parameter.kind is inspect.Parameter.VAR_POSITIONAL:
+        return 'variadic_pattern'
+    if (
+        name == 'pattern' or name.endswith('_pattern') or
+        name in ('input', 'type', 'open', 'close')
+    ):
+        return 'pattern'
+    if annotation is str or name in ('regex', 'name', 'char', 'and_char', 'chars'):
+        return 'string'
+    if str in annotation_args and int in annotation_args:
+        return 'name_or_number'
+    return 'python_expression'
+
+
+def _origin_for(cls: type, name: str) -> str:
+    if name in cls._compound_parts:
+        return 'compound'
+
+    for base in cls.__mro__[1:]:
+        if name not in base.__dict__:
+            continue
+        base_name = base.__name__.lower()
+        if 'advancedreplacements' in base_name:
+            return 'advanced_replacements'
+        if 'replacements' in base_name:
+            return 'replacements'
+        if 'advancedgroups' in base_name:
+            return 'advanced_grouping'
+        if 'groups' in base_name:
+            return 'grouping'
+        if 'assertions' in base_name:
+            return 'assertions'
+        if 'anchors' in base_name:
+            return 'anchors'
+        if 'base' in base_name:
+            return 'base'
+    return 'dialect'
+
+
+def _aliases_for(cls: type, canonical: str, alias_map: dict[str, tuple[str, ...]]) -> list[str]:
+    candidates = [canonical, _camel_case(canonical)]
+    for alias in alias_map.get(canonical, ()):
+        candidates.extend((alias, _camel_case(alias)))
+
+    aliases = []
+    for candidate in candidates:
+        if (
+            candidate != canonical and candidate not in aliases and
+            candidate.isidentifier() and not keyword.iskeyword(candidate) and
+            hasattr(cls, candidate) and getattr(cls, candidate) is getattr(cls, canonical)
+        ):
+            aliases.append(candidate)
+    return aliases
+
+
+def _dialect_class(module: ModuleType, base_class: type) -> type | None:
+    candidates = [
+        value for value in vars(module).values()
+        if (
+            inspect.isclass(value) and value is not base_class and
+            issubclass(value, base_class) and value.__module__.startswith(module.__name__)
+        )
+    ]
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def _dialect_label(cls: type) -> str:
+    label = cls.__name__
+    if label.endswith('EZRegex'):
+        label = label[:-len('EZRegex')]
+    if label == 'Javascript':
+        return 'JavaScript'
+    return label
+
+
+def _describe_element(cls: type, name: str, alias_map: dict[str, tuple[str, ...]]) -> dict[str, Any]:
+    obj = getattr(cls, name)
+    parameters = []
+
+    if name not in cls._compound_parts:
+        signature = inspect.signature(obj._func_list[0])
+        for parameter in signature.parameters.values():
+            if parameter.name in ('cur', 'args', 'kwargs'):
+                continue
+            kind = _parameter_kind(parameter)
+            if name in ('literal', 'rliteral') and parameter.name == 'pattern':
+                kind = 'string'
+            browser_name = parameter.name
+            if kind == 'pattern' and parameter.name == 'input':
+                browser_name = 'pattern'
+            elif kind == 'variadic_pattern' and parameter.name == 'inputs':
+                browser_name = 'patterns'
+            parameters.append({
+                'name': browser_name,
+                'python_name': parameter.name,
+                'kind': kind,
+                'required': parameter.default is inspect.Parameter.empty,
+                'default': _json_default(parameter.default),
+                'variadic': parameter.kind is inspect.Parameter.VAR_POSITIONAL,
+                'keyword_only': parameter.kind is inspect.Parameter.KEYWORD_ONLY,
+            })
+
+    return {
+        'name': name,
+        'aliases': _aliases_for(cls, name, alias_map),
+        'documentation': inspect.cleandoc(obj.docstring or ''),
+        'origin': _origin_for(cls, name),
+        'replacement': obj.replacement,
+        'parameters': parameters,
+    }
+
+
+def _describe_function(name: str, function: Any) -> dict[str, Any]:
+    parameters = []
+    for parameter in inspect.signature(function).parameters.values():
+        if parameter.name in ('self', 'cls', 'args', 'kwargs'):
+            continue
+        parameters.append({
+            'name': parameter.name,
+            'python_name': parameter.name,
+            'kind': _parameter_kind(parameter),
+            'required': parameter.default is inspect.Parameter.empty,
+            'default': _json_default(parameter.default),
+            'variadic': parameter.kind is inspect.Parameter.VAR_POSITIONAL,
+            'keyword_only': parameter.kind is inspect.Parameter.KEYWORD_ONLY,
+        })
+    return {
+        'name': name,
+        'aliases': [],
+        'documentation': inspect.cleandoc(inspect.getdoc(function) or ''),
+        'parameters': parameters,
+    }
+
+
+def _describe_dialects() -> dict[str, Any]:
+    """Return the private, JSON-safe runtime catalog used by ezregex-blockly."""
+    import ezregex as root
+    from .EZRegex import EZRegex
+    from .psuedonyms import psuedonyms
+
+    dialects = []
+    seen_classes = set()
+    for module_name, module in vars(root).items():
+        if not isinstance(module, ModuleType):
+            continue
+        cls = _dialect_class(module, EZRegex)
+        if cls is None or cls in seen_classes:
+            continue
+        seen_classes.add(cls)
+
+        dialect_id = module.__name__.rsplit('.', 1)[-1]
+        allow_greedy = False
+        allow_possessive = False
+        for base in cls.__mro__:
+            if hasattr(base, '_allow_greedy'):
+                allow_greedy = bool(base._allow_greedy)
+                allow_possessive = bool(base._allow_possessive)
+                break
+
+        docs_match = re.search(r'https?://\S+', inspect.getdoc(cls) or '')
+        elements = [
+            _describe_element(cls, name, psuedonyms)
+            for name in cls.parts(include_psuedonyms=False, include_functions=False)
+        ]
+        functions = []
+        for function_name in ('options', 'replace'):
+            function = getattr(cls, function_name, None)
+            if function is not None:
+                functions.append(_describe_function(function_name, function))
+
+        dialects.append({
+            'id': dialect_id,
+            'label': _dialect_label(cls),
+            'class_name': cls.__name__,
+            'documentation_url': docs_match.group(0).rstrip('.,') if docs_match else '',
+            'testing': 'python' if dialect_id == 'python' else (
+                'javascript' if dialect_id == 'javascript' else 'compile'
+            ),
+            'capabilities': {
+                'greedy': allow_greedy,
+                'possessive': allow_possessive,
+            },
+            'flags': [
+                {
+                    'name': flag_name,
+                    'value': flag_value,
+                    'documentation': inspect.cleandoc(
+                        cls._flag_docs_map.get(flag_name, '')
+                    ),
+                }
+                for flag_name, flag_value in cls._flag_map.items()
+            ],
+            'elements': elements,
+            'functions': functions,
+        })
+
+    priority = {'python': 0, 'javascript': 1, 'r': 2, 'pcre2': 3}
+    dialects.sort(key=lambda dialect: (priority.get(dialect['id'], 99), dialect['label']))
+    return {
+        'schema_version': 1,
+        'ezregex_version': root.__version__,
+        'dialects': dialects,
+    }

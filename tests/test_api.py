@@ -1,6 +1,7 @@
 import json
 from logging import warning
 from sys import version_info
+from types import ModuleType
 
 if version_info < (3, 12):
     from typing_extensions import TypedDict
@@ -15,6 +16,8 @@ from pydantic import TypeAdapter, ValidationError
 # from ezregex.api import APIStructure
 from ezregex import *
 from ezregex import api, python
+from ezregex.api import _describe_dialects
+from ezregex.EZRegex import EZRegex
 
 # from typing_extensions import TypedDict # Required by pydantic for python < 3.12
 # import importlib, sys
@@ -134,3 +137,74 @@ def test_correct_output():
             TypeAdapter(APIStructure).validate_python(resp)
         except ValidationError as err:
             raise AssertionError(f"Invalid schema from {regex_str}:\n{json.dumps(resp, indent=4)}\n{'-'*20}\nErrors:\n{err.errors()}\n{'-'*20}\n") from err
+
+
+def test_api_escapes_legacy_html():
+    response = api(python.literal('<span>'), test_string='<span>')
+    assert '<span>' not in response['string HTML']
+    assert '&lt;span&gt;' in response['string HTML']
+    assert any(part[-1] == '<span>' for part in response['parts'])
+
+
+def test_frontend_dialect_catalog():
+    catalog = _describe_dialects()
+    assert catalog['schema_version'] == 1
+    assert catalog['ezregex_version'] == '3.1.3'
+    assert [dialect['id'] for dialect in catalog['dialects']] == [
+        'python', 'javascript', 'r', 'pcre2'
+    ]
+
+    python_dialect = catalog['dialects'][0]
+    names = {element['name'] for element in python_dialect['elements']}
+    assert {'literal', 'group', 'match_range', 'rgroup'} <= names
+    assert 'or' not in names
+    assert 'one_of' not in names
+    assert python_dialect['testing'] == 'python'
+    assert python_dialect['capabilities'] == {
+        'greedy': True,
+        'possessive': True,
+    }
+
+    any_of = next(
+        element for element in python_dialect['elements']
+        if element['name'] == 'any_of'
+    )
+    assert {'anyOf', 'anyof', 'one_of', 'oneOf', 'oneof'} <= set(any_of['aliases'])
+    assert any_of['parameters'][0]['kind'] == 'variadic_pattern'
+    replace = next(
+        function for function in python_dialect['functions']
+        if function['name'] == 'replace'
+    )
+    assert [parameter['name'] for parameter in replace['parameters']] == [
+        'string', 'compile'
+    ]
+    assert replace['parameters'][1]['kind'] == 'boolean'
+
+    all_parameter_kinds = {
+        parameter['kind']
+        for dialect in catalog['dialects']
+        for element in dialect['elements']
+        for parameter in element['parameters']
+    }
+    assert 'python_expression' not in all_parameter_kinds
+
+
+def test_catalog_discovers_an_imported_dialect_and_element(monkeypatch):
+    import ezregex
+
+    class SyntheticEZRegex(EZRegex, escape_chars=b'', flags={}):
+        novel_element = 'synthetic'
+
+    module = ModuleType('ezregex.synthetic')
+    SyntheticEZRegex.__module__ = module.__name__
+    module.SyntheticEZRegex = SyntheticEZRegex
+    monkeypatch.setattr(ezregex, 'synthetic', module, raising=False)
+
+    synthetic = next(
+        dialect for dialect in _describe_dialects()['dialects']
+        if dialect['id'] == 'synthetic'
+    )
+    assert synthetic['testing'] == 'compile'
+    assert [element['name'] for element in synthetic['elements']] == [
+        'novel_element'
+    ]

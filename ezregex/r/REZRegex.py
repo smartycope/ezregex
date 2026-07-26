@@ -33,7 +33,7 @@ class REZRegex(
 
     punctuation = r'[]`~!@#\$%^&\*\(\)\-_=\+[\{}\\\|;:\'",<\.>/\?]'
 
-    def any_of(*inputs, chars=None, split=None, cur=...):
+    def any_of(*inputs, chars:bool|None=None, split:bool|None=None, cur=...):
         chars, inputs = _parse_any_of_params(*inputs, chars=chars, split=split)
 
         if chars:
