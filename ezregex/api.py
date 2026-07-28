@@ -1,7 +1,5 @@
-__version__ = '1.0.0'
-
-import colorsys
-from html import escape as _html_escape
+__version__ = '1.1.0'
+import math
 import inspect
 import keyword
 import re
@@ -11,54 +9,186 @@ from typing import Any, get_args
 # TODO:
 # EZREgex todo:
 # if overlapping groups, expand them all different amounts
-# add classes to the spans so I can style them
 # return the compiled replacement regex as well
 # add code and string displays
-# change the default background text color
-# change the first color being white (give it a class?)
-# remove empty spans
 
-# These functions comprise the color algorithm
-def _toHtml(r, g, b):
+
+# V2 color algorithm: credit to ChatGPT
+def _rgb_to_html(r, g, b) -> str:
     return f'#{r:02x}{g:02x}{b:02x}'
 
-def _toRgb(html: str) -> tuple:
+def _html_to_rgb(html: str) -> tuple:
     hex_color = html.lstrip('#')
     rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     return rgb
 
-def _generate_colors(amt, s:float=1, v:float=1, offset:int=0):
-    """ Generate `amt` number of colors evenly spaced around the color wheel
-        with a given saturation and value
-    """
-    amt += 1
-    return [_toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((offset + ((1/amt) * (i + 1))) % 1.001, s, v)))) for i in range(amt-1)]
+def _srgb_to_linear(c: float) -> float:
+    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
-def _furthest_colors(html, amt:int=5, v_bias:float=0, s_bias:float=0):
-    """ Gets the `amt` number of colors evenly spaced around the color wheel from the given color
-        `v_bias` and `s_bias` are between 0-1 and offset the colors
-    """
-    amt += 1
-    h, s, v = colorsys.rgb_to_hsv(*map(lambda c: c/255, _toRgb(html)))
+def _linear_to_srgb(c: float) -> float:
+    return 12.92 * c if c <= 0.0031308 else 1.055 * c ** (1 / 2.4) - 0.055
 
-    return [_toHtml(*map(lambda c: round(c*255), colorsys.hsv_to_rgb(*((h + ((1/amt) * (i + 1))) % 1.001, (s+s_bias) % 1.001, (v+v_bias) % 1.001)))) for i in range(amt-1)]
+def _rgb_to_lab(rgb: tuple[int, int, int]) -> tuple[float, float, float]:
+    r, g, b = (_srgb_to_linear(x / 255) for x in rgb)
+
+    # sRGB D65 -> XYZ
+    x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375
+    y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750
+    z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041
+
+    # D65 reference white
+    x /= 0.95047
+    y /= 1.00000
+    z /= 1.08883
+
+    def f(t: float) -> float:
+        return t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116
+
+    x, y, z = f(x), f(y), f(z)
+
+    return (
+        116 * y - 16,
+        500 * (x - y),
+        200 * (y - z),
+    )
+
+def _lab_to_rgb(lab: tuple[float, float, float]) -> tuple[int, int, int] | None:
+    L, a, b = lab
+
+    fy = (L + 16) / 116
+    fx = a / 500 + fy
+    fz = fy - b / 200
+
+    def finv(t: float) -> float:
+        t3 = t ** 3
+        return t3 if t3 > 0.008856 else (t - 16 / 116) / 7.787
+
+    x = 0.95047 * finv(fx)
+    y = 1.00000 * finv(fy)
+    z = 1.08883 * finv(fz)
+
+    # XYZ -> linear sRGB
+    r = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z
+    g = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z
+    b = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z
+
+    # Out of sRGB gamut
+    if not (0 <= r <= 1 and 0 <= g <= 1 and 0 <= b <= 1):
+        return None
+
+    return tuple(
+        round(max(0, min(1, _linear_to_srgb(x))) * 255)
+        for x in (r, g, b)
+    )
+
+def _relative_luminance(rgb: tuple[int, int, int]) -> float:
+    linear = [_srgb_to_linear(x / 255) for x in rgb]
+    return (
+        0.2126 * linear[0]
+        + 0.7152 * linear[1]
+        + 0.0722 * linear[2]
+    )
+
+def _contrast_ratio(
+    a: tuple[int, int, int],
+    b: tuple[int, int, int],
+) -> float:
+    l1 = _relative_luminance(a)
+    l2 = _relative_luminance(b)
+    return (max(l1, l2) + 0.05) / (min(l1, l2) + 0.05)
+
+def _generate_colors(amt: int, base: str, readability_distinctness_ratio:float=4.5) -> list[str]:
+    """ Generate `amt` number of colors that are readable against the given base color.
+        `base` must be an HTML color
+        `readability_distinctness_ratio` is the minimum contrast ratio between colors.
+            This represents the tradeoff between contrast against the background and
+            the contrast between colors.
+    """
+    if amt <= 0:
+        return []
+
+    # if len(base) != 3 or any(not 0 <= x <= 255 for x in base):
+        # raise ValueError("base must be an RGB tuple with values from 0 to 255")
+
+    # base = tuple(map(int, base))
+    base = _html_to_rgb(base)
+    base_lab = _rgb_to_lab(base)
+
+    # Generate candidate colors.
+    #
+    # We vary lightness, hue, and chroma. Higher chroma gives more vivid
+    # colors, while multiple lightness levels prevent everything from
+    # collapsing into the same perceptual region.
+    candidates: list[tuple[tuple[int, int, int], tuple[float, float, float]]] = []
+
+    for L in range(20, 91, 5):
+        for hue in range(0, 360, 5):
+            for chroma in range(30, 101, 10):
+                angle = math.radians(hue)
+
+                lab = (
+                    L,
+                    chroma * math.cos(angle),
+                    chroma * math.sin(angle),
+                )
+
+                rgb = _lab_to_rgb(lab)
+                if rgb is None:
+                    continue
+
+                # WCAG AA-ish readability threshold.
+                if _contrast_ratio(rgb, base) < readability_distinctness_ratio:
+                    continue
+
+                candidates.append((rgb, lab))
+
+    if not candidates:
+        raise ValueError("Could not find any readable colors for this base")
+
+    # Pick the first color furthest from the base.
+    first = max(
+        candidates,
+        key=lambda x: (
+            (x[1][0] - base_lab[0]) ** 2
+            + (x[1][1] - base_lab[1]) ** 2
+            + (x[1][2] - base_lab[2]) ** 2
+        ),
+    )
+
+    selected = [first]
+    remaining = [c for c in candidates if c != first]
+
+    # Farthest-point sampling:
+    # At every step, choose the candidate whose nearest selected color
+    # is as far away as possible.
+    while len(selected) < amt:
+        if not remaining:
+            break
+
+        best = max(
+            remaining,
+            key=lambda candidate: min(
+                (
+                    (candidate[1][0] - chosen[1][0]) ** 2
+                    + (candidate[1][1] - chosen[1][1]) ** 2
+                    + (candidate[1][2] - chosen[1][2]) ** 2
+                )
+                for chosen in selected
+            ),
+        )
+
+        selected.append(best)
+        remaining.remove(best)
+
+    return [_rgb_to_html(*rgb) for rgb, _ in selected]
 
 
 # TODO: Better docs, and an example of the output in the docstring
 def api(pattern, replacement_pattern=None, test_string=None, *,
         replacement_count=0,
         split_count=0,
-        # Can accept any valid CSS color
-        default_text_color='black',
-        container_tag='span',
-        container_class='ezregex-container',
-        match_class='ezregex-match',
-        group_class='ezregex-group',
-        unmatched_class='ezregex-unmatched',
-        foreground_saturation = .75,
-        foreground_value = 1,
-        background_value_bias = .5,
-        background_saturation_bias = .9,
+        background_color='#FFFFFF',
+        readability_distinctness_ratio=4.5
     ):
     """ This functions like an API, even though it's not ever used as an actual API. It's used by
         the EZRegex frontend, as it loads this library locally. It made sense to put it in the
@@ -76,21 +206,33 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
     json = {
         'regex': pattern._compile(),
         'string': test_string,
-        'string HTML': ...,
         'parts': [],
         'matches': []
     }
 
-    html_string = f'<{container_tag} class="{container_class}"><span style="color: {default_text_color};" class="{unmatched_class}">'
     parts = []
     global_cursor = 0
-    all_matches = [m.span() for m in matches]
-    # Map match spans to unique colors
-    _colors = _generate_colors(len(all_matches), s=foreground_saturation, v=foreground_value)
-    match_colors = dict(zip(all_matches, _colors))
+    group_spans_by_match = [
+        list(dict.fromkeys(
+            match.span(group_number)
+            for group_number in range(1, len(match.groups()) + 1)
+        ))
+        for match in matches
+    ]
+    color_count = len(matches) + sum(map(len, group_spans_by_match))
+    colors = _generate_colors(
+        color_count,
+        base=background_color,
+        readability_distinctness_ratio=readability_distinctness_ratio,
+    )
+    match_colors = colors[:len(matches)]
+    group_color_offset = len(matches)
 
-    for match in matches:
-        all_groups = {match.span(i+1) for i in range(len(match.groups()))}
+    for match, match_color, all_groups in zip(
+        matches,
+        match_colors,
+        group_spans_by_match,
+    ):
         named_groups = {i: match.span(i) for i in match.groupdict().keys()}
         # TODO: have named groups show their name and number instead of just their name
         # named_groups = {
@@ -103,21 +245,15 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
             for cnt, i in enumerate(match.groups())
             if i not in match.groupdict().values()
         }
-        # Map group spans to unique colors
-        # This gets equally spaced colors from the given color, so they're differentiable
-        # and readable on a dark background
-        colors = dict(zip(all_groups, _furthest_colors(
-            match_colors[match.span()],
-            amt=len(all_groups),
-            v_bias=background_value_bias,
-            s_bias=background_saturation_bias
-        )))
+        group_colors = dict(zip(
+            all_groups,
+            colors[group_color_offset:group_color_offset + len(all_groups)],
+        ))
+        group_color_offset += len(all_groups)
         cursor = match.span()[0]
 
         # First, get up until the match
-        html_string += f'{_html_escape(test_string[global_cursor:cursor])}</span>'
         parts.append([None, None, test_string[global_cursor:cursor]])
-        match_html = ''
         match_parts = []
         for g in sorted(all_groups, key=lambda x: x[0]):
             # This fixes the bug where overlapping groups get put in twice. By simply preventing
@@ -126,28 +262,21 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
                 continue
 
             # Print the match up until the group
-            match_html += f'<span style="color: {match_colors[match.span()]};" class="{match_class}">{_html_escape(test_string[cursor:g[0]])}</span>'
-            match_parts.append([match_colors[match.span()], None, test_string[cursor:g[0]]])
+            match_parts.append([match_color, None, test_string[cursor:g[0]]])
 
             # Print the group
-            match_html += f'<span style="background-color: {colors[g]}; color: {match_colors[match.span()]};" class="{group_class}">{_html_escape(test_string[g[0]:g[1]])}</span>'
-            match_parts.append([match_colors[match.span()], colors[g], test_string[g[0]:g[1]]])
+            match_parts.append([match_color, group_colors[g], test_string[g[0]:g[1]]])
             cursor = g[1]
-        match_html += f'<span style="color: {match_colors[match.span()]};" class="{match_class}">{_html_escape(test_string[cursor:match.span()[1]])}</span>'
-        match_parts.append([match_colors[match.span()], None, test_string[cursor:match.span()[1]]])
+        match_parts.append([match_color, None, test_string[cursor:match.span()[1]]])
         global_cursor = match.span()[1]
-        # Don't print after the group, cause there might be another match that covers it
-        html_string += match_html
         parts += match_parts
-        # to_slice = lambda t: f'({t[0]}:{t[1]})'
         match_json = {
             'match': {
                 'string': match.group(),
-                'string HTML': match_html,
                 'parts': match_parts,
                 'end': match.end(),
                 'start': match.start(),
-                "color": match_colors[match.span()],
+                "color": match_color,
             },
             "unnamed groups":{},
             "named groups":{},
@@ -158,7 +287,7 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
                 'string': match.group(num) or '',
                 'end': span[1],
                 'start': span[0],
-                "color": colors[span],
+                "color": group_colors[span],
             }
 
         for name, span in named_groups.items():
@@ -166,19 +295,13 @@ def api(pattern, replacement_pattern=None, test_string=None, *,
                 'string': match.group(name) or '',
                 'end': span[1],
                 'start': span[0],
-                "color": colors[span],
+                "color": group_colors[span],
             }
         json['matches'].append(match_json)
 
     # Don't forget to add any bit at the end that's not part of a match
-    html_string += _html_escape(test_string[global_cursor:])
     parts.append([None, None, test_string[global_cursor:]])
-    html_string += f'</span></{container_tag}>'
 
-    # Remove any empty spans
-    html_string = re.sub(r'<span[^>]*></span>', '', html_string)
-
-    json['string HTML'] = html_string
     json['parts'] = parts
     if replacement_pattern is not None:
         json['replaced'] = re.sub(pattern.str(), replacement_pattern.str(), test_string, replacement_count)

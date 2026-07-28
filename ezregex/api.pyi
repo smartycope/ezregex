@@ -16,7 +16,6 @@ Match = TypedDict(
     'Match',
     {
         'string': str,
-        'string HTML': str,
         'parts': list[list[str|None]],
         'end': int,
         'start': int,
@@ -37,11 +36,10 @@ APIStructure = TypedDict(
     {
         'regex': str,
         'string': str,
-        'string HTML': str,
         'parts': list[list[str|None]],
         'matches': list[Matches],
         'replaced': str | None,
-        'split': list[str] | None,
+        'split': list[str | None] | None,
     }
 )
 
@@ -50,7 +48,9 @@ def api(
     replacement_pattern:EZRegex|str|None=None,
     test_string:str|None=None, *,
     replacement_count:int=0,
-    split_count:int=0
+    split_count:int=0,
+    background_color:str='#FFFFFF',
+    readability_distinctness_ratio:float=4.5
 ) -> APIStructure: ...
 
 class _ParameterDescription(TypedDict):

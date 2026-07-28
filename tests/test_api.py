@@ -1,4 +1,5 @@
 import json
+from importlib import import_module
 from logging import warning
 from sys import version_info
 from types import ModuleType
@@ -18,6 +19,8 @@ from ezregex import *
 from ezregex import api, python
 from ezregex.api import _describe_dialects
 from ezregex.EZRegex import EZRegex
+
+api_module = import_module('ezregex.api')
 
 # from typing_extensions import TypedDict # Required by pydantic for python < 3.12
 # import importlib, sys
@@ -77,7 +80,6 @@ Match = TypedDict(
     'Match',
     {
         'string': str,
-        'string HTML': str,
         'parts': list[list[str|None]],
         'end': int,
         'start': int,
@@ -98,7 +100,6 @@ APIStructure = TypedDict(
     {
         'regex': str,
         'string': str,
-        'string HTML': str,
         'parts': list[list[str|None]],
         'matches': list[Matches],
         'replaced': str | None,
@@ -106,7 +107,6 @@ APIStructure = TypedDict(
     }
 )
 
-# TODO: test that a pattern like <span> does not break things
 def test_correct_output():
     with open('data/regexs.jsonc') as f:
         regexs = jstyleson.load(f)
@@ -139,17 +139,43 @@ def test_correct_output():
             raise AssertionError(f"Invalid schema from {regex_str}:\n{json.dumps(resp, indent=4)}\n{'-'*20}\nErrors:\n{err.errors()}\n{'-'*20}\n") from err
 
 
-def test_api_escapes_legacy_html():
+def test_api_returns_text_without_legacy_html():
     response = api(python.literal('<span>'), test_string='<span>')
-    assert '<span>' not in response['string HTML']
-    assert '&lt;span&gt;' in response['string HTML']
+    assert 'string HTML' not in response
+    assert 'string HTML' not in response['matches'][0]['match']
     assert any(part[-1] == '<span>' for part in response['parts'])
+
+
+def test_api_generates_match_and_group_colors_against_the_same_background(monkeypatch):
+    calls = []
+
+    def generate_colors(amt, base, readability_distinctness_ratio):
+        calls.append((amt, base, readability_distinctness_ratio))
+        return [f'#{index:06x}' for index in range(amt)]
+
+    monkeypatch.setattr(api_module, '_generate_colors', generate_colors)
+    response = api(
+        python.group(python.literal('a')),
+        test_string='aa',
+        background_color='#123456',
+        readability_distinctness_ratio=3,
+    )
+
+    assert calls == [(4, '#123456', 3)]
+    assert [match['match']['color'] for match in response['matches']] == [
+        '#000000',
+        '#000001',
+    ]
+    assert [
+        match['unnamed groups'][1]['color']
+        for match in response['matches']
+    ] == ['#000002', '#000003']
 
 
 def test_frontend_dialect_catalog():
     catalog = _describe_dialects()
     assert catalog['schema_version'] == 1
-    assert catalog['ezregex_version'] == '3.1.3'
+    assert catalog['ezregex_version'] == '3.1.4'
     assert [dialect['id'] for dialect in catalog['dialects']] == [
         'python', 'javascript', 'r', 'pcre2'
     ]
